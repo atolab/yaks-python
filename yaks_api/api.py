@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
 #
-# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API Implementation
+# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API
 
 import socket
 import threading

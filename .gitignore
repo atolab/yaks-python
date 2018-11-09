@@ -25,3 +25,5 @@ obj/**
 tmp/**
 .python-version
 .vs/
+.vscode/
+.coverage

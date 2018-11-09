@@ -1,3 +1,17 @@
+# Copyright (c) 2018 ADLINK Technology Inc.
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API Implementation
+
 import socket
 import threading
 import queue
@@ -53,14 +67,14 @@ class SendingThread(threading.Thread):
                 self.sock.sendall(msg_s.pack_for_transport())
                 logger.debug('SendingThread', 'Message Sent on Wire\n{}'.
                              format(msg_s.dump_net()))
-            except OSError as e:
-                if e.errno == 9:
-                    logger.error('SendingThread', 'Bad FD')
-                self.send_error_to_all()
-                self.__yaks.is_connected = False
             except ConnectionResetError as cre:
                 logger.error('SendingThread',
                              'Server Closed connection {}'.format(cre))
+                self.send_error_to_all()
+                self.__yaks.is_connected = False
+            except OSError as e:
+                if e.errno == 9:
+                    logger.error('SendingThread', 'Bad FD')
                 self.send_error_to_all()
                 self.__yaks.is_connected = False
             except struct.error as se:
@@ -161,14 +175,14 @@ class ReceivingThread(threading.Thread):
                 except struct.error as se:
                     logger.error('ReceivingThread',
                                  'Unpack Error {}'.format(se))
-                except OSError as e:
-                    if e.errno == 9:
-                        logger.error('ReceivingThread', 'Bad FD')
-                    self.send_error_to_all()
-                    self.__yaks.is_connected = False
                 except ConnectionResetError as cre:
                     logger.error('ReceivingThread',
                                  'Server Closed connection {}'.format(cre))
+                    self.send_error_to_all()
+                    self.__yaks.is_connected = False
+                except OSError as e:
+                    if e.errno == 9:
+                        logger.error('ReceivingThread', 'Bad FD')
                     self.send_error_to_all()
                     self.__yaks.is_connected = False
                 finally:

@@ -1,7 +1,8 @@
 from yaks_api import api
 import sys
 
-# CREATE TABLE test (id SERIAL NOT NULL PRIMARY KEY, mystring VARCHAR(255), myint INT, myfloat REAL, mydate DATE);
+# CREATE TABLE test (id SERIAL NOT NULL PRIMARY KEY,
+#  mystring VARCHAR(255), myint INT, myfloat REAL, mydate DATE);
 # INSERT INTO test VALUES (1, 'test1', 1, 1.1, '2018-01-01');
 # INSERT INTO test VALUES (2, 'test2', 2, 2.2, '2018-02-02');
 # INSERT INTO test VALUES (3, 'test3', 3, 3.3, '2018-03-03');
@@ -77,7 +78,8 @@ def main():
 
     print('>> Get //is/test/db/new-table/A/**?v=\'XXXX\'')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/**?v=\'XXXX\'')))
+    print('GET: {}'.format(access.get(
+        '//is/test/db/new-table/A/**?v=\'XXXX\'')))
 
     print('>> Remove //is/test/db/new-table/A/D')
     input()
@@ -94,7 +96,6 @@ def main():
     print('>> Get //is/test/db/new-table/A/B/**')
     input()
     print('GET: {}'.format(access.get('//is/test/db/new-table/A/B/**')))
-
 
     print('****** SQL storage - legacy table ********')
 

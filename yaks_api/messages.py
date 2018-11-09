@@ -4,9 +4,13 @@
 # information regarding copyright ownership.
 #
 # This program and the accompanying materials are made available under the
-# terms of the LGPL 2.1 which is available at
-# https://github.com/atolab/yaks/blob/master/LICENSE
-# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - API
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API Implementation
 
 
 '''

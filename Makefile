@@ -17,15 +17,15 @@
 WD := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))));
 
 all:
-	echo "Nothing to do"
+	echo "Nothing to do";
 
 install:
-	sudo python3 setup.py install --record yaks_api_files.txt
+	python3 setup.py install --record yaks_files.txt
 
 
 clean:
-	sudo rm -rf ./build ./dist ./yaks_api.egg-info;
+	rm -rf ./build ./dist ./yaks.egg-info;
+	rm -rf yaks_api.log .tox yaks.egg-info ./yaks/__pycache__/ ./yaks/tests/__pycache__/;
 
 test:
 	tox
-	rm -rf yaks_api.log .tox yaks_api.egg-info ./yaks_api/__pycache__/ ./yaks_api/tests/__pycache__/

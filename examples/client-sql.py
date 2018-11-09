@@ -1,4 +1,4 @@
-from yaks_api import api
+from yaks import YAKS
 import sys
 
 # CREATE TABLE test (id SERIAL NOT NULL PRIMARY KEY,
@@ -10,7 +10,7 @@ import sys
 
 def main():
     print('creating api')
-    y = api.YAKS(sys.argv[1])
+    y = YAKS(sys.argv[1])
 
     print('>> Create memory storage')
     input()
@@ -142,4 +142,7 @@ def main():
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('[Usage] {} <yaks server address>'.format(sys.argv[0]))
+        exit(-1)
     main()

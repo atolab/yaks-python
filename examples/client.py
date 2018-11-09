@@ -1,4 +1,4 @@
-from yaks_api import api
+from yaks import YAKS
 import sys
 import json
 
@@ -9,10 +9,10 @@ def obs(kvs):
 
 def main():
     print('creating api')
-    y = api.YAKS(sys.argv[1])
+    y = YAKS(sys.argv[1])
     print('>> Create storage')
     input()
-    #storage = y.create_storage('//fos')
+    storage = y.create_storage('//fos')
     print('>> Create access and subscription')
     input()
     access = y.create_access('//fos')
@@ -56,11 +56,14 @@ def main():
 
     print('>> Dispose Storage')
     input()
-    #storage.dispose()
+    storage.dispose()
 
     y.close()
     print('bye!')
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('[Usage] {} <yaks server address>'.format(sys.argv[0]))
+        exit(-1)
     main()

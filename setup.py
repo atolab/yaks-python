@@ -11,14 +11,21 @@
 #!/usr/bin/env python3
 
 from setuptools import setup
+import os
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='yaks',
     version='0.0.1',
     author='ADLINK Advance Technology Office',
     description='Python API to access the YAKS service',
+    long_description=read('README.md'),
     packages=['yaks'],
-    url='https://github.com/atolab/yaks-pyhton',
+    url='https://github.com/atolab/yaks-python',
     authon_email='gabriele.baldoni@adlinktech.com',
     install_requires=['hexdump'],
     license='Apache 2.O or EPL 2.0',

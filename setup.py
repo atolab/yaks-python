@@ -15,8 +15,21 @@ from setuptools import setup
 setup(
     name='yaks_api',
     version='0.0.1',
-    author='ADLINK_ATO',
+    author='ADLINK Advance Technology Office',
+    description='Python API to access the YAKS service',
     packages=['yaks_api'],
+    url='https://github.com/atolab/yaks-pyhton',
+    authon_email='gabriele.baldoni@adlinktech.com',
     install_requires=['hexdump'],
+    license='Apache 2.O or EPL 2.0',
+    classifiers=[
+          'Development Status :: 2 - Pre-Alpha',
+          'Intended Audience :: Developers',
+          'Intended Audience :: Telecommunications Industry',
+          'License :: OSI Approved :: Apache Software License',
+          'License :: OSI Approved :: Eclipse Public License 2.0 (EPL-2.0)',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 2'
+    ],
     include_package_data=True
 )

@@ -13,11 +13,11 @@
 from setuptools import setup
 
 setup(
-    name='yaks_api',
+    name='yaks',
     version='0.0.1',
     author='ADLINK Advance Technology Office',
     description='Python API to access the YAKS service',
-    packages=['yaks_api'],
+    packages=['yaks'],
     url='https://github.com/atolab/yaks-pyhton',
     authon_email='gabriele.baldoni@adlinktech.com',
     install_requires=['hexdump'],

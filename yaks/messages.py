@@ -571,6 +571,7 @@ class MessageEval(Message):
         self.message_code = EVAL
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
+        self.add_path(computation)
 
 
 class MessageValues(Message):

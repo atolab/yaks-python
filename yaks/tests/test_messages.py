@@ -50,6 +50,21 @@ class MessagesTests(unittest.TestCase):
         msg1.set_encoding(messages.JSON)
         self.assertEqual(msg1.get_encoding(), messages.JSON)
 
+    def test_set_unset_flags(self):
+        msg1 = messages.Message()
+        msg1.set_a()
+        msg1.set_p()
+        msg1.set_s()
+        msg2 = messages.Message(msg1.pack())
+
+        self.assertEqual(msg2.flags, 7)
+        msg2.unset_p()
+        self.assertEqual(msg2.flags, 6)
+        msg2.unset_s()
+        self.assertEqual(msg2.flags, 4)
+        msg2.unset_a()
+        self.assertEqual(msg2.flags, 0)
+
     def test_add_remove_property(self):
         msg1 = messages.Message()
         msg1.add_property('key1', 'value1')
@@ -57,6 +72,10 @@ class MessagesTests(unittest.TestCase):
         msg2 = messages.Message(packed)
         msg2.remove_property('key1')
         self.assertEqual(msg2.properties, [])
+
+    def test_get_none_property(self):
+        msg1 = messages.Message()
+        self.assertEqual(msg1.get_property('key1'), None)
 
     def test_add_get_string(self):
         msg1 = messages.Message()
@@ -318,3 +337,11 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
         self.assertEqual(msg1.get_subscription(), '121241')
+
+    def test_eval_message(self):
+        msg1 = messages.MessageEval('321', '//a/path')
+        self.assertEqual(msg1.message_code, 0xB3)
+        self.assertEqual(msg1.flag_p, 1)
+        self.assertEqual(msg1.flag_a, 0)
+        self.assertEqual(msg1.flag_s, 0)
+        self.assertEqual(msg1.get_path(), '//a/path')

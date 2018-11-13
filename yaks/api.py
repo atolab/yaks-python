@@ -261,11 +261,11 @@ class Access(object):
 
     def get(self, key):
         self.__yaks.check_connection()
-        msg_get = MessageGet(self.id, key, encoding=self.encoding)
+        msg_get = MessageGet(self.id, key)
         var = MVar()
         self.__send_queue.put((msg_get, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_get.corr_id, expected=[PVALUES, SVALUES]):
+        if YAKS.check_msg(r, msg_get.corr_id, expected=[VALUES]):
             return r.get_values()
         return None
 

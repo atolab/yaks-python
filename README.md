@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/atolab/yaks-python.svg?token=LBmcudV28U4KHP4F42om&branch=master)](https://travis-ci.com/atolab/yaks-python)
+
 # YAKS Python API
 
 This repo contains the YAKS API binding for Python

@@ -362,9 +362,9 @@ class Message(object):
         self.data = self.__add_string(subid) + self.__add_key_value_list(kvs)
 
     def get_notification(self):
-        subid, pos = self.__get_string(self.data, 0)
+        subids, pos = self.__decode_list(self.data, 0)
         kvs, _ = self.__get_key_value_list(self.data, pos)
-        return subid, kvs
+        return subids, kvs
 
     def add_subscription(self, subid):
         self.data = self.__add_string(subid)
@@ -480,37 +480,35 @@ class MessageOpen(Message):
 
 
 class MessageCreate(Message):
-    def __init__(self, type, path, id=None, cache_size=1024, config=None,
-                 complete=None):
+    def __init__(self, ctype, path, properties=None):
         super(MessageCreate, self).__init__()
         self.message_code = CREATE
         self.generate_corr_id()
         self.add_path(path)
-        if type is EntityType.ACCESS:
+        if properties is not None:
+            for pname in properties:
+                pvalue = properties.get(pname)
+                if isinstance(pvalue, str):
+                    self.add_property(pname, pvalue)
+                elif isinstance(pvalue, int) or isinstance(pvalue, float):
+                    self.add_property(pname, '{}'.format(pvalue))
+                elif isinstance(pvalue, dict):
+                    self.add_property(pname, json.dumps(pvalue))
+        if ctype is EntityType.ACCESS:
             self.set_a()
-            if id is not None:
-                self.add_property('is.yaks.access.alias', id)
-            if cache_size is not None:
-                self.add_property('is.yaks.access.cachesize', str(cache_size))
-        elif type is EntityType.STORAGE:
+        elif ctype is EntityType.STORAGE:
             self.set_s()
-            if id is not None:
-                self.add_property('is.yaks.storage.id', id)
-            if config is not None:
-                self.add_property('is.yaks.storage.config', json.dumps(config))
-            if complete is not None and complete is True:
-                self.add_property('is.yaks.storage.complete', 'true')
 
 
 class MessageDelete(Message):
-    def __init__(self, id, type=None, path=None):
+    def __init__(self, id, dtype=None, path=None):
         super(MessageDelete, self).__init__()
         self.message_code = DELETE
         self.generate_corr_id()
-        if type is EntityType.ACCESS:
+        if dtype is EntityType.ACCESS:
             self.set_a()
             self.add_property('is.yaks.access.id', id)
-        elif type is EntityType.STORAGE:
+        elif dtype is EntityType.STORAGE:
             self.set_s()
             self.add_property('is.yaks.storage.id', id)
         elif path is not None:
@@ -519,70 +517,69 @@ class MessageDelete(Message):
 
 
 class MessagePut(Message):
-    def __init__(self, id, key, value, encoding=RAW):
+    def __init__(self, aid, key, value, encoding=RAW):
         super(MessagePut, self).__init__()
         self.message_code = PUT
         self.set_encoding(encoding)
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.add_values([{'key': key,
                           'value': value}])
 
 
 class MessagePatch(Message):
-    def __init__(self, id, key, value, encoding=RAW):
+    def __init__(self, aid, key, value, encoding=RAW):
         super(MessagePatch, self).__init__()
         self.message_code = PATCH
         self.set_encoding(encoding)
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.add_values([{'key': key,
                           'value': value}])
 
 
 class MessageGet(Message):
-    def __init__(self, id, key, encoding=RAW):
+    def __init__(self, aid, key):
         super(MessageGet, self).__init__()
         self.message_code = GET
-        self.set_encoding(encoding)
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.add_selector(key)
 
 
 class MessageSub(Message):
-    def __init__(self, id, key, encoding=RAW):
+    def __init__(self, aid, key, encoding=RAW):
         super(MessageSub, self).__init__()
         self.message_code = SUB
         self.set_encoding(encoding)
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.add_subscription(key)
 
 
 class MessageUnsub(Message):
-    def __init__(self, id, subscription_id):
+    def __init__(self, aid, subscription_id):
         super(MessageUnsub, self).__init__()
         self.message_code = UNSUB
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.add_subscription(subscription_id)
 
 
 class MessageEval(Message):
-    def __init__(self, id, computation):
+    def __init__(self, aid, computation):
         super(MessageEval, self).__init__()
         self.message_code = EVAL
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
 
 
 class MessageValues(Message):
-    def __init__(self, id, kvs, encoding=RAW):
+    def __init__(self, aid, kvs, encoding=RAW):
         super(MessageValues, self).__init__()
         self.message_code = PVALUES
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', id)
+        self.add_property('is.yaks.access.id', aid)
         self.set_encoding(encoding)
         self.add_values(kvs)
 

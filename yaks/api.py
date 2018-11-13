@@ -148,11 +148,12 @@ class ReceivingThread(threading.Thread):
                                      'Message Received {} \n{}'.
                                      format(msg_r.pprint(), msg_r.dump()))
                         if msg_r.message_code == NOTIFY:
-                            sid, kvs = msg_r.get_notification()
-                            if sid in self.subscriptions:
-                                cbk = self.subscriptions.get(sid)
-                                threading.Thread(target=cbk, args=(kvs,),
-                                                 daemon=True).start()
+                            sids, kvs = msg_r.get_notification()
+                            for sid in sids:
+                                if sid in self.subscriptions:
+                                    cbk = self.subscriptions.get(sid)
+                                    threading.Thread(target=cbk, args=(kvs,),
+                                                     daemon=True).start()
                         elif self.waiting_msgs.get(msg_r.corr_id) is None:
                             logger.info('ReceivingThread',
                                         'This message was not expected!')
@@ -192,13 +193,13 @@ class ReceivingThread(threading.Thread):
 
 
 class Access(object):
-    def __init__(self, y, id, path, cache_size=0, encoding=RAW):
+    def __init__(self, y, id, path, properties, encoding):
         self.__yaks = y
         self.__subscriptions = self.__yaks.subscriptions
         self.__send_queue = self.__yaks.send_queue
         self.id = id
         self.path = path
-        self.cache_size = cache_size
+        self.properties = properties
         self.encoding = encoding
 
     def put(self, key, value):
@@ -346,14 +347,14 @@ class YAKS(object):
         self.st.close()
         self.rt.close()
 
-    def create_access(self, path, cache_size=1024, encoding=RAW):
+    def create_access(self, path, properties=None, encoding=RAW):
         create_msg = MessageCreate(EntityType.ACCESS, path)
         var = MVar()
         self.send_queue.put((create_msg, var))
         msg = var.get()
         if self.check_msg(msg, create_msg.corr_id):
             id = msg.get_property('is.yaks.access.id')
-            acc = Access(self, id, path, cache_size, encoding)
+            acc = Access(self, id, path, properties, encoding)
             self.accesses.update({id: acc})
             return acc
         else:

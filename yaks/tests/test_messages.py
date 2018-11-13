@@ -155,8 +155,33 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.flag_s, 0)
         self.assertEqual(msg1.get_path(), '//a/path')
 
+    def test_create_access_w_properties(self):
+        properties = {
+            'is.yaks.access.alias': 123,
+            'is.yaks.access.cachesize': '1024'
+        }
+        msg1 = messages.MessageCreate(
+            messages.EntityType.ACCESS, '//a/path', properties)
+        self.assertEqual(msg1.message_code, 0x02)
+        self.assertEqual(msg1.flag_a, 1)
+        self.assertEqual(msg1.flag_s, 0)
+        self.assertEqual(msg1.get_path(), '//a/path')
+
     def test_create_storage(self):
         msg1 = messages.MessageCreate(messages.EntityType.STORAGE, '//a/path')
+        self.assertEqual(msg1.message_code, 0x02)
+        self.assertEqual(msg1.flag_s, 1)
+        self.assertEqual(msg1.flag_a, 0)
+        self.assertEqual(msg1.get_path(), '//a/path')
+
+    def test_create_storage_w_properties_n_config(self):
+        config = {'backendip': '127.0.0.1', 'port': 8888}
+        properties = {
+            'is.yaks.storage.config': config,
+            'is.yaks.storage.alias': 'store1'
+        }
+        msg1 = messages.MessageCreate(
+            messages.EntityType.STORAGE, '//a/path', properties)
         self.assertEqual(msg1.message_code, 0x02)
         self.assertEqual(msg1.flag_s, 1)
         self.assertEqual(msg1.flag_a, 0)

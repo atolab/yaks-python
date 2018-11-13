@@ -1,3 +1,4 @@
+[![PyPI version](https://badge.fury.io/py/yaks.svg)](https://badge.fury.io/py/yaks)
 [![Build Status](https://travis-ci.com/atolab/yaks-python.svg?token=LBmcudV28U4KHP4F42om&branch=master)](https://travis-ci.com/atolab/yaks-python)
 [![codecov](https://codecov.io/gh/atolab/yaks-python/branch/master/graph/badge.svg)](https://codecov.io/gh/atolab/yaks-python)
 

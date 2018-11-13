@@ -75,8 +75,7 @@ UNSUB = 0xB1
 NOTIFY = 0xB2
 EVAL = 0xB3
 OK = 0xD0
-PVALUES = 0xD1
-SVALUES = 0xD2
+VALUES = 0xD1
 ERROR = 0xE0
 
 # Encoding
@@ -213,8 +212,8 @@ class Message(object):
                 base_p = base_p + value_length
                 self.properties.append({'key': k, 'value': v})
 
-        self.data = self.raw_msg[base_p:]
-        if len(self.data) > 0 and self.message_code in [PVALUES, SVALUES]:
+        self.set_data(self.raw_msg[base_p:])
+        if len(self.data) > 0 and self.message_code in [VALUES]:
             self.encoding = self.__read_encoding(self.data, 0)
         return self
 
@@ -359,7 +358,7 @@ class Message(object):
         return s
 
     def add_notification(self, subid, kvs):
-        self.data = self.__add_string(subid) + self.__add_key_value_list(kvs)
+        self.data = self.__encode_list(subid) + self.__add_key_value_list(kvs)
 
     def get_notification(self):
         subids, pos = self.__decode_list(self.data, 0)
@@ -577,7 +576,7 @@ class MessageEval(Message):
 class MessageValues(Message):
     def __init__(self, aid, kvs, encoding=RAW):
         super(MessageValues, self).__init__()
-        self.message_code = PVALUES
+        self.message_code = VALUES
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
         self.set_encoding(encoding)

@@ -34,11 +34,29 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.message_code, msg2.message_code)
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg1.properties, msg2.properties)
+        self.assertEqual(msg2.get_property('key1'), 'value1')
+
+    def test_pack_for_tx(self):
+        msg1 = messages.Message()
+        msg1.message_code = 0xFE
+        msg1.corr_id = 1
+        packed_msg1 = msg1.pack_for_transport()
+        data = b'\x03\xfe\x00\x01'
+
+        self.assertEqual(data, packed_msg1)
 
     def test_set_encoding(self):
         msg1 = messages.Message()
         msg1.set_encoding(messages.JSON)
         self.assertEqual(msg1.get_encoding(), messages.JSON)
+
+    def test_add_remove_property(self):
+        msg1 = messages.Message()
+        msg1.add_property('key1', 'value1')
+        packed = msg1.pack()
+        msg2 = messages.Message(packed)
+        msg2.remove_property('key1')
+        self.assertEqual(msg2.properties, [])
 
     def test_add_get_string(self):
         msg1 = messages.Message()
@@ -54,7 +72,7 @@ class MessagesTests(unittest.TestCase):
             {'key': 'another', 'value': 'longvalue'}
         ]
         msg1.set_encoding(messages.RAW)
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.add_values(v1)
         packed = msg1.pack()
         msg2 = messages.Message(packed)
@@ -67,7 +85,7 @@ class MessagesTests(unittest.TestCase):
             {'key': 'another', 'value': 'longvalue'}
         ]
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.set_encoding(messages.JSON)
         msg1.add_values(v1)
         packed = msg1.pack()
@@ -82,7 +100,7 @@ class MessagesTests(unittest.TestCase):
             {'key': 'another', 'value': 'longvalue'}
         ]
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.set_encoding(messages.RAW)
         msg1.add_values(v1)
         packed = msg1.pack()
@@ -97,7 +115,7 @@ class MessagesTests(unittest.TestCase):
             {'key': 'another', 'value': 'longvalue'}
         ]
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.set_encoding(messages.STRING)
         msg1.add_values(v1)
         packed = msg1.pack()
@@ -111,7 +129,7 @@ class MessagesTests(unittest.TestCase):
             {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
         ]
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.set_encoding(messages.SQL)
         msg1.add_values(v1)
         packed = msg1.pack()
@@ -125,14 +143,46 @@ class MessagesTests(unittest.TestCase):
             {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
         ]
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         msg1.set_encoding(messages.PROTOBUF)
         self.assertRaises(NotImplementedError, msg1.add_values, v1)
 
+    def test_value_encoding_invalid(self):
+        v1 = [
+            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+        ]
+        msg1 = messages.Message()
+        msg1.message_code = messages.VALUES
+        msg1.set_encoding(messages.INVALID)
+        self.assertRaises(ValueError, msg1.add_values, v1)
+
+    def test_value_encoding_unknown(self):
+        v1 = [
+            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+        ]
+        msg1 = messages.Message()
+        msg1.message_code = messages.VALUES
+        msg1.set_encoding(0xFE)
+        self.assertRaises(ValueError, msg1.add_values, v1)
+
     def test_set_encoding_exception(self):
         msg1 = messages.Message()
-        msg1.message_code = messages.PVALUES
+        msg1.message_code = messages.VALUES
         self.assertRaises(ValueError, msg1.set_encoding, 0x100)
+
+    def test_set_notification(self):
+        v1 = [{'key': 'hello', 'value': 'world'}]
+        sid = ['1234']
+        msg1 = messages.Message()
+        msg1.set_encoding(messages.STRING)
+        msg1.message_code = messages.NOTIFY
+        msg1.add_notification(sid, v1)
+
+        packed = msg1.pack()
+        msg2 = messages.Message(packed)
+
+        self.assertEqual(msg2.message_code, messages.NOTIFY)
+        self.assertEqual(msg2.get_notification(), (sid, v1))
 
     def test_ok_message(self):
         msg1 = messages.MessageOk('123')
@@ -147,6 +197,13 @@ class MessagesTests(unittest.TestCase):
     def test_open_message(self):
         msg1 = messages.MessageOpen()
         self.assertEqual(msg1.message_code, 0x01)
+
+    def test_open_message_w_credentials(self):
+        msg1 = messages.MessageOpen('usr', 'pwd')
+        msg2 = messages.Message(msg1.pack())
+
+        self.assertEqual(msg2.message_code, 0x01)
+        self.assertEqual(msg1.get_property('yaks.login'), 'usr:pwd')
 
     def test_create_access(self):
         msg1 = messages.MessageCreate(messages.EntityType.ACCESS, '//a/path')

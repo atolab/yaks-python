@@ -1,4 +1,6 @@
-sudo: false
+before_install:
+  - sudo apt-get install -y libmariadbclient-dev libsqlite3-dev libpq-dev
+dist: xenial
 language: python
 python:
   - "3.5"

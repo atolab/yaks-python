@@ -18,25 +18,47 @@ from yaks import path
 
 class PathTests(unittest.TestCase):
 
-    def test_path_creation(self):
-        p = path.Path('//this/is/a/path')
-        self.assertEqual(p.path, '//this/is/a/path')
+    def test_path_check_ok(self):
+        self.assertTrue(path.check('/this/is/a/path'))
+
+    def test_path_check_absolute_ok(self):
+        self.assertTrue(path.is_absolute('/this/is/a/absoliute/path'))
+
+    def test_path_check_absolute_ko(self):
+        self.assertFalse(path.is_absolute('this/is/a/relative/path'))
 
     def test_path_prefix(self):
-        p = path.Path('//this/is/a/path/with/a/prefix')
-        self.assertEqual(p.is_prefix('//this/is/a/path'), True)
-        self.assertEqual(p.is_prefix('//that/is/a/path'), False)
+        p = '/this/is/a/path/with/a/prefix'
+        self.assertEqual(path.is_prefix(p, '/this/is/a/path'), True)
+        self.assertEqual(path.is_prefix(p, '/that/is/a/path'), False)
 
-    def test_path_creation_error(self):
-        p = '/this/is/a/not/path'
-        self.assertRaises(ValueError, path.Path, p)
+    def test_path_check_ko_1(self):
+        self.assertFalse(path.check('//this/is/a/not/path'))
+
+    def test_path_check_ko_2(self):
+        self.assertFalse(path.check('//this/is/a/not/path/**'))
+
+    def test_path_check_ko_3(self):
+        self.assertFalse(path.check('//this/is/a/not/path?with=query'))
+
+    def test_path_check_ko_4(self):
+        self.assertFalse(path.check('//this/is/a/not/path#fragment'))
+
+    def test_selector_check_ok(self):
+        self.assertTrue(path.is_valid_selector('/this/is/a/*/selector'))
+
+    def test_selector_check_ok_2(self):
+        self.assertTrue(path.is_valid_selector('this/is/a/*/selector'))
+
+    def test_selector_check_ko(self):
+        self.assertFalse(path.is_valid_selector('//this/is/not/a/*/selector'))
 
     def test_path_query(self):
-        p = path.Path('//this/is/a/path?with=query&data=somedata')
+        p = '/this/is/a/path?with=query&data=somedata'
         q = {'with': 'query', 'data': 'somedata'}
-        self.assertEqual(q, p.get_query())
+        self.assertEqual(q, path.get_query(p))
 
     def test_path_query_complex(self):
-        p = path.Path('//this/is/a/path?with=query&data.level2=somedata')
+        p = '/this/is/a/path?with=query&data.level2=somedata'
         q = {'with': 'query', 'data': {'level2': 'somedata'}}
-        self.assertEqual(q, p.get_query())
+        self.assertEqual(q, path.get_query(p))

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-WD=$(PWD)
+WD=$(pwd)
 cd $(mktemp -d)
-YD=$(PWD)
-wget https://www.dropbox.com/s/jcm87oa8w65hv42/yaks.zip -O yaks.zip
-unzip yaks.zip
-$YD/yaksd -w > yaks.out 2>&1 & echo $! > $YD/yaks.pid
+YD=$(pwd)
+curl -L -o yaks.tar.gz https://www.dropbox.com/s/275sm1vux7ywvy3/yaks.tar.gz
+tar -xzvf yaks.tar.gz
+$YD/yaksd -w > $YD/yaks.out 2>&1 & echo $! > $YD/yaks.pid
 YPID=$(<"$YD/yaks.pid")
 echo "YAKS PID $YPID"
 cd $WD
@@ -13,3 +13,5 @@ echo "Running tests from $WD"
 tox
 echo "KILLING YAKS $YPID"
 kill -15 $YPID
+rm -rf $YD
+exit 0

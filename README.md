@@ -25,6 +25,9 @@ MainMemory Example:
 Client:
     python3 client.py <yaks-ip>
 
+
+You can also use the DB example with uses mariadb for storing data.
+
 MariaDB Example:
 
 You need a database demo and a table test.

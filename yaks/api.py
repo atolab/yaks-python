@@ -128,7 +128,13 @@ class ReceivingThread(threading.Thread):
         self._is_running = True
         while self._is_running and self.__yaks.is_connected:
 
-            i, _, xs = select.select([self.sock], [], [self.sock])
+            try:
+                i, _, xs = select.select([self.sock], [], [self.sock])
+            except OSError:
+                self.lock.acquire()
+                self.send_error_to_all()
+                self.__yaks.is_connected = False
+                self.lock.release()
             if len(xs) != 0:
                 logger.error('ReceivingThread', 'Exception on socket')
             elif len(i) != 0:

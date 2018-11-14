@@ -11,8 +11,7 @@ install:
   - travis_retry pip install tox
   - pip install codecov
 script:
-  - tox
-  - test -d .tox/$TOXENV/log && cat .tox/$TOXENV/log/*.log || true
+  - .travis-ci.sh
 cache:
   directories:
     - $HOME/.cache/pip

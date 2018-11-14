@@ -281,8 +281,8 @@ class Access(object):
         return None
 
     def eval(self, key, computation):
-        if ypath.is_valid_selector(key) is False:
-            raise ValueError('Selector {} is not valid'.format(key))
+        if ypath.check(key) is False:
+            raise ValueError('Path {} is not valid'.format(key))
         self.__yaks.check_connection()
         raise NotImplementedError('Not yet...')
 

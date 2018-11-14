@@ -11,7 +11,7 @@ install:
   - travis_retry pip install tox
   - pip install codecov
 script:
-  - .travis-ci.sh
+  - bash -ex .yaks-ci.sh
 cache:
   directories:
     - $HOME/.cache/pip

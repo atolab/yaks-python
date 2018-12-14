@@ -68,9 +68,9 @@ def main():
     input()
     print('GET: {}'.format(access.get('//is/test/db/new-table/A/**/J')))
 
-    print('>> Put //is/test/db/new-table/A/B/**')
+    print('>> Put //is/test/db/new-table/A/B/G')
     input()
-    access.put('//is/test/db/new-table/A/B/**', "XXXX")
+    access.put('//is/test/db/new-table/A/B/G', "XXXX")
 
     print('>> Get //is/test/db/new-table/A/**')
     input()
@@ -89,9 +89,9 @@ def main():
     input()
     print('GET: {}'.format(access.get('//is/test/db/new-table/A/D')))
 
-    print('>> Remove //is/test/db/new-table/A/B/**')
+    print('>> Remove //is/test/db/new-table/A/B')
     input()
-    access.remove('//is/test/db/new-table/A/B/**')
+    access.remove('//is/test/db/new-table/A/B')
 
     print('>> Get //is/test/db/new-table/A/B/**')
     input()
@@ -106,14 +106,6 @@ def main():
     print('>> Put //is/test/db/leg-table')
     input()
     access.put('//is/test/db/leg-table', "4, 'test4', 4, 4.4, '2018-04-04'")
-
-    print('>> Get //is/test/db/leg-table')
-    input()
-    print('GET: {}'.format(access.get('//is/test/db/leg-table')))
-
-    print('>> Remove //is/test/db/leg-table?id=4')
-    input()
-    access.remove('//is/test/db/leg-table?id=4',)
 
     print('>> Get //is/test/db/leg-table')
     input()

@@ -22,6 +22,7 @@ from yaks.mvar import MVar
 from yaks import path as ypath
 from yaks.encoder import VLEEncoder
 from yaks.logger import APILogger
+from yaks.exceptions import ValidationError
 
 BUFFSIZE = 1
 ver = os.environ.get('YAKS_PYTHON_API_LOGFILE')
@@ -129,7 +130,13 @@ class ReceivingThread(threading.Thread):
         self._is_running = True
         while self._is_running and self.__yaks.is_connected:
 
-            i, _, xs = select.select([self.sock], [], [self.sock])
+            try:
+                i, _, xs = select.select([self.sock], [], [self.sock])
+            except OSError:
+                self.lock.acquire()
+                self.send_error_to_all()
+                self.__yaks.is_connected = False
+                self.lock.release()
             if len(xs) != 0:
                 logger.error('ReceivingThread', 'Exception on socket')
             elif len(i) != 0:
@@ -193,21 +200,19 @@ class ReceivingThread(threading.Thread):
             self.close()
 
 
-class Access(object):
-    def __init__(self, y, id, path, properties, encoding):
+class Workspace(object):
+    def __init__(self, y, id, path, properties):
         self.__yaks = y
         self.__subscriptions = self.__yaks.subscriptions
         self.__send_queue = self.__yaks.send_queue
         self.id = id
         self.path = path
         self.properties = properties
-        self.encoding = encoding
+        # self.encoding = encoding
 
-    def put(self, key, value):
-        if ypath.check(key) is False:
-            raise ValueError('Path {} is not valid'.format(key))
+    def put(self, path, value):
         self.__yaks.check_connection()
-        msg_put = MessagePut(self.id, key, value, encoding=self.encoding)
+        msg_put = MessagePut(self.id, path, value)
         var = MVar()
         self.__send_queue.put((msg_put, var))
         r = var.get()
@@ -215,11 +220,9 @@ class Access(object):
             return True
         return False
 
-    def delta_put(self, key, value):
-        if ypath.check(key) is False:
-            raise ValueError('Path {} is not valid'.format(key))
+    def update(self, path, value):
         self.__yaks.check_connection()
-        msg_delta = MessagePatch(self.id, key, value, encoding=self.encoding)
+        msg_delta = MessagePatch(self.id, path, value)
         var = MVar()
         self.__send_queue.put((msg_delta, var))
         r = var.get()
@@ -227,11 +230,9 @@ class Access(object):
             return True
         return False
 
-    def remove(self, key):
-        if ypath.check(key) is False:
-            raise ValueError('Path {} is not valid'.format(key))
+    def remove(self, path):
         self.__yaks.check_connection()
-        msg_rm = MessageDelete(self.id, path=key)
+        msg_rm = MessageDelete(self.id, path=path)
         var = MVar()
         self.__send_queue.put((msg_rm, var))
         r = var.get()
@@ -239,17 +240,16 @@ class Access(object):
             return True
         return False
 
-    def subscribe(self, key, callback):
-        if ypath.is_valid_selector(key) is False:
-            raise ValueError('Selector {} is not valid'.format(key))
+    def subscribe(self, selector, callback=None):
         self.__yaks.check_connection()
-        msg_sub = MessageSub(self.id, key, encoding=self.encoding)
+        msg_sub = MessageSub(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_sub, var))
         r = var.get()
         if YAKS.check_msg(r, msg_sub.corr_id):
             subid = r.get_property('is.yaks.subscription.id')
-            self.__subscriptions.update({subid: callback})
+            if callback:
+                self.__subscriptions.update({subid: callback})
             return subid
         return None
 
@@ -268,11 +268,9 @@ class Access(object):
             return True
         return False
 
-    def get(self, key):
-        if ypath.is_valid_selector(key) is False:
-            raise ValueError('Selector {} is not valid'.format(key))
+    def get(self, selector):
         self.__yaks.check_connection()
-        msg_get = MessageGet(self.id, key)
+        msg_get = MessageGet(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_get, var))
         r = var.get()
@@ -280,16 +278,14 @@ class Access(object):
             return r.get_values()
         return None
 
-    def eval(self, key, computation):
-        if ypath.check(key) is False:
-            raise ValueError('Path {} is not valid'.format(key))
+    def eval(self, path, computation):
         self.__yaks.check_connection()
         raise NotImplementedError('Not yet...')
 
     def dispose(self):
         self.__yaks.check_connection()
         var = MVar()
-        msg = MessageDelete(self.id, EntityType.ACCESS)
+        msg = MessageDelete(self.id, EntityType.WORKSPACE)
         self.__send_queue.put((msg, var))
         r = var.get()
         if YAKS.check_msg(r, msg.corr_id):
@@ -297,25 +293,25 @@ class Access(object):
         return False
 
 
-class Storage(object):
-    def __init__(self, y, id, path, properties=[]):
-        self.__yaks = y
-        self.__send_queue = self.__yaks.send_queue
-        self.id = id
-        self.path = path
-        self.properties = properties
-        logger.info('Storage __init__', 'Created storage {} - {}'.
-                    format(self.id, self.path))
+# class Storage(object):
+#     def __init__(self, y, id, path, properties=[]):
+#         self.__yaks = y
+#         self.__send_queue = self.__yaks.send_queue
+#         self.id = id
+#         self.path = path
+#         self.properties = properties
+#         logger.info('Storage __init__', 'Created storage {} - {}'.
+#                     format(self.id, self.path))
 
-    def dispose(self):
-        self.__yaks.check_connection()
-        var = MVar()
-        msg = MessageDelete(self.id, EntityType.STORAGE)
-        self.__send_queue.put((msg, var))
-        r = var.get()
-        if YAKS.check_msg(r, msg.corr_id):
-            return True
-        return False
+#     def dispose(self):
+#         self.__yaks.check_connection()
+#         var = MVar()
+#         msg = MessageDelete(self.id, EntityType.STORAGE)
+#         self.__send_queue.put((msg, var))
+#         r = var.get()
+#         if YAKS.check_msg(r, msg.corr_id):
+#             return True
+#         return False
 
 
 class YAKS(object):
@@ -356,39 +352,37 @@ class YAKS(object):
             raise ConnectionError('Lost connection with YAKS')
         pass
 
-    def close(self):
+    def logout(self):
         self.st.close()
         self.rt.close()
 
-    def create_access(self, path, properties=None, encoding=RAW):
-        if ypath.check(path) is False:
-            raise ValueError('Path {} is not valid'.format(path))
-        if ypath.is_absolute(path) is False:
-            raise ValueError('Path {} is not absolute'.format(path))
-        create_msg = MessageCreate(EntityType.ACCESS, path)
+    def workspace(self, path, properties=None):
+        create_msg = MessageCreate(EntityType.WORKSPACE, path)
         var = MVar()
         self.send_queue.put((create_msg, var))
         msg = var.get()
         if self.check_msg(msg, create_msg.corr_id):
             id = msg.get_property('is.yaks.access.id')
-            acc = Access(self, id, path, properties, encoding)
+            acc = Workspace(self, id, path, properties)
             self.accesses.update({id: acc})
             return acc
         else:
             return None
 
-    def get_accesses(self):
-        return self.accesses
+    # def get_accesses(self):
+    #     return self.accesses
 
-    def get_access(self, access_id):
-        return self.accesses.get(access_id)
+    # def get_access(self, access_id):
+    #     return self.accesses.get(access_id)
 
-    def create_storage(self, path, properties=None):
-        if ypath.check(path) is False:
-            raise ValueError('Path {} is not valid'.format(path))
-        if ypath.is_absolute(path) is False:
-            raise ValueError('Path {} is not absolute'.format(path))
-        create_msg = MessageCreate(EntityType.STORAGE, path)
+    def create_storage(self, stid, properties):
+        if not isinstance(properties, dict) or \
+            properties.get('is.yaks.storage.selector') is None:
+            raise ValidationError("Missing Storage Selector!!")
+
+        storage_selector = properties.get('is.yaks.storage.selector')
+        properties.pop('is.yaks.storage.selector')
+        create_msg = MessageCreate(EntityType.STORAGE, storage_selector)
         if properties:
             for k in properties:
                 v = properties.get(k)
@@ -397,15 +391,22 @@ class YAKS(object):
         self.send_queue.put((create_msg, var))
         msg = var.get()
         if self.check_msg(msg, create_msg.corr_id):
-            id = msg.get_property('is.yaks.storage.id')
-            sto = Storage(self, id, path, properties)
-            self.storages.update({id: sto})
-            return sto
+            sid = msg.get_property('is.yaks.storage.id')
+            self.storages.update({stid: sid})
+            return stid
         else:
             return None
 
-    def get_storages(self):
-        return self.storages
-
-    def get_storage(self, storage_id):
-        return self.storages.get(storage_id)
+    def remove_storage(self, stid):
+        self.check_connection()
+        var = MVar()
+        sid = self.storages.get(stid)
+        if sid is None:
+            raise ValidationError(
+                "Storage with id {} does not exist!".format(stid))
+        msg = MessageDelete(sid, EntityType.STORAGE)
+        self.send_queue.put((msg, var))
+        r = var.get()
+        if YAKS.check_msg(r, msg.corr_id):
+            return True
+        return False

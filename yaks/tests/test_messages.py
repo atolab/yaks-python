@@ -14,6 +14,10 @@
 
 import unittest
 from yaks import messages
+from yaks import Selector
+from yaks import Path
+from yaks import Value
+from yaks.encoding import *
 
 
 class MessagesTests(unittest.TestCase):
@@ -45,11 +49,6 @@ class MessagesTests(unittest.TestCase):
 
         self.assertEqual(data, packed_msg1)
 
-    def test_set_encoding(self):
-        msg1 = messages.Message()
-        msg1.set_encoding(messages.JSON)
-        self.assertEqual(msg1.get_encoding(), messages.JSON)
-
     def test_set_unset_flags(self):
         msg1 = messages.Message()
         msg1.set_a()
@@ -79,18 +78,17 @@ class MessagesTests(unittest.TestCase):
 
     def test_add_get_string(self):
         msg1 = messages.Message()
-        msg1.add_path('test_string_as_payload')
+        msg1.add_path(Path('/test_string_as_payload'))
         packed = msg1.pack()
         msg2 = messages.Message(packed)
-        self.assertEqual('test_string_as_payload', msg2.get_path())
+        self.assertEqual(Path('/test_string_as_payload'), msg2.get_path())
 
     def test_add_get_values(self):
         msg1 = messages.Message()
         v1 = [
-            {'key': 'hello', 'value': 'world'},
-            {'key': 'another', 'value': 'longvalue'}
+            {'key': Path('/hello'), 'value': Value('world')},
+            {'key': Path('/another'), 'value': Value('longvalue')}
         ]
-        msg1.set_encoding(messages.RAW)
         msg1.message_code = messages.VALUES
         msg1.add_values(v1)
         packed = msg1.pack()
@@ -100,100 +98,88 @@ class MessagesTests(unittest.TestCase):
 
     def test_set_encoding_json(self):
         v1 = [
-            {'key': 'hello', 'value': 'world'},
-            {'key': 'another', 'value': 'longvalue'}
+            {'key': Path('/hello'), 'value': Value('world', encoding=JSON)},
+            {'key': Path('/another'),
+                         'value': Value('longvalue', encoding=JSON)}
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.JSON)
         msg1.add_values(v1)
         packed = msg1.pack()
         msg2 = messages.Message(packed)
-        self.assertEqual(msg1.get_encoding(), msg2.get_encoding())
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg2.get_values(), v1)
 
     def test_set_encoding_raw(self):
         v1 = [
-            {'key': 'hello', 'value': 'world'},
-            {'key': 'another', 'value': 'longvalue'}
+            {'key': Path('/hello'), 'value': Value('world')},
+            {'key': Path('/another'), 'value': Value('longvalue')}
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.RAW)
         msg1.add_values(v1)
         packed = msg1.pack()
         msg2 = messages.Message(packed)
-        self.assertEqual(msg1.get_encoding(), msg2.get_encoding())
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg2.get_values(), v1)
 
     def test_set_encoding_string(self):
         v1 = [
-            {'key': 'hello', 'value': 'world'},
-            {'key': 'another', 'value': 'longvalue'}
+            {'key': Path('/hello'), 'value': Value('world', encoding=STRING)},
+            {'key': Path('/another'),
+                         'value': Value('longvalue', encoding=STRING)}
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.STRING)
         msg1.add_values(v1)
         packed = msg1.pack()
         msg2 = messages.Message(packed)
-        self.assertEqual(msg1.get_encoding(), msg2.get_encoding())
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg2.get_values(), v1)
 
     def test_set_encoding_sql(self):
         v1 = [
-            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+            {'key': Path('/sql'),
+                         'value': Value((['val1', 'val2'], ['col1', 'col2']),
+                                        encoding=SQL)}
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.SQL)
         msg1.add_values(v1)
         packed = msg1.pack()
         msg2 = messages.Message(packed)
-        self.assertEqual(msg1.get_encoding(), msg2.get_encoding())
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg2.get_values(), v1)
 
     def test_set_encoding_protobuf(self):
         v1 = [
-            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+            {'key': Path('/hello'),
+                         'value': Value('world', encoding=PROTOBUF)},
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.PROTOBUF)
         self.assertRaises(NotImplementedError, msg1.add_values, v1)
 
     def test_value_encoding_invalid(self):
         v1 = [
-            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+            {'key': Path('/hello'), 'value': Value('world', encoding=INVALID)},
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(messages.INVALID)
         self.assertRaises(ValueError, msg1.add_values, v1)
 
     def test_value_encoding_unknown(self):
         v1 = [
-            {'key': 'hello', 'value': (['val1', 'val2'], ['col1', 'col2'])}
+            {'key': Path('/hello'), 'value': Value('world', encoding=0xFE)},
         ]
         msg1 = messages.Message()
         msg1.message_code = messages.VALUES
-        msg1.set_encoding(0xFE)
         self.assertRaises(ValueError, msg1.add_values, v1)
 
-    def test_set_encoding_exception(self):
-        msg1 = messages.Message()
-        msg1.message_code = messages.VALUES
-        self.assertRaises(ValueError, msg1.set_encoding, 0x100)
-
     def test_set_notification(self):
-        v1 = [{'key': 'hello', 'value': 'world'}]
+        v1 = [{'key': Path('hello'), 'value': Value('world')}]
         sid = ['1234']
         msg1 = messages.Message()
-        msg1.set_encoding(messages.STRING)
         msg1.message_code = messages.NOTIFY
         msg1.add_notification(sid, v1)
 
@@ -225,11 +211,12 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.get_property('yaks.login'), 'usr:pwd')
 
     def test_create_access(self):
-        msg1 = messages.MessageCreate(messages.EntityType.ACCESS, '//a/path')
+        msg1 = messages.MessageCreate(
+            messages.EntityType.WORKSPACE, Path('/my/path'))
         self.assertEqual(msg1.message_code, 0x02)
         self.assertEqual(msg1.flag_a, 1)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_path(), Path('/my/path'))
 
     def test_create_access_w_properties(self):
         properties = {
@@ -237,18 +224,19 @@ class MessagesTests(unittest.TestCase):
             'is.yaks.access.cachesize': '1024'
         }
         msg1 = messages.MessageCreate(
-            messages.EntityType.ACCESS, '//a/path', properties)
+            messages.EntityType.WORKSPACE, Path('/my/path'), properties)
         self.assertEqual(msg1.message_code, 0x02)
         self.assertEqual(msg1.flag_a, 1)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_path(), Path('/my/path'))
 
     def test_create_storage(self):
-        msg1 = messages.MessageCreate(messages.EntityType.STORAGE, '//a/path')
+        msg1 = messages.MessageCreate(
+            messages.EntityType.STORAGE, Selector('/my/path'))
         self.assertEqual(msg1.message_code, 0x02)
         self.assertEqual(msg1.flag_s, 1)
         self.assertEqual(msg1.flag_a, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_selector(), Selector('/my/path'))
 
     def test_create_storage_w_properties_n_config(self):
         config = {'backendip': '127.0.0.1', 'port': 8888}
@@ -257,11 +245,11 @@ class MessagesTests(unittest.TestCase):
             'is.yaks.storage.alias': 'store1'
         }
         msg1 = messages.MessageCreate(
-            messages.EntityType.STORAGE, '//a/path', properties)
+            messages.EntityType.STORAGE, Selector('/my/path'), properties)
         self.assertEqual(msg1.message_code, 0x02)
         self.assertEqual(msg1.flag_s, 1)
         self.assertEqual(msg1.flag_a, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_selector(), Selector('/my/path'))
 
     def test_delete_storage(self):
         msg1 = messages.MessageDelete('123', messages.EntityType.STORAGE)
@@ -271,23 +259,23 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.flag_p, 1)
 
     def test_delete_access(self):
-        msg1 = messages.MessageDelete('321', messages.EntityType.ACCESS)
+        msg1 = messages.MessageDelete('321', messages.EntityType.WORKSPACE)
         self.assertEqual(msg1.message_code, 0x03)
         self.assertEqual(msg1.flag_a, 1)
         self.assertEqual(msg1.flag_s, 0)
         self.assertEqual(msg1.flag_p, 1)
 
     def test_delete_value(self):
-        msg1 = messages.MessageDelete('321', path='//a/path')
+        msg1 = messages.MessageDelete('321', path=Path('/my/path'))
         self.assertEqual(msg1.message_code, 0x03)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_path(), Path('/my/path'))
 
     def test_put_value(self):
-        msg1 = messages.MessagePut('321', '//a/path', 'avalue')
-        v = [{'key': '//a/path', 'value': 'avalue'}]
+        msg1 = messages.MessagePut('321', Path('/my/path'), Value('avalue'))
+        v = [{'key': Path('/my/path'), 'value': Value('avalue')}]
         self.assertEqual(msg1.message_code, 0xA0)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
@@ -295,8 +283,9 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.get_values(), v)
 
     def test_patch_value(self):
-        msg1 = messages.MessagePatch('321', '//a/path', 'a_new_value')
-        v = [{'key': '//a/path', 'value': 'a_new_value'}]
+        msg1 = messages.MessagePatch(
+            '321', Path('/my/path'), Value('a_new_value'))
+        v = [{'key': Path('/my/path'), 'value': Value('a_new_value')}]
         self.assertEqual(msg1.message_code, 0xA1)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
@@ -304,16 +293,16 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.get_values(), v)
 
     def test_get_value(self):
-        msg1 = messages.MessageGet('321', '//a/path')
+        msg1 = messages.MessageGet('321', Selector('/my/path'))
         self.assertEqual(msg1.message_code, 0xA2)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_selector(), '//a/path')
+        self.assertEqual(msg1.get_selector(), Selector('/my/path'))
 
     def test_value_message(self):
         v1 = [
-            {'key': 'hello', 'value': 'world'},
+            {'key': Path('/hello'), 'value': Value('world')},
         ]
         msg1 = messages.MessageValues('321', v1)
         self.assertEqual(msg1.message_code, 0xD1)
@@ -323,12 +312,12 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.get_values(), v1)
 
     def test_subscribe_message(self):
-        msg1 = messages.MessageSub('321', '//a/path')
+        msg1 = messages.MessageSub('321', Selector('/my/path'))
         self.assertEqual(msg1.message_code, 0xB0)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_subscription(), '//a/path')
+        self.assertEqual(msg1.get_subscription(), Selector('/my/path'))
 
     def test_unsubscribe_message(self):
         msg1 = messages.MessageUnsub('321', '121241')
@@ -336,12 +325,12 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_subscription(), '121241')
+        self.assertEqual(msg1.get_subscription_id(), '121241')
 
     def test_eval_message(self):
-        msg1 = messages.MessageEval('321', '//a/path')
+        msg1 = messages.MessageEval('321', Path('/my/path'))
         self.assertEqual(msg1.message_code, 0xB3)
         self.assertEqual(msg1.flag_p, 1)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
-        self.assertEqual(msg1.get_path(), '//a/path')
+        self.assertEqual(msg1.get_path(), Path('/my/path'))

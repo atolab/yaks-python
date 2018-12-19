@@ -17,7 +17,7 @@ def main():
     input()
     access = y.create_access('//fos')
 
-    sid = access.subscribe('//fos/example/*', obs)
+    sid = access.subscribe('//fos/example/**', obs)
 
     print('>> Put Tuple')
     input()

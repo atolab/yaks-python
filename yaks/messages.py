@@ -61,8 +61,11 @@ import struct
 import json
 import hexdump
 from enum import Enum
-from .encoder import VLEEncoder
-
+from yaks.encoder import VLEEncoder
+from yaks.value import Value
+from yaks.path import Path
+from yaks.selector import Selector
+from yaks.encoding import *
 # Message Codes
 OPEN = 0x01
 CREATE = 0x02
@@ -78,17 +81,9 @@ OK = 0xD0
 VALUES = 0xD1
 ERROR = 0xE0
 
-# Encoding
-RAW = 0x01
-STRING = 0x02
-JSON = 0x03
-PROTOBUF = 0x04
-SQL = 0x05
-INVALID = 0x00
-
 
 class EntityType(Enum):
-    ACCESS = 0
+    WORKSPACE = 0
     STORAGE = 1
 
 
@@ -113,9 +108,6 @@ class Message(object):
         # 64bit
         self.properties = []
 
-        # 8bit
-        self.encoding = 0x00
-
         # key-value tuple list (string,string)
         self.data = b''
         if self.raw_msg is not None:
@@ -131,14 +123,6 @@ class Message(object):
             data = buf[base_p]
             vle_field.append(data.to_bytes(1, byteorder='big'))
         return self.encoder.decode(vle_field), base_p + 1
-
-    def __read_encoding(self, data, base_p):
-        l, base_p = self.__read_vle_field(data, base_p)
-        if l > 0:
-            k_len, base_p = self.__read_vle_field(data, base_p)
-            base_p = base_p + k_len
-            return struct.unpack('<B', data[base_p: base_p + 1])[0]
-        return INVALID
 
     def pack(self):
         header = struct.pack('<BB', self.message_code, self.flags)
@@ -213,8 +197,8 @@ class Message(object):
                 self.properties.append({'key': k, 'value': v})
 
         self.set_data(self.raw_msg[base_p:])
-        if len(self.data) > 0 and self.message_code in [VALUES]:
-            self.encoding = self.__read_encoding(self.data, 0)
+        # if len(self.data) > 0 and self.message_code in [VALUES]:
+        #     self.encoding = self.__read_encoding(self.data, 0)
         return self
 
     def __add_vle(self, number):
@@ -268,21 +252,22 @@ class Message(object):
 
     def __value_encoding(self, value):
         data = b''
-        if self.encoding in [RAW, JSON, STRING]:
-            len_v = len(value)
-            data = data + struct.pack('<B', self.encoding)
+        encoding = value.get_encoding()
+        if encoding in [RAW, JSON, STRING]:
+            len_v = len(value.get_value())
+            data = data + struct.pack('<B', encoding)
             for b in self.encoder.encode(len_v):
                 data = data + b
             fmt = '<{}s'.format(len_v)
-            data = data + struct.pack(fmt, value.encode())
-        elif self.encoding == SQL:
-            data = data + struct.pack('<B', self.encoding)
-            row_values, column_names = value
+            data = data + struct.pack(fmt, value.get_value().encode())
+        elif encoding == SQL:
+            data = data + struct.pack('<B', encoding)
+            row_values, column_names = value.get_value()
             data = data + self.__encode_list(row_values)
             data = data + self.__encode_list(column_names)
-        elif self.encoding == PROTOBUF:
+        elif encoding == PROTOBUF:
             raise NotImplementedError('Not yet implemented')
-        elif self.encoding == INVALID:
+        elif encoding == INVALID:
             raise ValueError('Encoding invalid')
         else:
             raise ValueError('Unknown encoding')
@@ -290,25 +275,25 @@ class Message(object):
 
     def __value_decoding(self, data, base_p):
         v = None
-        self.encoding = struct.unpack('<B', data[base_p: base_p + 1])[0]
+        encoding = struct.unpack('<B', data[base_p: base_p + 1])[0]
         base_p = base_p + 1
-        if self.encoding in [RAW, JSON, STRING]:
+        if encoding in [RAW, JSON, STRING]:
             len_v, base_p = self.__read_vle_field(data, base_p)
             fmt = '<{}s'.format(len_v)
             val_raw = data[base_p:base_p + len_v]
             v = struct.unpack(fmt, val_raw)[0].decode()
             base_p = base_p + len_v
-        elif self.encoding == SQL:
+        elif encoding == SQL:
             l_values, base_p = self.__decode_list(data, base_p)
             l_names, base_p = self.__decode_list(data, base_p)
             v = (l_values, l_names)
-        elif self.encoder == PROTOBUF:
+        elif encoding == PROTOBUF:
             raise NotImplementedError('Not yet implemented')
-        elif self.encoding == INVALID:
+        elif encoding == INVALID:
             raise ValueError('Encoding invalid')
         else:
             raise ValueError('Unknown encoding')
-        return v, base_p
+        return Value(v, encoding), base_p
 
     def __add_key_value_list(self, kvs):
         body = b''
@@ -316,7 +301,7 @@ class Message(object):
         for b in self.encoder.encode(num_p):
             body = body + b
         for p in kvs:
-            k = p.get('key').encode()
+            k = p.get('key').to_string().encode()
             v = p.get('value')
             len_k = len(k)
 
@@ -340,22 +325,22 @@ class Message(object):
             base_p = base_p + key_length
 
             v, base_p = self.__value_decoding(data, base_p)
-            kvs.append({'key': k, 'value': v})
+            kvs.append({'key': Path(k), 'value': v})
         return kvs, base_p
 
     def add_path(self, path):
-        self.data = self.__add_string(path)
+        self.data = self.__add_string(path.to_string())
 
     def get_path(self):
         p, _ = self.__get_string(self.data, 0)
-        return p
+        return Path(p)
 
     def add_selector(self, selector):
-        self.data = self.__add_string(selector)
+        self.data = self.__add_string(selector.to_string())
 
     def get_selector(self):
         s, _ = self.__get_string(self.data, 0)
-        return s
+        return Selector(s)
 
     def add_notification(self, subid, kvs):
         self.data = self.__encode_list(subid) + self.__add_key_value_list(kvs)
@@ -365,10 +350,17 @@ class Message(object):
         kvs, _ = self.__get_key_value_list(self.data, pos)
         return subids, kvs
 
-    def add_subscription(self, subid):
+    def add_subscription(self, selector):
+        self.data = self.__add_string(selector.to_string())
+
+    def add_subscription_id(self, subid):
         self.data = self.__add_string(subid)
 
     def get_subscription(self):
+        subid, _ = self.__get_string(self.data, 0)
+        return Selector(subid)
+
+    def get_subscription_id(self):
         subid, _ = self.__get_string(self.data, 0)
         return subid
 
@@ -385,14 +377,6 @@ class Message(object):
     def get_error(self):
         e, _ = self.__get_vle(self.data, 0)
         return e
-
-    def set_encoding(self, encoding):
-        if encoding > 0xFF:
-            raise ValueError('Encoding not supported')
-        self.encoding = encoding
-
-    def get_encoding(self):
-        return self.encoding
 
     def set_p(self):
         self.flag_p = 1
@@ -483,7 +467,7 @@ class MessageCreate(Message):
         super(MessageCreate, self).__init__()
         self.message_code = CREATE
         self.generate_corr_id()
-        self.add_path(path)
+
         if properties is not None:
             for pname in properties:
                 pvalue = properties.get(pname)
@@ -493,10 +477,12 @@ class MessageCreate(Message):
                     self.add_property(pname, '{}'.format(pvalue))
                 elif isinstance(pvalue, dict):
                     self.add_property(pname, json.dumps(pvalue))
-        if ctype is EntityType.ACCESS:
+        if ctype is EntityType.WORKSPACE:
             self.set_a()
+            self.add_path(path)
         elif ctype is EntityType.STORAGE:
             self.set_s()
+            self.add_selector(path)
 
 
 class MessageDelete(Message):
@@ -504,7 +490,7 @@ class MessageDelete(Message):
         super(MessageDelete, self).__init__()
         self.message_code = DELETE
         self.generate_corr_id()
-        if dtype is EntityType.ACCESS:
+        if dtype is EntityType.WORKSPACE:
             self.set_a()
             self.add_property('is.yaks.access.id', id)
         elif dtype is EntityType.STORAGE:
@@ -516,10 +502,9 @@ class MessageDelete(Message):
 
 
 class MessagePut(Message):
-    def __init__(self, aid, key, value, encoding=RAW):
+    def __init__(self, aid, key, value):
         super(MessagePut, self).__init__()
         self.message_code = PUT
-        self.set_encoding(encoding)
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
         self.add_values([{'key': key,
@@ -527,10 +512,9 @@ class MessagePut(Message):
 
 
 class MessagePatch(Message):
-    def __init__(self, aid, key, value, encoding=RAW):
+    def __init__(self, aid, key, value):
         super(MessagePatch, self).__init__()
         self.message_code = PATCH
-        self.set_encoding(encoding)
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
         self.add_values([{'key': key,
@@ -547,10 +531,9 @@ class MessageGet(Message):
 
 
 class MessageSub(Message):
-    def __init__(self, aid, key, encoding=RAW):
+    def __init__(self, aid, key):
         super(MessageSub, self).__init__()
         self.message_code = SUB
-        self.set_encoding(encoding)
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
         self.add_subscription(key)
@@ -562,7 +545,7 @@ class MessageUnsub(Message):
         self.message_code = UNSUB
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
-        self.add_subscription(subscription_id)
+        self.add_subscription_id(subscription_id)
 
 
 class MessageEval(Message):
@@ -575,12 +558,11 @@ class MessageEval(Message):
 
 
 class MessageValues(Message):
-    def __init__(self, aid, kvs, encoding=RAW):
+    def __init__(self, aid, kvs):
         super(MessageValues, self).__init__()
         self.message_code = VALUES
         self.generate_corr_id()
         self.add_property('is.yaks.access.id', aid)
-        self.set_encoding(encoding)
         self.add_values(kvs)
 
 

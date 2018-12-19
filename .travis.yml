@@ -1,4 +1,13 @@
-sudo: false
+before_install:
+  - sudo apt-get install -y software-properties-common
+  - sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+  - sudo add-apt-repository 'deb [arch=amd64] http://mariadb.mirrors.ovh.net/MariaDB/repo/10.3/ubuntu bionic main'
+  - sudo apt update -qq
+  - sudo apt-get install -y libmariadbclient18 libmysqlclient18 libpq5 libssl-dev
+addons:
+  apt:
+    update: true
+dist: bionic
 language: python
 python:
   - "3.5"
@@ -11,8 +20,7 @@ install:
   - travis_retry pip install tox
   - pip install codecov
 script:
-  - tox
-  - test -d .tox/$TOXENV/log && cat .tox/$TOXENV/log/*.log || true
+  - bash -ex .travis-ci.sh
 cache:
   directories:
     - $HOME/.cache/pip

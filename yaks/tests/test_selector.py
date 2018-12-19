@@ -1,0 +1,78 @@
+# Copyright (c) 2018 ADLINK Technology Inc.
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Tests
+
+import unittest
+from yaks import Selector
+from yaks.exceptions import *
+
+
+class PathTests(unittest.TestCase):
+
+    def test_selector_simple(self):
+        s = Selector('/this/is/a/selector')
+        self.assertEqual('/this/is/a/selector', s.to_string())
+
+    def test_selector_with_predicate(self):
+        s = Selector('/this/is/a/selector?x>10')
+        self.assertEqual('/this/is/a/selector', s.get_path())
+        self.assertEqual('x>10', s.get_predicate())
+
+    def test_selector_with_fragment(self):
+        s = Selector('/this/is/a/selector#field')
+        self.assertEqual('/this/is/a/selector', s.get_path())
+        self.assertEqual('field', s.get_fragment())
+
+    def test_selector_complete(self):
+        s = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        self.assertEqual('/this/is/a/**', s.get_path())
+        self.assertEqual('field', s.get_fragment())
+        self.assertEqual('x.y.z=100', s.get_properties())
+        self.assertEqual('x>10', s.get_predicate())
+
+    def test_selector_is_path_unique(self):
+        s = Selector('/this/is/a/**?x>10[x..y.z=100]#field')
+        self.assertFalse(s.is_path_unique())
+        s = Selector('/this/is/a/selector?x>10[x..y.z=100]#field')
+        self.assertTrue(s.is_path_unique())
+
+    def test_selector_check_absolute_ok(self):
+        s = Selector('/this/is/a/absolute/selector/*')
+        self.assertTrue(s.is_absolute())
+
+    def test_selector_check_absolute_ko(self):
+        s = Selector('this/is/a/relative/selector/*')
+        self.assertFalse(s.is_absolute())
+
+    def test_selector_prefix(self):
+        s = Selector('/this/is/a/selector/with/a/prefix')
+        self.assertTrue(s.is_prefixed_by_path('/this/is/a/selector'))
+        self.assertFalse(s.is_prefixed_by_path('/that/is/a/selector'))
+
+    def test_selector_equal(self):
+        s1 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s2 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        self.assertEqual(s1, s2)
+
+    def test_selector_str(self):
+        s1 = Selector('/this/is/a/selector')
+        self.assertEqual(str(s1), '/this/is/a/selector')
+
+    def test_selector_len(self):
+        s = '/this/is/a/selector'
+        s1 = Selector('/this/is/a/selector')
+        self.assertEqual(len(s), len(s1))
+
+    def test_selector_check_ko_1(self):
+        self.assertRaises(ValidationError, Selector,
+                          '//this/is/a/not/selector')

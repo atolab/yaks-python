@@ -37,7 +37,7 @@ class Path(object):
 
     def remove_prefix(self, prefix):
         if self.is_prefix(prefix):
-            self.path = self.path[len(prefix):0]
+            self.path = self.path[len(prefix):]
 
     def to_string(self):
         return self.path

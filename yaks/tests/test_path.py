@@ -36,6 +36,31 @@ class PathTests(unittest.TestCase):
         self.assertTrue(p.is_prefix('/this/is/a/path'))
         self.assertFalse(p.is_prefix('/that/is/a/path'))
 
+    def test_path_remove_prefix(self):
+        p = Path('/this/is/a/path/with/a/prefix')
+        self.assertTrue(p.is_prefix('/this/is/a/path'))
+        p.remove_prefix('/this/is/a/path')
+        self.assertEqual(p.to_string(), '/with/a/prefix')
+
+    def test_path_remove_prefix_no_prefix(self):
+        p = Path('/this/is/a/path/with/a/prefix')
+        p.remove_prefix('/that/is/a/path')
+        self.assertEqual(p.to_string(), '/this/is/a/path/with/a/prefix')
+
+    def test_path_equal(self):
+        p1 = Path('/this/is/a/path')
+        p2 = Path('/this/is/a/path')
+        self.assertEqual(p1, p2)
+
+    def test_path_str(self):
+        p1 = Path('/this/is/a/path')
+        self.assertEqual(str(p1), '/this/is/a/path')
+
+    def test_path_len(self):
+        s = '/this/is/a/path'
+        p1 = Path('/this/is/a/path')
+        self.assertEqual(len(s), len(p1))
+
     def test_path_check_ko_1(self):
         self.assertRaises(ValidationError, Path, '//this/is/a/not/path')
 
@@ -49,22 +74,3 @@ class PathTests(unittest.TestCase):
     def test_path_check_ko_4(self):
         self.assertRaises(ValidationError,
                           Path, '//this/is/a/not/path#fragment')
-
-    # def test_selector_check_ok(self):
-    #     self.assertTrue(path.is_valid_selector('/this/is/a/*/selector'))
-
-    # def test_selector_check_ok_2(self):
-    #     self.assertTrue(path.is_valid_selector('this/is/a/*/selector'))
-
-    # def test_selector_check_ko(self):
-    #     self.assertFalse(path.is_valid_selector('//this/is/not/a/*/selector'))
-
-    # def test_path_query(self):
-    #     p = '/this/is/a/path?with=query&data=somedata'
-    #     q = {'with': 'query', 'data': 'somedata'}
-    #     self.assertEqual(q, path.get_query(p))
-
-    # def test_path_query_complex(self):
-    #     p = '/this/is/a/path?with=query&data.level2=somedata'
-    #     q = {'with': 'query', 'data': {'level2': 'somedata'}}
-    #     self.assertEqual(q, path.get_query(p))

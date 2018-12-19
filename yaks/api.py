@@ -315,12 +315,12 @@ class Workspace(object):
 
 
 class YAKS(object):
-    def __init__(self, server_address, server_port=7887):
+    def __init__(self):
         self.is_connected = False
         self.subscriptions = {}
         self.send_queue = queue.Queue()
-        self.address = server_address
-        self.port = server_port
+        self.address = None
+        self.port = None
         self.accesses = {}
         self.storages = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -328,9 +328,15 @@ class YAKS(object):
         self.sock.setblocking(1)
         self.lock = threading.Lock()
         self.working_set = {}
+        self.is_connected = False
+        self.st = None
+        self.rt = None
+
+    def login(self, server_address, server_port=7887, properties={}):
+        self.address = server_address
+        self.port = server_port
         self.sock.connect((self.address, self.port))
         self.is_connected = True
-
         self.st = SendingThread(self)
         self.rt = ReceivingThread(self)
         self.st.start()
@@ -355,6 +361,9 @@ class YAKS(object):
     def logout(self):
         self.st.close()
         self.rt.close()
+        self.is_connected = False
+        self.address = None
+        self.port = None
 
     def workspace(self, path, properties=None):
         create_msg = MessageCreate(EntityType.WORKSPACE, path)

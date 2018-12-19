@@ -26,14 +26,16 @@ import time
 class APITest(unittest.TestCase):
 
     def test_create_close_api(self):
-        self.assertTrue(True)
-        y = YAKS(server_address='127.0.0.1')
+        y = YAKS()
+        self.assertFalse(y.is_connected)
+        y.login(server_address='127.0.0.1')
         self.assertTrue(y.is_connected)
         y.logout()
+        self.assertFalse(y.is_connected)
 
     def test_create_delete_storage(self):
-        self.assertTrue(True)
-        y = YAKS(server_address='127.0.0.1')
+        y = YAKS()
+        y.login(server_address='127.0.0.1')
         properties = {'is.yaks.storage.selector': Selector('/myyaks')}
         sid = y.create_storage(123, properties)
         self.assertEqual(sid, 123)
@@ -41,8 +43,8 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_create_delete_workspace(self):
-        self.assertTrue(True)
-        y = YAKS(server_address='127.0.0.1')
+        y = YAKS()
+        y.login(server_address='127.0.0.1')
         properties = {'is.yaks.storage.selector': Selector('/myyaks')}
         sid = y.create_storage(123, properties)
         workspace = y.workspace(Path('/myyaks'))
@@ -53,8 +55,8 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_put_get_remove(self):
-        self.assertTrue(True)
-        y = YAKS(server_address='127.0.0.1')
+        y = YAKS()
+        y.login(server_address='127.0.0.1')
         properties = {'is.yaks.storage.selector': Selector('/myyaks')}
         sid = y.create_storage(123, properties)
         workspace = y.workspace(Path('/myyaks'))
@@ -73,8 +75,8 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_sub_unsub(self):
-        self.assertTrue(True)
-        y = YAKS(server_address='127.0.0.1')
+        y = YAKS()
+        y.login(server_address='127.0.0.1')
         properties = {'is.yaks.storage.selector': Selector('/myyaks')}
         stid = y.create_storage(123, properties)
         workspace = y.workspace(Path('/myyaks'))

@@ -40,7 +40,7 @@ class Selector(object):
         return False
 
     def is_path_unique(self):
-        return '*' in self.path
+        return '*' not in self.path
 
     def is_prefixed_by_path(self, path):
         return self.path.startswith(path)

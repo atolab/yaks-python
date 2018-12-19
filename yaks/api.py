@@ -248,7 +248,8 @@ class Access(object):
             self.__subscriptions.update({subid: callback})
             return subid
         else:
-            raise RuntimeError('subscribe {} failed with error code {}'.format(key, r.get_error()))            
+            raise RuntimeError('subscribe {} failed with error code {}'
+                               .format(key, r.get_error()))
 
     def get_subscriptions(self):
         self.__yaks.check_connection()
@@ -274,7 +275,8 @@ class Access(object):
         if YAKS.check_msg(r, msg_get.corr_id, expected=[PVALUES, SVALUES]):
             return r.get_values()
         else:
-            raise RuntimeError('get {} failed with error code {}'.format(key, r.get_error()))            
+            raise RuntimeError(
+                'get {} failed with error code {}'.format(key, r.get_error()))
 
     def eval(self, key, computation):
         self.__yaks.check_connection()
@@ -342,7 +344,7 @@ class YAKS(object):
             raise RuntimeError('Server response is wrong')
 
     @staticmethod
-    def check_msg(msg, corr_id, expected=[OK]):        
+    def check_msg(msg, corr_id, expected=[OK]):
         return msg.message_code in expected and corr_id == msg.corr_id
 
     def check_connection(self):
@@ -365,7 +367,9 @@ class YAKS(object):
             self.accesses.update({id: acc})
             return acc
         else:
-            raise RuntimeError('create_access {} failed with error code {}'.format(path, msg.get_error()))
+            raise RuntimeError(
+                'create_access {} failed with error code {}'
+                .format(path, msg.get_error()))
 
     def get_accesses(self):
         return self.accesses
@@ -381,14 +385,16 @@ class YAKS(object):
                 create_msg.add_property(k, v)
         var = MVar()
         self.send_queue.put((create_msg, var))
-        msg = var.get()   
-        if self.check_msg(msg, create_msg.corr_id):            
+        msg = var.get()
+        if self.check_msg(msg, create_msg.corr_id):
             id = msg.get_property('is.yaks.storage.id')
             sto = Storage(self, id, path, properties)
             self.storages.update({id: sto})
             return sto
         else:
-            raise RuntimeError('create_storage {} failed with error code {}'.format(path, msg.get_error()))            
+            raise RuntimeError(
+                'create_storage {} failed with error code {}'
+                .format(path, msg.get_error()))
 
     def get_storages(self):
         return self.storages

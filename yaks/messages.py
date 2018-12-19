@@ -512,6 +512,7 @@ class MessageDelete(Message):
             self.add_property('is.yaks.access.id', id)
         elif type is EntityType.STORAGE:
             self.set_s()
+            print('>> Storage Id: {}'.format(id))
             self.add_property('is.yaks.storage.id', id)
         elif path is not None:
             self.add_property('is.yaks.access.id', id)

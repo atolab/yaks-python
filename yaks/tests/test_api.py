@@ -90,9 +90,9 @@ class APITest(unittest.TestCase):
 
         sid = workspace.subscribe(Selector('/myyaks/key1'), cb)
         workspace.put(Path('/myyaks/key1'), Value('123'))
-        #self.assertEqual(local_var.get(),
-        #[{'key': Path('/myyaks/key1'), 'value': Value('123')}])
-        time.sleep(2)
+        self.assertEqual(local_var.get(),
+                         [{'key': Path('/myyaks/key1'),
+                              'value': Value('123')}])
         self.assertTrue(workspace.unsubscribe(sid))
         workspace.dispose()
         y.remove_storage(stid)

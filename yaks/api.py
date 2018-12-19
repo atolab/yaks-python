@@ -156,12 +156,11 @@ class ReceivingThread(threading.Thread):
                                      'Message Received {} \n{}'.
                                      format(msg_r.pprint(), msg_r.dump()))
                         if msg_r.message_code == NOTIFY:
-                            sids, kvs = msg_r.get_notification()
-                            for sid in sids:
-                                if sid in self.subscriptions:
-                                    cbk = self.subscriptions.get(sid)
-                                    threading.Thread(target=cbk, args=(kvs,),
-                                                     daemon=True).start()
+                            sid, kvs = msg_r.get_notification()
+                            if sid in self.subscriptions:
+                                cbk = self.subscriptions.get(sid)
+                                threading.Thread(target=cbk, args=(kvs,),
+                                                 daemon=True).start()
                         elif self.waiting_msgs.get(msg_r.corr_id) is None:
                             logger.info('ReceivingThread',
                                         'This message was not expected!')
@@ -251,7 +250,9 @@ class Workspace(object):
             if callback:
                 self.__subscriptions.update({subid: callback})
             return subid
-        return None
+        raise \
+            RuntimeError('subscribe {} failed with error code {}'.format(
+                selector, r.get_error()))
 
     def get_subscriptions(self):
         self.__yaks.check_connection()
@@ -276,7 +277,9 @@ class Workspace(object):
         r = var.get()
         if YAKS.check_msg(r, msg_get.corr_id, expected=[VALUES]):
             return r.get_values()
-        return None
+        raise \
+         RuntimeError('get {} failed with error code {}'.format(
+             selector, r.get_error()))
 
     def eval(self, path, computation):
         self.__yaks.check_connection()
@@ -291,27 +294,6 @@ class Workspace(object):
         if YAKS.check_msg(r, msg.corr_id):
             return True
         return False
-
-
-# class Storage(object):
-#     def __init__(self, y, id, path, properties=[]):
-#         self.__yaks = y
-#         self.__send_queue = self.__yaks.send_queue
-#         self.id = id
-#         self.path = path
-#         self.properties = properties
-#         logger.info('Storage __init__', 'Created storage {} - {}'.
-#                     format(self.id, self.path))
-
-#     def dispose(self):
-#         self.__yaks.check_connection()
-#         var = MVar()
-#         msg = MessageDelete(self.id, EntityType.STORAGE)
-#         self.__send_queue.put((msg, var))
-#         r = var.get()
-#         if YAKS.check_msg(r, msg.corr_id):
-#             return True
-#         return False
 
 
 class YAKS(object):
@@ -376,13 +358,10 @@ class YAKS(object):
             self.accesses.update({id: acc})
             return acc
         else:
-            return None
-
-    # def get_accesses(self):
-    #     return self.accesses
-
-    # def get_access(self, access_id):
-    #     return self.accesses.get(access_id)
+            raise \
+                RuntimeError(
+                    'workspace {} failed with error code {}'.
+                    format(path, msg.get_error()))
 
     def create_storage(self, stid, properties):
         if not isinstance(properties, dict) or \
@@ -404,7 +383,10 @@ class YAKS(object):
             self.storages.update({stid: sid})
             return stid
         else:
-            return None
+            raise \
+                RuntimeError(
+                    'create_storage {} failed with error code {}'
+                    .format(stid, msg.get_error()))
 
     def remove_storage(self, stid):
         self.check_connection()

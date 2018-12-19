@@ -343,12 +343,12 @@ class Message(object):
         return Selector(s)
 
     def add_notification(self, subid, kvs):
-        self.data = self.__encode_list(subid) + self.__add_key_value_list(kvs)
+        self.data = self.__add_string(subid) + self.__add_key_value_list(kvs)
 
     def get_notification(self):
-        subids, pos = self.__decode_list(self.data, 0)
+        subid, pos = self.__get_string(self.data, 0)
         kvs, _ = self.__get_key_value_list(self.data, pos)
-        return subids, kvs
+        return subid, kvs
 
     def add_subscription(self, selector):
         self.data = self.__add_string(selector.to_string())

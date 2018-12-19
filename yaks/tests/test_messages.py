@@ -178,7 +178,7 @@ class MessagesTests(unittest.TestCase):
 
     def test_set_notification(self):
         v1 = [{'key': Path('hello'), 'value': Value('world')}]
-        sid = ['1234']
+        sid = '1234'
         msg1 = messages.Message()
         msg1.message_code = messages.NOTIFY
         msg1.add_notification(sid, v1)

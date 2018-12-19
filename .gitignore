@@ -27,3 +27,4 @@ tmp/**
 .vs/
 .vscode/
 .coverage
+.idea/

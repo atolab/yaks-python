@@ -1,4 +1,8 @@
 from yaks import YAKS
+from yaks import Value
+from yaks import Selector
+from yaks import Path
+from yaks.encoding import SQL
 import sys
 
 # CREATE TABLE test (id SERIAL NOT NULL PRIMARY KEY,
@@ -10,126 +14,144 @@ import sys
 
 def main():
     print('creating api')
-    y = YAKS(sys.argv[1])
+    y = YAKS()
+    y.login(sys.argv[1])
 
     print('>> Create memory storage')
     input()
-    storage1 = y.create_storage('//is/test/mem',
-                                {'is.yaks.backend.kind': 'memory'})
+    storage1 = 's1'
+    y.create_storage(storage1, properties={
+        'is.yaks.storage.selector': Selector('/is/test/mem'),
+        'is.yaks.backend.kind': 'memory'})
 
     print('>> Create SQL storage on legacy table "test"')
     input()
-    storage2 = y.create_storage('//is/test/db/leg-table',
-                                {'is.yaks.backend.kind': 'dbms',
-                                 'is.yaks.backend.sql.table': 'test'})
+    storage2 = 's2'
+    y.create_storage('/is/test/db/leg-table',
+                                   {'is.yaks.backend.kind': 'dbms',
+                                    'is.yaks.backend.sql.table': 'test'})
 
     print('>> Create SQL storage on a new key/value '
           'table which will be droped at storage disposal')
     input()
-    storage3 = y.create_storage('//is/test/db/new-table',
-                                {'is.yaks.backend.kind': 'dbms',
-                                 'is.yaks.backend.sql.on_dispose': 'drop'})
+    storage3 = y.create_storage(storage1, properties={
+        'is.yaks.storage.selector': Selector('/is/test/db/new-table'),
+        'is.yaks.backend.kind': 'dbms',
+        'is.yaks.backend.sql.on_dispose': 'drop'})
 
-    print('>> Create access')
+    print('>> Create workspace')
     input()
-    access = y.create_access('//is/test/')
+    workspace = y.workspace(Path('/is/test/'))
 
     print('****** SQL storage - key/value table ********')
 
-    print('>> Put //is/test/db/new-table/A/B')
+    print('>> Put /is/test/db/new-table/A/B')
     input()
-    access.put('//is/test/db/new-table/A/B', "BCD")
+    workspace.put(Path('/is/test/db/new-table/A/B'), Value("BCD"))
 
-    print('>> Put //is/test/db/new-table/A/D')
+    print('>> Put /is/test/db/new-table/A/D')
     input()
-    access.put('//is/test/db/new-table/A/D', "DEF")
+    workspace.put(Path('/is/test/db/new-table/A/D'), Value("DEF"))
 
-    print('>> Put //is/test/db/new-table/A/B/G')
+    print('>> Put /is/test/db/new-table/A/B/G')
     input()
-    access.put('//is/test/db/new-table/A/B/G', "GHI")
+    workspace.put(Path('/is/test/db/new-table/A/B/G'), Value("GHI"))
 
-    print('>> Put //is/test/db/new-table/A/B/H/I/J')
+    print('>> Put /is/test/db/new-table/A/B/H/I/J')
     input()
-    access.put('//is/test/db/new-table/A/B/H/I/J', "JKL")
+    workspace.put(Path('/is/test/db/new-table/A/B/H/I/J'), Value("JKL"))
 
-    print('>> Get //is/test/db/new-table/A/B')
+    print('>> Get /is/test/db/new-table/A/B')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/B')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/B'))))
 
-    print('>> Get //is/test/db/new-table/A/*')
+    print('>> Get /is/test/db/new-table/A/*')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/*')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/*'))))
 
-    print('>> Get //is/test/db/new-table/A/**')
+    print('>> Get /is/test/db/new-table/A/**')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/**')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/**'))))
 
-    print('>> Get //is/test/db/new-table/A/**/J')
+    print('>> Get /is/test/db/new-table/A/**/J')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/**/J')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/**/J'))))
 
-    print('>> Put //is/test/db/new-table/A/B/G')
+    print('>> Put /is/test/db/new-table/A/B/G')
     input()
-    access.put('//is/test/db/new-table/A/B/G', "XXXX")
+    workspace.put(Path('/is/test/db/new-table/A/B/G'), Value("XXXX"))
 
-    print('>> Get //is/test/db/new-table/A/**')
+    print('>> Get /is/test/db/new-table/A/**')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/**')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/**'))))
 
-    print('>> Get //is/test/db/new-table/A/**?v=\'XXXX\'')
+    print('>> Get /is/test/db/new-table/A/**?v=\'XXXX\'')
     input()
-    print('GET: {}'.format(access.get(
-        '//is/test/db/new-table/A/**?v=\'XXXX\'')))
+    print('GET: {}'.format(workspace.get(
+        Selector("/is/test/db/new-table/A/**?v='åXXXX'"))))
 
-    print('>> Remove //is/test/db/new-table/A/D')
+    print('>> Remove /is/test/db/new-table/A/D')
     input()
-    access.remove('//is/test/db/new-table/A/D')
+    workspace.remove(
+        Path('/is/test/db/new-table/A/D'))
 
-    print('>> Get //is/test/db/new-table/A/D')
+    print('>> Get /is/test/db/new-table/A/D')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/D')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/D'))))
 
-    print('>> Remove //is/test/db/new-table/A/B')
+    print('>> Remove /is/test/db/new-table/A/B')
     input()
-    access.remove('//is/test/db/new-table/A/B')
+    workspace.remove(
+        Path('/is/test/db/new-table/A/B'))
 
-    print('>> Get //is/test/db/new-table/A/B/**')
+    print('>> Get /is/test/db/new-table/A/B/**')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/new-table/A/B/**')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/new-table/A/B/**'))))
 
     print('****** SQL storage - legacy table ********')
 
-    print('>> Get //is/test/db/leg-table')
+    print('>> Get /is/test/db/leg-table')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/leg-table')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/leg-table'))))
 
-    print('>> Put //is/test/db/leg-table')
+    print('>> Put /is/test/db/leg-table')
     input()
-    access.put('//is/test/db/leg-table', "4, 'test4', 4, 4.4, '2018-04-04'")
+    workspace.put(
+        Path('/is/test/db/leg-table'),
+        Value(["4", "test4", "4", "4.4", '2018-04-04'], encoding=SQL))
 
-    print('>> Get //is/test/db/leg-table')
+    print('>> Get /is/test/db/leg-table')
     input()
-    print('GET: {}'.format(access.get('//is/test/db/leg-table')))
+    print('GET: {}'.format(workspace.get(
+        Selector('/is/test/db/leg-table'))))
 
     print('****** DISPOSE ALL ********')
 
     print('>> Dispose Access')
     input()
-    access.dispose()
+    workspace.dispose()
 
     print('>> Dispose Storage1')
     input()
-    storage1.dispose()
+    y.remove_storage(storage1)
 
     print('>> Dispose Storage2')
     input()
-    storage2.dispose()
+    y.remove_storage(storage2)
 
     print('>> Dispose Storage3')
     input()
-    storage3.dispose()
+    y.remove_storage(storage3)
 
-    y.close()
+    y.logout()
     print('bye!')
 
 

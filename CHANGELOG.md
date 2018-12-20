@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Path** class for paths
 - **Selector** class for selectors
 - _eval_ takes a function that accept a **Path** and other parameters (they are passed as kwargs, all values are string) and return a **Value**
-
+- CHANGELOG.md
 ### Changed
 - **login** has to be used for accessing YAKS
 - **Access** is renamed as **Workspace**
@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 - Nothing
 
 
-## [0.0.2] - 2018-11-09
+## [0.0.1] - 2018-11-09
 ### Added
 - **YAKS** object used for connection and interaction with YAKS
 - **Access** class for Accesses

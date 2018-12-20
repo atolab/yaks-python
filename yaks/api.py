@@ -126,6 +126,13 @@ class ReceivingThread(threading.Thread):
                     format(l_vle, len(l_vle)))
         return self.encoder.decode(l_vle)
 
+    def computation_wrapper(self, corrid, comp, path, params):
+        res = comp(path, **params)
+        kvs = [{'key': Path(path), 'value': res}]
+        v_msg = MessageValues(corrid, kvs)
+        var = MVar()
+        self.__yaks.send_queue.put((v_msg, var))
+
     def run(self):
         self._is_running = True
         while self._is_running and self.__yaks.is_connected:
@@ -161,6 +168,18 @@ class ReceivingThread(threading.Thread):
                                 cbk = self.subscriptions.get(sid)
                                 threading.Thread(target=cbk, args=(kvs,),
                                                  daemon=True).start()
+                        if msg_r.message_code == GET:
+                            selector = msg_r.get_selector()
+                            args = selector.dict_from_properties()
+                            for p in self.__yaks.evals:
+                                if selector.is_prefixed_by_path(p.to_string()):
+                                    c = self.__yaks.evals.get(p)
+                                    threading.Thread(
+                                        target=self.computation_wrapper,
+                                        args=(
+                                            msg_r.corr_id, c,
+                                            selector.get_path(), args),
+                                        daemon=True).start()
                         elif self.waiting_msgs.get(msg_r.corr_id) is None:
                             logger.info('ReceivingThread',
                                         'This message was not expected!')
@@ -204,6 +223,7 @@ class Workspace(object):
         self.__yaks = y
         self.__subscriptions = self.__yaks.subscriptions
         self.__send_queue = self.__yaks.send_queue
+        self.__evals = self.__yaks.evals
         self.id = id
         self.path = path
         self.properties = properties
@@ -236,6 +256,8 @@ class Workspace(object):
         self.__send_queue.put((msg_rm, var))
         r = var.get()
         if YAKS.check_msg(r, msg_rm.corr_id):
+            if path in self.__evals:
+                self.__evals.pop(path)
             return True
         return False
 
@@ -283,7 +305,16 @@ class Workspace(object):
 
     def eval(self, path, computation):
         self.__yaks.check_connection()
-        raise NotImplementedError('Not yet...')
+        msg_eval = MessageEval(self.id, path)
+        var = MVar()
+        self.__send_queue.put((msg_eval, var))
+        r = var.get()
+        if YAKS.check_msg(r, msg_eval.corr_id):
+            self.__evals.update({path: computation})
+            return True
+        raise \
+         RuntimeError('eval {} failed with error code {}'.format(
+             path, r.get_error()))
 
     def dispose(self):
         self.__yaks.check_connection()
@@ -300,6 +331,7 @@ class YAKS(object):
     def __init__(self):
         self.is_connected = False
         self.subscriptions = {}
+        self.evals = {}
         self.send_queue = queue.Queue()
         self.address = None
         self.port = None

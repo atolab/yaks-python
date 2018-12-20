@@ -558,11 +558,10 @@ class MessageEval(Message):
 
 
 class MessageValues(Message):
-    def __init__(self, aid, kvs):
+    def __init__(self, cid, kvs):
         super(MessageValues, self).__init__()
         self.message_code = VALUES
-        self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.corr_id = cid
         self.add_values(kvs)
 
 

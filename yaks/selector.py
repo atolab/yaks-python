@@ -19,7 +19,7 @@ from yaks.exceptions import ValidationError
 class Selector(object):
     def __init__(self, selector):
         self.__sel_regex = re.compile(
-            '^(.+?)(\?(.+?)(\[(.+?)\])?)?(\#(.+?))?$')
+            '^([^?#]+)(\?([^\[\]#]*)(\[(.*)\])?)?(\#(.*))?$')
         if not self.is_valid(selector):
             raise ValidationError(
                 "{} is not a valid Selector".format(selector))
@@ -60,6 +60,34 @@ class Selector(object):
     def get_properties(self):
         return self.properties
 
+    def dict_from_properties(self):
+        data = {}
+        if self.properties is None:
+            return data
+        uri_values = self.properties.split(';')
+        #print (uri_values)
+        for tokens in uri_values:
+            v = tokens.split('=')[-1]
+            k = tokens.split('=')[0]
+            if len(k.split('.')) < 2:
+                data.update({k: v})
+            else:
+                d = self.__dot2dict(k, v)
+                data.update(d)
+        return data
+
+    def __dot2dict(self, dot_notation, value=None):
+        ld = []
+
+        tokens = dot_notation.split('.')
+        n_tokens = len(tokens)
+        for i in range(n_tokens, 0, -1):
+            if i == n_tokens and value is not None:
+                ld.append({tokens[i - 1]: value})
+            else:
+                ld.append({tokens[i - 1]: ld[-1]})
+        return ld[-1]
+
     def __len__(self):
         return len(self.selector)
 
@@ -73,3 +101,6 @@ class Selector(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def __hash__(self):
+        return self.selector.__hash__()

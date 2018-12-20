@@ -10,6 +10,11 @@ def obs(kvs):
     print('Called OBSERVER KVS: {}'.format(kvs))
 
 
+def evcb(path, param):
+    print('Executing eval on {}'.format(path))
+    return Value('executed {}'.format(param))
+
+
 def main():
     print('creating api')
     y = YAKS()
@@ -54,6 +59,14 @@ def main():
     print('>> Get Tuple')
     input()
     print('GET: {}'.format(workspace.get(Selector('/myyaks/example/*'))))
+
+    print('>> Put Eval')
+    input()
+    workspace.eval(Path('/myyaks/key1'), evcb)
+
+    print('>> Get on Eval')
+    input()
+    print('GET: {}'.format(workspace.get(Selector('/myyaks/key1?[param=1]'))))
 
     print('>> Dispose Access')
     input()

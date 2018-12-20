@@ -14,6 +14,7 @@
 
 import unittest
 from yaks import Selector
+from yaks import Path
 from yaks.exceptions import *
 
 
@@ -41,9 +42,9 @@ class PathTests(unittest.TestCase):
         self.assertEqual('x>10', s.get_predicate())
 
     def test_selector_is_path_unique(self):
-        s = Selector('/this/is/a/**?x>10[x..y.z=100]#field')
+        s = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
         self.assertFalse(s.is_path_unique())
-        s = Selector('/this/is/a/selector?x>10[x..y.z=100]#field')
+        s = Selector('/this/is/a/selector?x>10[x.y.z=100]#field')
         self.assertTrue(s.is_path_unique())
 
     def test_selector_check_absolute_ok(self):
@@ -64,6 +65,16 @@ class PathTests(unittest.TestCase):
         s2 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
         self.assertEqual(s1, s2)
 
+    def test_selector_properties_dict(self):
+        s1 = Selector('/this/is/a/**?x>10[x=100;y.z=1]#field')
+        d = {'x': '100', 'y': {'z': '1'}}
+        self.assertEqual(s1.dict_from_properties(), d)
+
+    def test_selector__not_equal(self):
+        s1 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s2 = Path('/this/is/a/path')
+        self.assertNotEqual(s1, s2)
+
     def test_selector_str(self):
         s1 = Selector('/this/is/a/selector')
         self.assertEqual(str(s1), '/this/is/a/selector')
@@ -72,6 +83,11 @@ class PathTests(unittest.TestCase):
         s = '/this/is/a/selector'
         s1 = Selector('/this/is/a/selector')
         self.assertEqual(len(s), len(s1))
+
+    def test_selector_hash(self):
+        s = '/this/is/a/selector'
+        s1 = Selector('/this/is/a/selector')
+        self.assertEqual(hash(s), hash(s1))
 
     def test_selector_check_ko_1(self):
         self.assertRaises(ValidationError, Selector,

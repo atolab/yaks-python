@@ -306,10 +306,11 @@ class MessagesTests(unittest.TestCase):
         ]
         msg1 = messages.MessageValues('321', v1)
         self.assertEqual(msg1.message_code, 0xD1)
-        self.assertEqual(msg1.flag_p, 1)
+        self.assertEqual(msg1.flag_p, 0)
         self.assertEqual(msg1.flag_a, 0)
         self.assertEqual(msg1.flag_s, 0)
         self.assertEqual(msg1.get_values(), v1)
+        self.assertEqual(msg1.corr_id, '321')
 
     def test_subscribe_message(self):
         msg1 = messages.MessageSub('321', Selector('/my/path'))

@@ -13,6 +13,7 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API
 
 import logging
+import logging.handlers
 import sys
 import os
 
@@ -41,8 +42,8 @@ class APILogger:
             self.logger.setLevel(log_level)
             formatter = logging.Formatter(log_format)
             if not debug_flag:
-                log_filename = self.log_file
-                handler = logging.FileHandler(log_filename)
+                #log_filename = self.log_file
+                handler = logging.handlers.SysLogHandler()
             else:
                 handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(formatter)

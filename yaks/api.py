@@ -17,10 +17,12 @@ import threading
 import queue
 import select
 import os
-from .messages import *
-from .mvar import MVar
-from .encoder import VLEEncoder
-from .logger import APILogger
+from yaks.messages import *
+from yaks.mvar import MVar
+from yaks import path as ypath
+from yaks.encoder import VLEEncoder
+from yaks.logger import APILogger
+from yaks.exceptions import ValidationError
 
 BUFFSIZE = 1
 ver = os.environ.get('YAKS_PYTHON_API_LOGFILE')
@@ -124,6 +126,13 @@ class ReceivingThread(threading.Thread):
                     format(l_vle, len(l_vle)))
         return self.encoder.decode(l_vle)
 
+    def computation_wrapper(self, corrid, comp, path, params):
+        res = comp(path, **params)
+        kvs = [{'key': Path(path), 'value': res}]
+        v_msg = MessageValues(corrid, kvs)
+        var = MVar()
+        self.__yaks.send_queue.put((v_msg, var))
+
     def run(self):
         self._is_running = True
         while self._is_running and self.__yaks.is_connected:
@@ -159,6 +168,18 @@ class ReceivingThread(threading.Thread):
                                 cbk = self.subscriptions.get(sid)
                                 threading.Thread(target=cbk, args=(kvs,),
                                                  daemon=True).start()
+                        if msg_r.message_code == GET:
+                            selector = msg_r.get_selector()
+                            args = selector.dict_from_properties()
+                            for p in self.__yaks.evals:
+                                if selector.is_prefixed_by_path(p.to_string()):
+                                    c = self.__yaks.evals.get(p)
+                                    threading.Thread(
+                                        target=self.computation_wrapper,
+                                        args=(
+                                            msg_r.corr_id, c,
+                                            selector.get_path(), args),
+                                        daemon=True).start()
                         elif self.waiting_msgs.get(msg_r.corr_id) is None:
                             logger.info('ReceivingThread',
                                         'This message was not expected!')
@@ -197,19 +218,20 @@ class ReceivingThread(threading.Thread):
             self.close()
 
 
-class Access(object):
-    def __init__(self, y, id, path, cache_size=0, encoding=RAW):
+class Workspace(object):
+    def __init__(self, y, id, path, properties):
         self.__yaks = y
         self.__subscriptions = self.__yaks.subscriptions
         self.__send_queue = self.__yaks.send_queue
+        self.__evals = self.__yaks.evals
         self.id = id
         self.path = path
-        self.cache_size = cache_size
-        self.encoding = encoding
+        self.properties = properties
+        # self.encoding = encoding
 
-    def put(self, key, value):
+    def put(self, path, value):
         self.__yaks.check_connection()
-        msg_put = MessagePut(self.id, key, value, encoding=self.encoding)
+        msg_put = MessagePut(self.id, path, value)
         var = MVar()
         self.__send_queue.put((msg_put, var))
         r = var.get()
@@ -217,9 +239,9 @@ class Access(object):
             return True
         return False
 
-    def delta_put(self, key, value):
+    def update(self, path, value):
         self.__yaks.check_connection()
-        msg_delta = MessagePatch(self.id, key, value, encoding=self.encoding)
+        msg_delta = MessagePatch(self.id, path, value)
         var = MVar()
         self.__send_queue.put((msg_delta, var))
         r = var.get()
@@ -227,29 +249,32 @@ class Access(object):
             return True
         return False
 
-    def remove(self, key):
+    def remove(self, path):
         self.__yaks.check_connection()
-        msg_rm = MessageDelete(self.id, path=key)
+        msg_rm = MessageDelete(self.id, path=path)
         var = MVar()
         self.__send_queue.put((msg_rm, var))
         r = var.get()
         if YAKS.check_msg(r, msg_rm.corr_id):
+            if path in self.__evals:
+                self.__evals.pop(path)
             return True
         return False
 
-    def subscribe(self, key, callback):
+    def subscribe(self, selector, callback=None):
         self.__yaks.check_connection()
-        msg_sub = MessageSub(self.id, key, encoding=self.encoding)
+        msg_sub = MessageSub(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_sub, var))
         r = var.get()
         if YAKS.check_msg(r, msg_sub.corr_id):
             subid = r.get_property('is.yaks.subscription.id')
-            self.__subscriptions.update({subid: callback})
+            if callback:
+                self.__subscriptions.update({subid: callback})
             return subid
-        else:
-            raise RuntimeError('subscribe {} failed with error code {}'
-                               .format(key, r.get_error()))
+        raise \
+            RuntimeError('subscribe {} failed with error code {}'.format(
+                selector, r.get_error()))
 
     def get_subscriptions(self):
         self.__yaks.check_connection()
@@ -266,47 +291,35 @@ class Access(object):
             return True
         return False
 
-    def get(self, key):
+    def get(self, selector):
         self.__yaks.check_connection()
-        msg_get = MessageGet(self.id, key, encoding=self.encoding)
+        msg_get = MessageGet(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_get, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_get.corr_id, expected=[PVALUES, SVALUES]):
+        if YAKS.check_msg(r, msg_get.corr_id, expected=[VALUES]):
             return r.get_values()
-        else:
-            raise RuntimeError(
-                'get {} failed with error code {}'.format(key, r.get_error()))
+        raise \
+         RuntimeError('get {} failed with error code {}'.format(
+             selector, r.get_error()))
 
-    def eval(self, key, computation):
+    def eval(self, path, computation):
         self.__yaks.check_connection()
-        raise NotImplementedError('Not yet...')
-
-    def dispose(self):
-        self.__yaks.check_connection()
+        msg_eval = MessageEval(self.id, path)
         var = MVar()
-        msg = MessageDelete(self.id, EntityType.ACCESS)
-        self.__send_queue.put((msg, var))
+        self.__send_queue.put((msg_eval, var))
         r = var.get()
-        if YAKS.check_msg(r, msg.corr_id):
+        if YAKS.check_msg(r, msg_eval.corr_id):
+            self.__evals.update({path: computation})
             return True
-        return False
-
-
-class Storage(object):
-    def __init__(self, y, id, path, properties=[]):
-        self.__yaks = y
-        self.__send_queue = self.__yaks.send_queue
-        self.id = id
-        self.path = path
-        self.properties = properties
-        logger.info('Storage __init__', 'Created storage {} - {}'.
-                    format(self.id, self.path))
+        raise \
+         RuntimeError('eval {} failed with error code {}'.format(
+             path, r.get_error()))
 
     def dispose(self):
         self.__yaks.check_connection()
         var = MVar()
-        msg = MessageDelete(self.id, EntityType.STORAGE)
+        msg = MessageDelete(self.id, EntityType.WORKSPACE)
         self.__send_queue.put((msg, var))
         r = var.get()
         if YAKS.check_msg(r, msg.corr_id):
@@ -315,12 +328,13 @@ class Storage(object):
 
 
 class YAKS(object):
-    def __init__(self, server_address, server_port=7887):
+    def __init__(self):
         self.is_connected = False
         self.subscriptions = {}
+        self.evals = {}
         self.send_queue = queue.Queue()
-        self.address = server_address
-        self.port = server_port
+        self.address = None
+        self.port = None
         self.accesses = {}
         self.storages = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -328,9 +342,15 @@ class YAKS(object):
         self.sock.setblocking(1)
         self.lock = threading.Lock()
         self.working_set = {}
+        self.is_connected = False
+        self.st = None
+        self.rt = None
+
+    def login(self, server_address, server_port=7887, properties={}):
+        self.address = server_address
+        self.port = server_port
         self.sock.connect((self.address, self.port))
         self.is_connected = True
-
         self.st = SendingThread(self)
         self.rt = ReceivingThread(self)
         self.st.start()
@@ -352,33 +372,37 @@ class YAKS(object):
             raise ConnectionError('Lost connection with YAKS')
         pass
 
-    def close(self):
+    def logout(self):
         self.st.close()
         self.rt.close()
+        self.is_connected = False
+        self.address = None
+        self.port = None
 
-    def create_access(self, path, cache_size=1024, encoding=RAW):
-        create_msg = MessageCreate(EntityType.ACCESS, path)
+    def workspace(self, path, properties=None):
+        create_msg = MessageCreate(EntityType.WORKSPACE, path)
         var = MVar()
         self.send_queue.put((create_msg, var))
         msg = var.get()
         if self.check_msg(msg, create_msg.corr_id):
             id = msg.get_property('is.yaks.access.id')
-            acc = Access(self, id, path, cache_size, encoding)
+            acc = Workspace(self, id, path, properties)
             self.accesses.update({id: acc})
             return acc
         else:
-            raise RuntimeError(
-                'create_access {} failed with error code {}'
-                .format(path, msg.get_error()))
+            raise \
+                RuntimeError(
+                    'workspace {} failed with error code {}'.
+                    format(path, msg.get_error()))
 
-    def get_accesses(self):
-        return self.accesses
+    def create_storage(self, stid, properties):
+        if not isinstance(properties, dict) or \
+            properties.get('is.yaks.storage.selector') is None:
+            raise ValidationError("Missing Storage Selector!!")
 
-    def get_access(self, access_id):
-        return self.accesses.get(access_id)
-
-    def create_storage(self, path, properties=None):
-        create_msg = MessageCreate(EntityType.STORAGE, path)
+        storage_selector = properties.get('is.yaks.storage.selector')
+        properties.pop('is.yaks.storage.selector')
+        create_msg = MessageCreate(EntityType.STORAGE, storage_selector)
         if properties:
             for k in properties:
                 v = properties.get(k)
@@ -387,17 +411,25 @@ class YAKS(object):
         self.send_queue.put((create_msg, var))
         msg = var.get()
         if self.check_msg(msg, create_msg.corr_id):
-            id = msg.get_property('is.yaks.storage.id')
-            sto = Storage(self, id, path, properties)
-            self.storages.update({id: sto})
-            return sto
+            sid = msg.get_property('is.yaks.storage.id')
+            self.storages.update({stid: sid})
+            return stid
         else:
-            raise RuntimeError(
-                'create_storage {} failed with error code {}'
-                .format(path, msg.get_error()))
+            raise \
+                RuntimeError(
+                    'create_storage {} failed with error code {}'
+                    .format(stid, msg.get_error()))
 
-    def get_storages(self):
-        return self.storages
-
-    def get_storage(self, storage_id):
-        return self.storages.get(storage_id)
+    def remove_storage(self, stid):
+        self.check_connection()
+        var = MVar()
+        sid = self.storages.get(stid)
+        if sid is None:
+            raise ValidationError(
+                "Storage with id {} does not exist!".format(stid))
+        msg = MessageDelete(sid, EntityType.STORAGE)
+        self.send_queue.put((msg, var))
+        r = var.get()
+        if YAKS.check_msg(r, msg.corr_id):
+            return True
+        return False

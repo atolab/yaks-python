@@ -12,45 +12,49 @@
 #
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API
 
+import re
+from yaks.exceptions import ValidationError
+
 
 class Path(object):
     def __init__(self, path):
-        self.validate_selector_path(path)
-        if not path.startswith('//'):
-            raise ValueError('Path should start with //')
+        self.__path_regex = re.compile('^[^?#*]+$')
+        if not self.is_valid(path):
+            raise ValidationError("{} is not a valid Path".format(path))
         self.path = path
 
-    @staticmethod
-    def validate_selector_path(p):
-        return True
+    def is_valid(self, path):
+        return self.__path_regex.match(path) is not None \
+            and not path.startswith('//')
 
-    def get_query(self):
-        q = self.path.split('?')[-1]
-        return self.args2dict(q)
-
-    def dot2dict(self, dot_notation, value=None):
-        ld = []
-        tokens = dot_notation.split('.')
-        n_tokens = len(tokens)
-        for i in range(n_tokens, 0, -1):
-            if i == n_tokens and value is not None:
-                ld.append({tokens[i - 1]: value})
-            else:
-                ld.append({tokens[i - 1]: ld[-1]})
-        return ld[-1]
-
-    def args2dict(self, values):
-        data = {}
-        uri_values = values.split('&')
-        for tokens in uri_values:
-            v = tokens.split('=')[-1]
-            k = tokens.split('=')[0]
-            if len(k.split('.')) < 2:
-                data.update({k: v})
-            else:
-                d = self.dot2dict(k, v)
-                data.update(d)
-        return data
+    def is_absolute(self):
+        if self.path.startswith('/'):
+            return True
+        return False
 
     def is_prefix(self, prefix):
         return self.path.startswith(prefix)
+
+    def remove_prefix(self, prefix):
+        if self.is_prefix(prefix):
+            self.path = self.path[len(prefix):]
+
+    def to_string(self):
+        return self.path
+
+    def __len__(self):
+        return len(self.path)
+
+    def __eq__(self, second_path):
+        if isinstance(second_path, self.__class__):
+            return self.path == second_path.path
+        return False
+
+    def __str__(self):
+        return self.path
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __hash__(self):
+        return self.path.__hash__()

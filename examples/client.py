@@ -68,7 +68,6 @@ def main():
     input()
     print('GET: {}'.format(workspace.get(Selector('/myyaks/key1?[param=1]'))))
 
-
     print('>> Dispose Access')
     input()
     if sid:

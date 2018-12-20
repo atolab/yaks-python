@@ -24,7 +24,6 @@ from yaks.exceptions import *
 import time
 
 
-
 class APITest(unittest.TestCase):
 
     def test_create_close_api(self):
@@ -121,5 +120,3 @@ class APITest(unittest.TestCase):
         workspace.dispose()
         y.remove_storage(stid)
         y.logout()
-
-       

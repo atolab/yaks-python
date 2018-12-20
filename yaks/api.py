@@ -365,7 +365,7 @@ class YAKS(object):
 
     @staticmethod
     def check_msg(msg, corr_id, expected=[OK]):
-        return msg.message_code in expected or corr_id == msg.corr_id
+        return msg.message_code in expected and corr_id == msg.corr_id
 
     def check_connection(self):
         if not self.is_connected:

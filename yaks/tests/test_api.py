@@ -146,28 +146,27 @@ class APITest(unittest.TestCase):
         y.remove_storage(stid)
         y.logout()
 
-        def test_sub_unsub_strings(self):
-            y = YAKS.login(server_address='127.0.0.1')
-            properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-            stid = y.create_storage('123', properties)
-            workspace = y.workspace(Path('/myyaks'))
-            local_var = mvar.MVar()
+    def test_sub_unsub_strings(self):
+        y = YAKS.login(server_address='127.0.0.1')
+        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
+        stid = y.create_storage('123', properties)
+        workspace = y.workspace(Path('/myyaks'))
+        local_var = mvar.MVar()
 
-            def cb(kvs):
-                self.assertEqual(kvs,
-                                 [{'key': '/myyaks/key1',
-                                   'value': Value('123')}])
-                local_var.put(kvs)
-            sid = workspace.subscribe(
-                Selector('/myyaks/key1'), cb)
-            workspace.put('/myyaks/key1', Value('123'))
-            self.assertEqual(local_var.get(),
+        def cb(kvs):
+            self.assertEqual(kvs,
                              [{'key': '/myyaks/key1',
-                                'value': Value('123')}])
-            self.assertTrue(workspace.unsubscribe(sid))
-            workspace.dispose()
-            y.remove_storage(stid)
-            y.logout()
+                               'value': Value('123')}])
+            local_var.put(kvs)
+        sid = workspace.subscribe('/myyaks/key1', cb)
+        workspace.put('/myyaks/key1', Value('123'))
+        self.assertEqual(local_var.get(),
+                         [{'key': '/myyaks/key1',
+                            'value': Value('123')}])
+        self.assertTrue(workspace.unsubscribe(sid))
+        workspace.dispose()
+        y.remove_storage(stid)
+        y.logout()
 
     def test_eval_string(self):
         #self.assertTrue(True)
@@ -177,9 +176,10 @@ class APITest(unittest.TestCase):
         workspace = y.workspace(Path('/myyaks'))
 
         def cb(path, hello):
+            self.assertTrue(isinstance(path, str))
             return Value('{} World!'.format(hello))
 
-        workspace.eval(Path('/myyaks/key1'), cb)
+        workspace.eval('/myyaks/key1', cb)
         kvs = workspace.get('/myyaks/key1?[hello=mondo]')
         self.assertEqual(kvs,
                          [{'key': '/myyaks/key1',

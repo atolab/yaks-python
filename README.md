@@ -9,7 +9,11 @@ This repo contains the YAKS API binding for Python
 
 #### Installation
 
-    python3 setup.py install
+    $ python3 setup.py install
+
+or
+
+    $ pip3 install yaks
 
 #### Changelog 
 

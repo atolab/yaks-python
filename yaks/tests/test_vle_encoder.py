@@ -17,7 +17,7 @@ from yaks import encoder
 from random import randint
 
 
-class MessagesTests(unittest.TestCase):
+class VleEncodingTests(unittest.TestCase):
 
     def test_encoding(self):
         e = encoder.VLEEncoder()

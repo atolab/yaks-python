@@ -126,7 +126,9 @@ class ReceivingThread(threading.Thread):
                     format(l_vle, len(l_vle)))
         return self.encoder.decode(l_vle)
 
-    def computation_wrapper(self, corrid, comp, path, params):
+    def computation_wrapper(self, corrid, comp, p_a_s, path, params):
+        if p_a_s:
+            path = str(path)
         res = comp(path, **params)
         kvs = [{'key': Path(path), 'value': res}]
         v_msg = MessageValues(corrid, kvs)
@@ -165,19 +167,27 @@ class ReceivingThread(threading.Thread):
                         if msg_r.message_code == NOTIFY:
                             sid, kvs = msg_r.get_notification()
                             if sid in self.subscriptions:
-                                cbk = self.subscriptions.get(sid)
-                                threading.Thread(target=cbk, args=(kvs,),
+                                cbk, p_a_s = self.subscriptions.get(sid)
+                                if p_a_s:
+                                    vs = []
+                                    for kv in kvs:
+                                        vs.append({
+                                            'key': str(kv.get('key')),
+                                            'value': kv.get('value')})
+                                else:
+                                    vs = kvs
+                                threading.Thread(target=cbk, args=(vs,),
                                                  daemon=True).start()
                         if msg_r.message_code == GET:
                             selector = msg_r.get_selector()
                             args = selector.dict_from_properties()
                             for p in self.__yaks.evals:
                                 if selector.is_prefixed_by_path(p.to_string()):
-                                    c = self.__yaks.evals.get(p)
+                                    c, p_a_s = self.__yaks.evals.get(p)
                                     threading.Thread(
                                         target=self.computation_wrapper,
                                         args=(
-                                            msg_r.corr_id, c,
+                                            msg_r.corr_id, c, p_a_s,
                                             selector.get_path(), args),
                                         daemon=True).start()
                         elif self.waiting_msgs.get(msg_r.corr_id) is None:
@@ -230,6 +240,8 @@ class Workspace(object):
         # self.encoding = encoding
 
     def put(self, path, value):
+        if not isinstance(path, Path):
+            path = Path(path)
         self.__yaks.check_connection()
         msg_put = MessagePut(self.id, path, value)
         var = MVar()
@@ -240,6 +252,8 @@ class Workspace(object):
         return False
 
     def update(self, path, value):
+        if not isinstance(path, Path):
+            path = Path(path)
         self.__yaks.check_connection()
         msg_delta = MessagePatch(self.id, path, value)
         var = MVar()
@@ -250,6 +264,8 @@ class Workspace(object):
         return False
 
     def remove(self, path):
+        if not isinstance(path, Path):
+            path = Path(path)
         self.__yaks.check_connection()
         msg_rm = MessageDelete(self.id, path=path)
         var = MVar()
@@ -261,8 +277,9 @@ class Workspace(object):
             return True
         return False
 
-    def subscribe(self, selector, callback=None):
-        self.__yaks.check_connection()
+    def subscribe(self, selector, callback=None, paths_as_strings=True):
+        if not isinstance(selector, Selector):
+            selector = Selector(selector)
         msg_sub = MessageSub(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_sub, var))
@@ -270,7 +287,8 @@ class Workspace(object):
         if YAKS.check_msg(r, msg_sub.corr_id):
             subid = r.get_property('is.yaks.subscription.id')
             if callback:
-                self.__subscriptions.update({subid: callback})
+                self.__subscriptions.update(
+                    {subid: (callback, paths_as_strings)})
             return subid
         raise \
             RuntimeError('subscribe {} failed with error code {}'.format(
@@ -291,26 +309,38 @@ class Workspace(object):
             return True
         return False
 
-    def get(self, selector):
+    def get(self, selector, paths_as_strings=True):
+        if not isinstance(selector, Selector):
+            selector = Selector(selector)
         self.__yaks.check_connection()
         msg_get = MessageGet(self.id, selector)
         var = MVar()
         self.__send_queue.put((msg_get, var))
         r = var.get()
         if YAKS.check_msg(r, msg_get.corr_id, expected=[VALUES]):
-            return r.get_values()
+            kvs = r.get_values()
+            if not paths_as_strings:
+                return kvs
+            vs = []
+            for kv in kvs:
+                vs.append({
+                    'key': str(kv.get('key')),
+                    'value': kv.get('value')})
+            return vs
         raise \
          RuntimeError('get {} failed with error code {}'.format(
              selector, r.get_error()))
 
-    def eval(self, path, computation):
+    def eval(self, path, computation, paths_as_strings=True):
+        if not isinstance(path, Path):
+            path = Path(path)
         self.__yaks.check_connection()
         msg_eval = MessageEval(self.id, path)
         var = MVar()
         self.__send_queue.put((msg_eval, var))
         r = var.get()
         if YAKS.check_msg(r, msg_eval.corr_id):
-            self.__evals.update({path: computation})
+            self.__evals.update({path: (computation, paths_as_strings)})
             return True
         raise \
          RuntimeError('eval {} failed with error code {}'.format(
@@ -346,22 +376,25 @@ class YAKS(object):
         self.st = None
         self.rt = None
 
+    @classmethod
     def login(self, server_address, server_port=7887, properties={}):
-        self.address = server_address
-        self.port = server_port
-        self.sock.connect((self.address, self.port))
-        self.is_connected = True
-        self.st = SendingThread(self)
-        self.rt = ReceivingThread(self)
-        self.st.start()
-        self.rt.start()
+        y = self()
+        y.address = server_address
+        y.port = server_port
+        y.sock.connect((y.address, y.port))
+        y.is_connected = True
+        y.st = SendingThread(y)
+        y.rt = ReceivingThread(y)
+        y.st.start()
+        y.rt.start()
 
         open_msg = MessageOpen()
         var = MVar()
-        self.send_queue.put((open_msg, var))
+        y.send_queue.put((open_msg, var))
         msg = var.get()
-        if not self.check_msg(msg, open_msg.corr_id):
+        if not YAKS.check_msg(msg, open_msg.corr_id):
             raise RuntimeError('Server response is wrong')
+        return y
 
     @staticmethod
     def check_msg(msg, corr_id, expected=[OK]):
@@ -380,6 +413,8 @@ class YAKS(object):
         self.port = None
 
     def workspace(self, path, properties=None):
+        if not isinstance(path, Path):
+            path = Path(path)
         create_msg = MessageCreate(EntityType.WORKSPACE, path)
         var = MVar()
         self.send_queue.put((create_msg, var))
@@ -399,9 +434,12 @@ class YAKS(object):
         if not isinstance(properties, dict) or \
             properties.get('is.yaks.storage.selector') is None:
             raise ValidationError("Missing Storage Selector!!")
-
+        if not isinstance(stid, str):
+            stid = str(stid)
         storage_selector = properties.get('is.yaks.storage.selector')
         properties.pop('is.yaks.storage.selector')
+        if not isinstance(storage_selector, Selector):
+            storage_selector = Selector(storage_selector)
         create_msg = MessageCreate(EntityType.STORAGE, storage_selector)
         if properties:
             for k in properties:

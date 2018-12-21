@@ -151,15 +151,6 @@ class MessagesTests(unittest.TestCase):
         self.assertEqual(msg1.flags, msg2.flags)
         self.assertEqual(msg2.get_values(), v1)
 
-    def test_set_encoding_protobuf(self):
-        v1 = [
-            {'key': Path('/hello'),
-                         'value': Value('world', encoding=PROTOBUF)},
-        ]
-        msg1 = messages.Message()
-        msg1.message_code = messages.VALUES
-        self.assertRaises(NotImplementedError, msg1.add_values, v1)
-
     def test_value_encoding_invalid(self):
         v1 = [
             {'key': Path('/hello'), 'value': Value('world', encoding=INVALID)},

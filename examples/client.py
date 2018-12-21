@@ -17,8 +17,7 @@ def evcb(path, param):
 
 def main():
     print('creating api')
-    y = YAKS()
-    y.login(sys.argv[1])
+    y = YAKS.login(sys.argv[1])
     print('>> Create storage')
     input()
     myst_id = 100
@@ -29,7 +28,8 @@ def main():
     input()
     workspace = y.workspace(Path('/myyaks'))
 
-    sid = workspace.subscribe(Selector('/myyaks/example/**'), obs)
+    sid = workspace.subscribe(Selector('/myyaks/example/**'), obs,
+                              paths_as_strings=False)
 
     print('>> Put Tuple')
     input()
@@ -50,23 +50,27 @@ def main():
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(Selector('/myyaks/example/one'))))
+    print('GET: {}'.format(workspace.get(
+        Selector('/myyaks/example/one'), paths_as_strings=False)))
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(Selector('/myyaks/example'))))
+    print('GET: {}'.format(workspace.get(
+        Selector('/myyaks/example'), paths_as_strings=False)))
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(Selector('/myyaks/example/*'))))
+    print('GET: {}'.format(workspace.get(
+        Selector('/myyaks/example/*'), paths_as_strings=False)))
 
     print('>> Put Eval')
     input()
-    workspace.eval(Path('/myyaks/key1'), evcb)
+    workspace.eval(Path('/myyaks/key1'), evcb, paths_as_strings=False)
 
     print('>> Get on Eval')
     input()
-    print('GET: {}'.format(workspace.get(Selector('/myyaks/key1?[param=1]'))))
+    print('GET: {}'.format(workspace.get(
+        Selector('/myyaks/key1?[param=1]'), paths_as_strings=False)))
 
     print('>> Dispose Access')
     input()

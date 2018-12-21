@@ -14,8 +14,7 @@ import sys
 
 def main():
     print('creating api')
-    y = YAKS()
-    y.login(sys.argv[1])
+    y = YAKS.login(sys.argv[1])
 
     print('>> Create memory storage')
     input()

@@ -18,7 +18,7 @@ from yaks import Path
 from yaks.exceptions import *
 
 
-class PathTests(unittest.TestCase):
+class SelectorTests(unittest.TestCase):
 
     def test_selector_simple(self):
         s = Selector('/this/is/a/selector')

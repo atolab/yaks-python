@@ -65,7 +65,6 @@ class Selector(object):
         if self.properties is None:
             return data
         uri_values = self.properties.split(';')
-        #print (uri_values)
         for tokens in uri_values:
             v = tokens.split('=')[-1]
             k = tokens.split('=')[0]

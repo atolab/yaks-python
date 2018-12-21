@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 
 
+## Unreleased - 2018-12-21
+
+### Changed
+- **login** become a static method of YAKS and creates the YAKS API ( YAKS.login() returns a **YAKS** object)
+- _put_; _update_; _remove_; _eval_; _workspace_ takes **Path** or **str**
+- _get_; _subscribe_ takes **Selector** or  **str**
+- _get_; _subscribe_ and _eval_; returns **str** as default for _paths_ the optional parameter _paths_as_string=False allow enable returns of YAKS types 
+- storage creation takes an id and a dictionary of properties with at least the property _is.yaks.storage.selector_ set with a valid **Selector**  or **str**
+
 ## [0.1.0] - 2018-12-20
 ### Added
 - **Value** class for values

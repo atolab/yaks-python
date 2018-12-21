@@ -15,19 +15,27 @@
 import re
 from yaks.exceptions import ValidationError
 from yaks.encoding import *
+import json
 
 
 class Value(object):
     def __init__(self, value, encoding=RAW):
         if encoding > 0xFF:
             raise ValueError('Encoding not supported')
+        if encoding == PROTOBUF:
+            raise ValueError('PROTOBUF Encoding not implemented')
         self.encoding = encoding
-        self.value = value
+        if self.encoding is JSON:
+            self.value = json.dumps(value)
+        else:
+            self.value = value
 
     def get_encoding(self):
         return self.encoding
 
     def get_value(self):
+        if self.encoding is JSON:
+            return json.loads(self.value)
         return self.value
 
     def __eq__(self, second_value):

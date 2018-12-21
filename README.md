@@ -13,7 +13,7 @@ This repo contains the YAKS API binding for Python
 
 #### Changelog 
 
-See [changelog file](CHANGELOG.md))
+See [changelog file](CHANGELOG.md)
 
 #### Examples
 

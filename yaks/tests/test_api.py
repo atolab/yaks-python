@@ -188,3 +188,24 @@ class APITest(unittest.TestCase):
         workspace.dispose()
         y.remove_storage(stid)
         y.logout()
+
+    def test_eval_string_two_parametes(self):
+        #self.assertTrue(True)
+        y = YAKS.login(server_address='127.0.0.1')
+        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
+        stid = y.create_storage('123', properties)
+        workspace = y.workspace(Path('/myyaks'))
+
+        def cb(path, hello1, hello2):
+            self.assertTrue(isinstance(path, str))
+            return Value('{} {} World!'.format(hello1, hello2))
+
+        workspace.eval('/myyaks/key1', cb)
+        kvs = workspace.get('/myyaks/key1?[hello1=mondo;hello2=ciao]')
+        self.assertEqual(kvs,
+                         [{'key': '/myyaks/key1',
+                              'value': Value('mondo ciao World!')}])
+        workspace.remove('/myyaks/key1')
+        workspace.dispose()
+        y.remove_storage(stid)
+        y.logout()

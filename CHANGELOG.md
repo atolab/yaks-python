@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2019-01-xx
+
+### Added
+- **Admin** class for managing YAKS instances
+### Changed
+- Adapted the socket protocol with the new YAKS socket protocol
+- Update encoding for RAW values
+
 
 
 ## [0.1.1] - 2018-12-21

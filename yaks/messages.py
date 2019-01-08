@@ -68,24 +68,24 @@ from yaks.selector import Selector
 from yaks.encoding import *
 
 # Message Codes
-LOGIN       = 0x01
-LOGOUT      = 0x02
-WORKSPACE   = 0x03
+LOGIN = 0x01
+LOGOUT = 0x02
+WORKSPACE = 0x03
 
-PUT         = 0xA0
-UPDATE      = 0xA1
-GET         = 0xA2
-DELETE      = 0xA3
+PUT = 0xA0
+UPDATE = 0xA1
+GET = 0xA2
+DELETE = 0xA3
 
-SUB         = 0xB0
-UNSUB       = 0xB1
-NOTIFY      = 0xB2
-EVAL        = 0xB3
+SUB = 0xB0
+UNSUB = 0xB1
+NOTIFY = 0xB2
+EVAL = 0xB3
 
-OK          = 0xD0
-VALUES      = 0xD1
+OK = 0xD0
+VALUES = 0xD1
 
-ERROR       = 0xE0
+ERROR = 0xE0
 
 
 class EntityType(Enum):
@@ -170,7 +170,7 @@ class Message(object):
 
         msg = struct.unpack('<BB', sub_header)
         self.message_code = msg[0]
-        self.flags = msg[1]        
+        self.flags = msg[1]
         self.flag_p = self.flags & 0x01
         base_p = 2
 
@@ -251,7 +251,19 @@ class Message(object):
     def __value_encoding(self, value):
         data = b''
         encoding = value.get_encoding()
-        if encoding in [RAW, JSON, STRING]:
+        if encoding == RAW:
+            data = data + struct.pack('<B', encoding)
+            len_repr = len(value.representation)
+            for b in self.encoder.encode(len_repr):
+                data = data + b
+            fmt = '<{}s'.format(len_repr)
+            data = data + struct.pack(fmt, value.representation.encode())
+            len_v = len(value.get_value())
+            for b in self.encoder.encode(len_v):
+                data = data + b
+            fmt = '<{}s'.format(len_v)
+            data = data + struct.pack(fmt, value.get_value().encode())
+        elif encoding in [JSON, STRING]:
             len_v = len(value.get_value())
             data = data + struct.pack('<B', encoding)
             for b in self.encoder.encode(len_v):
@@ -275,7 +287,20 @@ class Message(object):
         v = None
         encoding = struct.unpack('<B', data[base_p: base_p + 1])[0]
         base_p = base_p + 1
-        if encoding in [RAW, JSON, STRING]:
+        if encoding == RAW:
+            len_repr, base_p = self.__read_vle_field(data, base_p)
+            fmt = '<{}s'.format(len_repr)
+            val_raw = data[base_p:base_p + len_repr]
+            repr = struct.unpack(fmt, val_raw)[0].decode()
+            base_p = base_p + len_repr
+            len_v, base_p = self.__read_vle_field(data, base_p)
+            fmt = '<{}s'.format(len_v)
+            val_raw = data[base_p:base_p + len_v]
+            v = struct.unpack(fmt, val_raw)[0].decode()
+            base_p = base_p + len_v
+            return Value(v, encoding, repr), base_p
+
+        elif encoding in [JSON, STRING]:
             len_v, base_p = self.__read_vle_field(data, base_p)
             fmt = '<{}s'.format(len_v)
             val_raw = data[base_p:base_p + len_v]
@@ -384,7 +409,6 @@ class Message(object):
         self.flag_p = 0
         self.flags = self.flags ^ 0x01
 
-
     def set_data(self, data):
         self.data = data
 
@@ -436,7 +460,7 @@ class Message(object):
         self.corr_id = random.getrandbits(32)
 
 
-def stringified_msg_properties(properties, msg):    
+def stringified_msg_properties(properties, msg):
     if properties is not None:
         for pname in properties:
             pvalue = properties.get(pname)
@@ -447,6 +471,7 @@ def stringified_msg_properties(properties, msg):
             elif isinstance(pvalue, dict):
                 msg.add_property(pname, json.dumps(pvalue))
 
+
 class MessageLogin(Message):
     def __init__(self, username=None, password=None):
         super(MessageLogin, self).__init__()
@@ -455,18 +480,19 @@ class MessageLogin(Message):
         if username and password:
             self.add_property('yaks.login', '{}:{}'.format(username, password))
 
+
 class MessageLogout(Message):
     def __init__(self):
         super(MessageLogout, self).__init__()
         self.generate_corr_id()
-        self.message_code = LOGOUT        
+        self.message_code = LOGOUT
 
 
 class MessageWorkspace(Message):
     def __init__(self, path, properties=None):
         super(MessageWorkspace, self).__init__()
         self.generate_corr_id()
-        self.message_code = WORKSPACE        
+        self.message_code = WORKSPACE
         stringified_msg_properties(properties, self)
         self.add_path(path)
 
@@ -477,6 +503,7 @@ class MessageDelete(Message):
         self.message_code = DELETE
         self.generate_corr_id()
         self.add_path(path)
+
 
 class MessagePut(Message):
     def __init__(self, aid, key, value):

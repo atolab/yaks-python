@@ -358,10 +358,9 @@ class Workspace(object):
 
 
 class Admin(object):
-    def __init__(self, yaks): 
+    def __init__(self, yaks):
         self.yaks = yaks
         self.ws = yaks.workspace(Path("/@/local"))
-
 
     # def create_storage(self, stid, properties):
     #     if not isinstance(properties, dict) or \
@@ -404,6 +403,7 @@ class Admin(object):
     #     if Yaks.check_msg(r, msg.corr_id):
     #         return True
     #     return False
+
 
 class Yaks(object):
     def __init__(self):
@@ -459,13 +459,12 @@ class Yaks(object):
         self.send_queue.put((logout_msg, var))
         msg = var.get()
         if not Yaks.check_msg(msg, logout_msg.corr_id):
-            raise RuntimeError('Server response is wrong')                
+            raise RuntimeError('Server response is wrong')
         self.st.close()
         self.rt.close()
         self.is_connected = False
         self.address = None
         self.port = None
-
 
     def workspace(self, path, properties=None):
         if not isinstance(path, Path):
@@ -485,5 +484,5 @@ class Yaks(object):
                     'workspace {} failed with error code {}'.
                     format(path, msg.get_error()))
 
-    def admin(self): 
+    def admin(self):
         return Admin(self)

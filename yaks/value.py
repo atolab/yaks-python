@@ -19,7 +19,7 @@ import json
 
 
 class Value(object):
-    def __init__(self, value, encoding=RAW):
+    def __init__(self, value, encoding=RAW, encoding_representation=""):
         if encoding > 0xFF:
             raise ValueError('Encoding not supported')
         if encoding == PROTOBUF:
@@ -27,6 +27,9 @@ class Value(object):
         self.encoding = encoding
         if self.encoding is JSON:
             self.value = json.dumps(value)
+        elif encoding == RAW:
+            self.representation = encoding_representation
+            self.value = value
         else:
             self.value = value
 

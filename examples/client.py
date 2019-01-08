@@ -1,4 +1,4 @@
-from yaks import YAKS
+from yaks import Yaks
 from yaks import Selector
 from yaks import Path
 from yaks import Value
@@ -17,7 +17,7 @@ def evcb(path, param):
 
 def main():
     print('creating api')
-    y = YAKS.login(sys.argv[1])
+    y = Yaks.login(sys.argv[1])
     print('>> Create storage')
     input()
     myst_id = 100

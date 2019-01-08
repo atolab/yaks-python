@@ -27,9 +27,9 @@ LITTLE ENDIAN
 +-+-+-+-+-+-+-+-+ ----------------------+
 |  MESSAGE CODE |    8bit               |
 +-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
+|X|X|X|X|X|X|X|P|    8bit               +--> Header
 +-+-+-+-+-+-+-+-+                       |
-~   Coor. ID    ~  VLE max 64bit        |
+~   Corr. ID    ~  VLE max 64bit        |
 +---------------+                       |
 ~   Properties  ~ --> Present if P = 1  |
 +---------------+ ----------------------+
@@ -41,11 +41,11 @@ WIRE MESSAGE:
 
  7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+
-~    Lenght     ~ VLE max 64bit
+~    Length     ~ VLE max 64bit
 +-+-+-+-+-+-+-+-+ ----------------------+
 |  MESSAGE CODE |    8bit               |
 +-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
+|X|X|X|X|X|X|X|P|    8bit               +--> Header
 +-+-+-+-+-+-+-+-+                       |
 ~    Corr. id   ~  VLE max 64bit        |
 +---------------+                       |
@@ -66,20 +66,26 @@ from yaks.value import Value
 from yaks.path import Path
 from yaks.selector import Selector
 from yaks.encoding import *
+
 # Message Codes
-OPEN = 0x01
-CREATE = 0x02
-DELETE = 0x03
-PUT = 0xA0
-PATCH = 0xA1
-GET = 0xA2
-SUB = 0xB0
-UNSUB = 0xB1
-NOTIFY = 0xB2
-EVAL = 0xB3
-OK = 0xD0
-VALUES = 0xD1
-ERROR = 0xE0
+LOGIN       = 0x01
+LOGOUT      = 0x02
+WORKSPACE   = 0x03
+
+PUT         = 0xA0
+UPDATE      = 0xA1
+GET         = 0xA2
+DELETE      = 0xA3
+
+SUB         = 0xB0
+UNSUB       = 0xB1
+NOTIFY      = 0xB2
+EVAL        = 0xB3
+
+OK          = 0xD0
+VALUES      = 0xD1
+
+ERROR       = 0xE0
 
 
 class EntityType(Enum):
@@ -95,11 +101,6 @@ class Message(object):
         self.message_code = 0x0
         # 8bit
         self.flags = 0x0
-        # 8bit comprises A,S,P
-        self.flag_a = 0x0
-        # 1bit
-        self.flag_s = 0x0
-        # 1bit
         self.flag_p = 0x0
         # 1bit
         self.corr_id = 0x0
@@ -169,10 +170,7 @@ class Message(object):
 
         msg = struct.unpack('<BB', sub_header)
         self.message_code = msg[0]
-        self.flags = msg[1]
-
-        self.flag_a = (self.flags & 0x04) >> 2
-        self.flag_s = (self.flags & 0x02) >> 1
+        self.flags = msg[1]        
         self.flag_p = self.flags & 0x01
         base_p = 2
 
@@ -386,21 +384,6 @@ class Message(object):
         self.flag_p = 0
         self.flags = self.flags ^ 0x01
 
-    def set_s(self):
-        self.flag_s = 1
-        self.flags = self.flags | 0x02
-
-    def unset_s(self):
-        self.flag_s = 0
-        self.flags = self.flags ^ 0x02
-
-    def set_a(self):
-        self.flag_a = 1
-        self.flags = self.flags | 0x04
-
-    def unset_a(self):
-        self.flag_a = 0
-        self.flags = self.flags ^ 0x04
 
     def set_data(self, data):
         self.data = data
@@ -436,8 +419,8 @@ class Message(object):
                  + '\n# CODE: {}'.format(self.message_code) \
                  + '\n# CORR.ID: {}'.format(self.corr_id) \
                  + '\n# LENGTH: {}'.format(self.length) \
-                 + '\n# FLAGS: RAW: {} | A:{} S:{} P:{}'.\
-                format(self.flags, self.flag_a, self.flag_s, self.flag_p)
+                 + '\n# FLAGS: RAW: {} | P:{}'.\
+                format(self.flags, self.flag_p)
 
         if self.flag_p:
             pretty = pretty + '\n# HAS PROPERTIES\n# NUMBER OF PROPERTIES:' \
@@ -453,70 +436,65 @@ class Message(object):
         self.corr_id = random.getrandbits(32)
 
 
-class MessageOpen(Message):
+def stringified_msg_properties(properties, msg):    
+    if properties is not None:
+        for pname in properties:
+            pvalue = properties.get(pname)
+            if isinstance(pvalue, str):
+                msg.add_property(pname, pvalue)
+            elif isinstance(pvalue, int) or isinstance(pvalue, float):
+                msg.add_property(pname, '{}'.format(pvalue))
+            elif isinstance(pvalue, dict):
+                msg.add_property(pname, json.dumps(pvalue))
+
+class MessageLogin(Message):
     def __init__(self, username=None, password=None):
-        super(MessageOpen, self).__init__()
+        super(MessageLogin, self).__init__()
         self.generate_corr_id()
-        self.message_code = OPEN
+        self.message_code = LOGIN
         if username and password:
             self.add_property('yaks.login', '{}:{}'.format(username, password))
 
-
-class MessageCreate(Message):
-    def __init__(self, ctype, path, properties=None):
-        super(MessageCreate, self).__init__()
-        self.message_code = CREATE
+class MessageLogout(Message):
+    def __init__(self):
+        super(MessageLogout, self).__init__()
         self.generate_corr_id()
+        self.message_code = LOGOUT        
 
-        if properties is not None:
-            for pname in properties:
-                pvalue = properties.get(pname)
-                if isinstance(pvalue, str):
-                    self.add_property(pname, pvalue)
-                elif isinstance(pvalue, int) or isinstance(pvalue, float):
-                    self.add_property(pname, '{}'.format(pvalue))
-                elif isinstance(pvalue, dict):
-                    self.add_property(pname, json.dumps(pvalue))
-        if ctype is EntityType.WORKSPACE:
-            self.set_a()
-            self.add_path(path)
-        elif ctype is EntityType.STORAGE:
-            self.set_s()
-            self.add_selector(path)
+
+class MessageWorkspace(Message):
+    def __init__(self, path, properties=None):
+        super(MessageWorkspace, self).__init__()
+        self.generate_corr_id()
+        self.message_code = WORKSPACE        
+        stringified_msg_properties(properties, self)
+        self.add_path(path)
 
 
 class MessageDelete(Message):
-    def __init__(self, id, dtype=None, path=None):
+    def __init__(self, path):
         super(MessageDelete, self).__init__()
         self.message_code = DELETE
         self.generate_corr_id()
-        if dtype is EntityType.WORKSPACE:
-            self.set_a()
-            self.add_property('is.yaks.access.id', id)
-        elif dtype is EntityType.STORAGE:
-            self.set_s()
-            self.add_property('is.yaks.storage.id', id)
-        elif path is not None:
-            self.add_property('is.yaks.access.id', id)
-            self.add_path(path)
-
+        self.add_path(path)
 
 class MessagePut(Message):
     def __init__(self, aid, key, value):
         super(MessagePut, self).__init__()
         self.message_code = PUT
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        print('wsid = {}'.format(aid))
+        self.add_property('wsid', aid)
         self.add_values([{'key': key,
                           'value': value}])
 
 
-class MessagePatch(Message):
+class MessageUpdate(Message):
     def __init__(self, aid, key, value):
-        super(MessagePatch, self).__init__()
-        self.message_code = PATCH
+        super(MessageUpdate, self).__init__()
+        self.message_code = UPDATE
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.add_property('wsid', aid)
         self.add_values([{'key': key,
                           'value': value}])
 
@@ -526,7 +504,7 @@ class MessageGet(Message):
         super(MessageGet, self).__init__()
         self.message_code = GET
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.add_property('wsid', aid)
         self.add_selector(key)
 
 
@@ -535,7 +513,7 @@ class MessageSub(Message):
         super(MessageSub, self).__init__()
         self.message_code = SUB
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.add_property('wsid', aid)
         self.add_subscription(key)
 
 
@@ -544,7 +522,7 @@ class MessageUnsub(Message):
         super(MessageUnsub, self).__init__()
         self.message_code = UNSUB
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.add_property('wsid', aid)
         self.add_subscription_id(subscription_id)
 
 
@@ -553,7 +531,7 @@ class MessageEval(Message):
         super(MessageEval, self).__init__()
         self.message_code = EVAL
         self.generate_corr_id()
-        self.add_property('is.yaks.access.id', aid)
+        self.add_property('wsid', aid)
         self.add_path(computation)
 
 

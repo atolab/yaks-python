@@ -247,7 +247,7 @@ class Workspace(object):
         var = MVar()
         self.__send_queue.put((msg_put, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_put.corr_id):
+        if Yaks.check_msg(r, msg_put.corr_id):
             return True
         return False
 
@@ -255,11 +255,11 @@ class Workspace(object):
         if not isinstance(path, Path):
             path = Path(path)
         self.__yaks.check_connection()
-        msg_delta = MessagePatch(self.id, path, value)
+        msg_delta = MessageUpdate(self.id, path, value)
         var = MVar()
         self.__send_queue.put((msg_delta, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_delta.corr_id):
+        if Yaks.check_msg(r, msg_delta.corr_id):
             return True
         return False
 
@@ -267,11 +267,11 @@ class Workspace(object):
         if not isinstance(path, Path):
             path = Path(path)
         self.__yaks.check_connection()
-        msg_rm = MessageDelete(self.id, path=path)
+        msg_rm = MessageDelete(path)
         var = MVar()
         self.__send_queue.put((msg_rm, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_rm.corr_id):
+        if Yaks.check_msg(r, msg_rm.corr_id):
             if path in self.__evals:
                 self.__evals.pop(path)
             return True
@@ -284,7 +284,7 @@ class Workspace(object):
         var = MVar()
         self.__send_queue.put((msg_sub, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_sub.corr_id):
+        if Yaks.check_msg(r, msg_sub.corr_id):
             subid = r.get_property('is.yaks.subscription.id')
             if callback:
                 self.__subscriptions.update(
@@ -304,7 +304,7 @@ class Workspace(object):
         var = MVar()
         self.__send_queue.put((msg_unsub, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_unsub.corr_id):
+        if Yaks.check_msg(r, msg_unsub.corr_id):
             self.__subscriptions.pop(subscription_id)
             return True
         return False
@@ -317,7 +317,7 @@ class Workspace(object):
         var = MVar()
         self.__send_queue.put((msg_get, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_get.corr_id, expected=[VALUES]):
+        if Yaks.check_msg(r, msg_get.corr_id, expected=[VALUES]):
             kvs = r.get_values()
             if not paths_as_strings:
                 return kvs
@@ -339,7 +339,7 @@ class Workspace(object):
         var = MVar()
         self.__send_queue.put((msg_eval, var))
         r = var.get()
-        if YAKS.check_msg(r, msg_eval.corr_id):
+        if Yaks.check_msg(r, msg_eval.corr_id):
             self.__evals.update({path: (computation, paths_as_strings)})
             return True
         raise \
@@ -352,12 +352,60 @@ class Workspace(object):
         msg = MessageDelete(self.id, EntityType.WORKSPACE)
         self.__send_queue.put((msg, var))
         r = var.get()
-        if YAKS.check_msg(r, msg.corr_id):
+        if Yaks.check_msg(r, msg.corr_id):
             return True
         return False
 
 
-class YAKS(object):
+class Admin(object):
+    def __init__(self, yaks): 
+        self.yaks = yaks
+        self.ws = yaks.workspace(Path("/@/local"))
+
+
+    # def create_storage(self, stid, properties):
+    #     if not isinstance(properties, dict) or \
+    #         properties.get('is.yaks.storage.selector') is None:
+    #         raise ValidationError("Missing Storage Selector!!")
+    #     if not isinstance(stid, str):
+    #         stid = str(stid)
+    #     storage_selector = properties.get('is.yaks.storage.selector')
+    #     properties.pop('is.yaks.storage.selector')
+    #     if not isinstance(storage_selector, Selector):
+    #         storage_selector = Selector(storage_selector)
+    #     create_msg = MessageCreate(EntityType.STORAGE, storage_selector)
+    #     if properties:
+    #         for k in properties:
+    #             v = properties.get(k)
+    #             create_msg.add_property(k, v)
+    #     var = MVar()
+    #     self.yaks.send_queue.put((create_msg, var))
+    #     msg = var.get()
+    #     if self.yaks.check_msg(msg, create_msg.corr_id):
+    #         sid = msg.get_property('is.yaks.storage.id')
+    #         self.yaks.storages.update({stid: sid})
+    #         return stid
+    #     else:
+    #         raise \
+    #             RuntimeError(
+    #                 'create_storage {} failed with error code {}'
+    #                 .format(stid, msg.get_error()))
+
+    # def remove_storage(self, stid):
+    #     self.yaks.check_connection()
+    #     var = MVar()
+    #     sid = self.yaks.storages.get(stid)
+    #     if sid is None:
+    #         raise ValidationError(
+    #             "Storage with id {} does not exist!".format(stid))
+    #     msg = MessageDelete(sid)
+    #     self.yaks.send_queue.put((msg, var))
+    #     r = var.get()
+    #     if Yaks.check_msg(r, msg.corr_id):
+    #         return True
+    #     return False
+
+class Yaks(object):
     def __init__(self):
         self.is_connected = False
         self.subscriptions = {}
@@ -388,11 +436,11 @@ class YAKS(object):
         y.st.start()
         y.rt.start()
 
-        open_msg = MessageOpen()
+        open_msg = MessageLogin()
         var = MVar()
         y.send_queue.put((open_msg, var))
         msg = var.get()
-        if not YAKS.check_msg(msg, open_msg.corr_id):
+        if not Yaks.check_msg(msg, open_msg.corr_id):
             raise RuntimeError('Server response is wrong')
         return y
 
@@ -402,25 +450,32 @@ class YAKS(object):
 
     def check_connection(self):
         if not self.is_connected:
-            raise ConnectionError('Lost connection with YAKS')
+            raise ConnectionError('Lost connection with Yaks')
         pass
 
     def logout(self):
+        logout_msg = MessageLogout()
+        var = MVar()
+        self.send_queue.put((logout_msg, var))
+        msg = var.get()
+        if not Yaks.check_msg(msg, logout_msg.corr_id):
+            raise RuntimeError('Server response is wrong')                
         self.st.close()
         self.rt.close()
         self.is_connected = False
         self.address = None
         self.port = None
 
+
     def workspace(self, path, properties=None):
         if not isinstance(path, Path):
             path = Path(path)
-        create_msg = MessageCreate(EntityType.WORKSPACE, path)
+        wspace_msg = MessageWorkspace(path)
         var = MVar()
-        self.send_queue.put((create_msg, var))
+        self.send_queue.put((wspace_msg, var))
         msg = var.get()
-        if self.check_msg(msg, create_msg.corr_id):
-            id = msg.get_property('is.yaks.access.id')
+        if self.check_msg(msg, wspace_msg.corr_id):
+            id = msg.get_property('wsid')
             acc = Workspace(self, id, path, properties)
             self.accesses.update({id: acc})
             return acc
@@ -430,44 +485,5 @@ class YAKS(object):
                     'workspace {} failed with error code {}'.
                     format(path, msg.get_error()))
 
-    def create_storage(self, stid, properties):
-        if not isinstance(properties, dict) or \
-            properties.get('is.yaks.storage.selector') is None:
-            raise ValidationError("Missing Storage Selector!!")
-        if not isinstance(stid, str):
-            stid = str(stid)
-        storage_selector = properties.get('is.yaks.storage.selector')
-        properties.pop('is.yaks.storage.selector')
-        if not isinstance(storage_selector, Selector):
-            storage_selector = Selector(storage_selector)
-        create_msg = MessageCreate(EntityType.STORAGE, storage_selector)
-        if properties:
-            for k in properties:
-                v = properties.get(k)
-                create_msg.add_property(k, v)
-        var = MVar()
-        self.send_queue.put((create_msg, var))
-        msg = var.get()
-        if self.check_msg(msg, create_msg.corr_id):
-            sid = msg.get_property('is.yaks.storage.id')
-            self.storages.update({stid: sid})
-            return stid
-        else:
-            raise \
-                RuntimeError(
-                    'create_storage {} failed with error code {}'
-                    .format(stid, msg.get_error()))
-
-    def remove_storage(self, stid):
-        self.check_connection()
-        var = MVar()
-        sid = self.storages.get(stid)
-        if sid is None:
-            raise ValidationError(
-                "Storage with id {} does not exist!".format(stid))
-        msg = MessageDelete(sid, EntityType.STORAGE)
-        self.send_queue.put((msg, var))
-        r = var.get()
-        if YAKS.check_msg(r, msg.corr_id):
-            return True
-        return False
+    def admin(self): 
+        return Admin(self)

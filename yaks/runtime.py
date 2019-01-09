@@ -8,8 +8,7 @@ from yaks.message import *
 import threading
 import logging
 import sys
-from yaks.workspace import Workspace 
-
+import traceback 
 
 def get_frame_len(sock):
     buf = IOBuf()
@@ -23,7 +22,15 @@ def get_frame_len(sock):
 
 def recv_msg(sock):
     flen = get_frame_len(sock)
+    
     bs = sock.recv(flen)
+    n = len(bs)
+    while n < flen:
+        m = flen - n 
+        cs = sock.recv(m)
+        n = n + len(cs)
+        bs = bs + cs
+         
     rbuf = IOBuf.from_bytes(bs)
     m = decode_message(rbuf)     
     return m 
@@ -109,6 +116,7 @@ class Runtime(threading.Thread):
         mvar = self.posted_messages.get(m.corr_id)
         if mvar is not None:                
             mvar.put(m)
+            self.posted_messages.pop(m.corr_id)
         else:                    
             self.logger.debug('>> Received msg  with corr-id for which we have nothing pending: {}'.format(m.corr_id))
         
@@ -128,9 +136,9 @@ class Runtime(threading.Thread):
                     Message.ERROR : lambda m: self.handle_reply(m)
                 }.get(m.mid, lambda m: self.handle_unexpected_message(m))(m)                                
                 
-        except:
-            e = sys.exc_info()[0]
+        except Exception as e:
+            traceback.print_stack(e)
             print('Terminating the runloop because of {}'.format(e))
             self.logger.debug('Terminating the runloop because of {}'.format(e))
 
-    
+

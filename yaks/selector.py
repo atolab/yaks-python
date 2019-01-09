@@ -14,7 +14,7 @@
 
 import re
 from yaks.exceptions import ValidationError
-
+from yaks.path import Path
 
 class Selector(object):
     def __init__(self, selector):
@@ -29,6 +29,13 @@ class Selector(object):
         self.predicate = res.group(3)
         self.properties = res.group(5)
         self.fragment = res.group(7)
+
+    @staticmethod
+    def to_selector(s):
+        if isinstance(s, Selector):
+            return s
+        else:
+            return Selector(s)
 
     def is_valid(self, selector):
         return self.__sel_regex.match(selector) is not None \

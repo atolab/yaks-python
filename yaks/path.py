@@ -23,6 +23,13 @@ class Path(object):
             raise ValidationError("{} is not a valid Path".format(path))
         self.path = path
 
+    @staticmethod
+    def to_path(p):
+        if isinstance(p, Path):
+            return p
+        else:
+            return Path(p)
+            
     def is_valid(self, path):
         return self.__path_regex.match(path) is not None \
             and not path.startswith('//')

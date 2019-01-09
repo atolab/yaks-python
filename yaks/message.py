@@ -117,8 +117,8 @@ class WorkspaceMessage(Header):
     def __init__(self, mid, wsid, properties=None):
         if properties is None:
             properties = []
-        super(WorkspaceMessage, self).__init__(
-            mid, properties.append(Property(Message.WSID, wsid)))
+        properties.append(Property(Message.WSID, wsid))
+        super(WorkspaceMessage, self).__init__(mid, properties=properties)
         self.wsid = wsid
 
 
@@ -131,7 +131,7 @@ class PutM(WorkspaceMessage):
 class GetM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(GetM, self).__init__(Message.GET, wsid, properties)
-        self.selector = str(selector)
+        self.selector = selector
 
 
 class UpdateM(WorkspaceMessage):
@@ -186,6 +186,7 @@ class ValuesM(Header):
     def make(header, kvs):
         vs = ValuesM(kvs)
         vs.corr_id = header.corr_id
+        return vs
 
 
 class OkM(Header):

@@ -8,17 +8,22 @@ def encode_raw_value(buf, v):
     buf.put_bytes(v.value.encode())
 
 
-def decode_raw_value(buf, v):
-    raw_format = buf.get_string()
+def decode_raw_value(buf):
+    raw_format = buf.get_string()    
     data = buf.get_bytes()
     return Value(data, encoding=Encoding.RAW, raw_format=raw_format)
 
+def encode_string_value(buf, v):
+    buf.put_string(v)
+
+def decode_string_value(buf):
+    return buf.get_string()
 
 def encode_json_value(buf, v):
     buf.put_string(v.value)
 
 
-def decode_json_value(buf, v):
+def decode_json_value(buf):
     data = buf.get_string()
     return Value(data, encoding=Encoding.JSON)
 
@@ -27,8 +32,8 @@ def encode_property_value(buf, v):
     encode_properties(buf, v.value)
 
 
-def decode_property_value(buf, v):
-    data = decode_properties(buf)
+def decode_property_value(buf):
+    data = buf.get_string()
     return Value(data, encoding=Encoding.PROPERTY)
 
 
@@ -36,6 +41,7 @@ def encode_value(buf, v):
     buf.put(v.encoding)
     {
         Encoding.RAW: lambda v: encode_raw_value(buf, v),
+        Encoding.STRING: lambda v: encode_string_value(buf, v),
         Encoding.JSON: lambda v: encode_json_value(buf, v),
         Encoding.PROPERTY: lambda v: encode_property_value(buf, v)
     }.get(v.encoding)(v)
@@ -44,16 +50,17 @@ def encode_value(buf, v):
 def decode_value(buf):
     encoding = buf.get()
     v = {
-        Encoding.RAW: lambda b: decode_raw_value(buf, b),
-        Encoding.JSON: lambda b: decode_json_value(buf, b),
-        Encoding.PROPERTY: lambda b: decode_property_value(buf, b)
+        Encoding.RAW: lambda b: decode_raw_value(b),
+        Encoding.STRING: lambda b: decode_string_value(b),
+        Encoding.JSON: lambda b: decode_json_value(b),
+        Encoding.PROPERTY: lambda b: decode_property_value(b)
     }.get(encoding)(buf)
     return v
 
 
-def encode_key_value(buf, key, value):
-    print("encoding key.value with key {}".format(key))
-    buf.put_string(key)
+def encode_key_value(buf, kv):    
+    path, value = kv
+    buf.put_string(str(path))
     encode_value(buf,value)
 
 
@@ -111,7 +118,7 @@ def encode_put(buf, m):
 
 def encode_get(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.selector)
+    buf.put_string(str(m.selector))
 
 
 def encode_update(buf, m):
@@ -227,7 +234,8 @@ def decode_unreg_eval(buf, header):
 
 def decode_values(buf, header):
     kvs = decode_key_value_list(buf)
-    return ValuesM.make(header, kvs)
+    vm = ValuesM.make(header, kvs)
+    return vm
 
 
 def decode_ok(buf, header):

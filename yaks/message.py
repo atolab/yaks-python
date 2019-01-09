@@ -116,40 +116,40 @@ class WorkspaceMessage(Header):
         self.wsid = wsid
                 
 class PutM(WorkspaceMessage):
-    def __init__(self, wsid, path, value):        
-        super(PutM, self).__init__(Message.PUT, wsid)        
+    def __init__(self, wsid, path, value, properties=None):        
+        super(PutM, self).__init__(Message.PUT, wsid, properties)        
         self.path = path
         self.value = value
 
 class GetM(WorkspaceMessage):
-    def __init__(self, wsid, selector):        
-        super(GetM, self).__init__(Message.GET, wsid)        
+    def __init__(self, wsid, selector, properties=None):        
+        super(GetM, self).__init__(Message.GET, wsid, properties)        
         self.selector = str(selector)
 
 class UpdateM(WorkspaceMessage):
-    def __init__(self, wsid, path, value):
-        super(UpdateM, self).__init__(Message.UPDATE, wsid)        
+    def __init__(self, wsid, path, value,properties=None):
+        super(UpdateM, self).__init__(Message.UPDATE, wsid, properties)        
         self.path = path
         self.value = value
         
 class DeleteM(WorkspaceMessage):
-    def __init__(self, wsid, path, value):
-        super(DeleteM, self).__init__(Message.DELETE, wsid)        
+    def __init__(self, wsid, path, value, properties=None):
+        super(DeleteM, self).__init__(Message.DELETE, wsid, properties)        
         self.path = path
 
 class SubscribeM(WorkspaceMessage):
-    def __init__(self, wsid, selector):
-        super(SubscribeM, self).__init__(Message.SUB, wsid)        
+    def __init__(self, wsid, selector, properties=None):
+        super(SubscribeM, self).__init__(Message.SUB, wsid, properties)        
         self.selector = str(selector)
 
 class UnsubscribeM(WorkspaceMessage):
-    def __init__(self, wsid, subid):
-        super(UnsubscribeM, self).__init__(Message.UNSUB, wsid)        
+    def __init__(self, wsid, subid, properties=None):
+        super(UnsubscribeM, self).__init__(Message.UNSUB, wsid, properties)        
         self.subid = subid
 
 class EvalM(WorkspaceMessage):
-    def __init__(self, wsid, path):
-        super(EvalM, self).__init__(Message.EVAL, wsid)        
+    def __init__(self, wsid, path, properties=None):
+        super(EvalM, self).__init__(Message.EVAL, wsid, properties)        
         self.path = path
 
 class ValuesM(Header):

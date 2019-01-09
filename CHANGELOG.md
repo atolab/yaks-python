@@ -1,7 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2019-01-xx
 
+### Changed
+- Internal refactoring of the API
 
 ## [0.1.1] - 2018-12-21
 

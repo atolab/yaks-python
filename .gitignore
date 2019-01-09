@@ -28,3 +28,7 @@ tmp/**
 .vscode/
 .coverage
 .idea/
+build/
+dist/
+yaks.egg-info/
+tmp/

@@ -66,25 +66,26 @@ class Message(object):
     VALUES = 0xD1
 
     ERROR = 0xE0
-    
+
     WSID = "wsid"
     AUTO = "auto"
 
     def __init__(self, mid):
         self.mid = mid
 
+
 class Header(Message):
     P_FLAG = 0x01
     FLAGS_MASK = 0x01
 
-    @staticmethod    
-    def has_flag(h, f):    
+    @staticmethod
+    def has_flag(h, f):
         return h & f != 0
-    
-    def __init__(self, mid, corr_id = None, properties=None):        
+
+    def __init__(self, mid, corr_id=None, properties=None):
         super(Header, self).__init__(mid)
         if corr_id is None:
-            self.corr_id =  random.getrandbits(16)
+            self.corr_id = random.getrandbits(16)
         else:
             self.corr_id = corr_id
         self.flags = 0
@@ -95,92 +96,118 @@ class Header(Message):
     def has_properties(self):
         return self.flags & Header.P_FLAG != 0
 
+
 class LoginM(Header):
     def __init__(self, properties=None):
-        super(LoginM,self).__init__(Message.LOGIN, properties)
+        super(LoginM, self).__init__(Message.LOGIN, properties)
+
 
 class LogoutM(Header):
     def __init__(self):
-        super(LogoutM,self).__init__(Message.LOGOUT)
+        super(LogoutM, self).__init__(Message.LOGOUT)
+
 
 class WorkspaceM(Header):
     def __init__(self, path, properties=None):
         super(WorkspaceM, self).__init__(Message.WORKSPACE, properties)
         self.path = path
 
+
 class WorkspaceMessage(Header):
     def __init__(self, mid, wsid, properties=None):
         if properties is None:
             properties = []
-        super(WorkspaceMessage, self).__init__(mid, properties.append(Property(Message.WSID, wsid)))
+        super(WorkspaceMessage, self).__init__(
+            mid, properties.append(Property(Message.WSID, wsid)))
         self.wsid = wsid
-                
+
+
 class PutM(WorkspaceMessage):
-    def __init__(self, wsid, path, value, properties=None):        
-        super(PutM, self).__init__(Message.PUT, wsid, properties)        
-        self.path = path
-        self.value = value
+    def __init__(self, wsid, kvs, properties=None):
+        super(PutM, self).__init__(Message.PUT, wsid, properties)
+        self.kvs = kvs
+
 
 class GetM(WorkspaceMessage):
-    def __init__(self, wsid, selector, properties=None):        
-        super(GetM, self).__init__(Message.GET, wsid, properties)        
+    def __init__(self, wsid, selector, properties=None):
+        super(GetM, self).__init__(Message.GET, wsid, properties)
         self.selector = str(selector)
 
+
 class UpdateM(WorkspaceMessage):
-    def __init__(self, wsid, path, value,properties=None):
-        super(UpdateM, self).__init__(Message.UPDATE, wsid, properties)        
-        self.path = path
-        self.value = value
-        
+    def __init__(self, wsid, kvs, properties=None):
+        super(UpdateM, self).__init__(Message.UPDATE, wsid, properties)
+        self.kvs = kvs
+
+
 class DeleteM(WorkspaceMessage):
-    def __init__(self, wsid, path, value, properties=None):
-        super(DeleteM, self).__init__(Message.DELETE, wsid, properties)        
+    def __init__(self, wsid, path, properties=None):
+        super(DeleteM, self).__init__(Message.DELETE, wsid, properties)
         self.path = path
+
 
 class SubscribeM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
-        super(SubscribeM, self).__init__(Message.SUB, wsid, properties)        
+        super(SubscribeM, self).__init__(Message.SUB, wsid, properties)
         self.selector = str(selector)
+
 
 class UnsubscribeM(WorkspaceMessage):
     def __init__(self, wsid, subid, properties=None):
-        super(UnsubscribeM, self).__init__(Message.UNSUB, wsid, properties)        
+        super(UnsubscribeM, self).__init__(Message.UNSUB, wsid, properties)
         self.subid = subid
 
+
 class EvalM(WorkspaceMessage):
-    def __init__(self, wsid, path, properties=None):
-        super(EvalM, self).__init__(Message.EVAL, wsid, properties)        
-        self.path = path
+    def __init__(self, wsid, selector, properties=None):
+        super(EvalM, self).__init__(Message.EVAL, wsid, properties)
+        self.selector = str(selector)
+
+
+class RegisterEvalM(WorkspaceMessage):
+    def __init__(self, wsid, selector, properties=None):
+        super(RegisterEvalM, self).__init__(Message.REG_EVAL, wsid, properties)
+        self.selector = str(selector)
+
+
+class UnregisterEvalM(WorkspaceMessage):
+    def __init__(self, wsid, selector, properties=None):
+        super(UnregisterEvalM, self).__init__(
+            Message.UNREG_EVAL, wsid, properties)
+        self.selector = str(selector)
+
 
 class ValuesM(Header):
     def __init__(self, kvs):
-        super(ValuesM, self).__init__(Message.VALUES)        
+        super(ValuesM, self).__init__(Message.VALUES)
         self.kvs = kvs
-    
+
     @staticmethod
     def make(header, kvs):
         vs = ValuesM(kvs)
         vs.corr_id = header.corr_id
 
+
 class OkM(Header):
     def __init__(self):
-        super(OkM, self).__init__(Message.OK)        
-    
+        super(OkM, self).__init__(Message.OK)
+
     @staticmethod
     def make(header):
         vs = OkM()
         vs.corr_id = header.corr_id
         vs.properties = header.properties
-        return vs 
+        return vs
+
 
 class ErrorM(Header):
     def __init__(self, error_code):
-        super(ErrorM, self).__init__(Message.ERROR)        
+        super(ErrorM, self).__init__(Message.ERROR)
         self.error_code = error_code
 
     @staticmethod
     def make(corr_id, error_code, properties=None):
         e = ErrorM(error_code)
-        e.corr_id = corr_id        
+        e.corr_id = corr_id
         e.properties = properties
-        return e 
+        return e

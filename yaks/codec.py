@@ -63,8 +63,7 @@ def encode_header(buf, m):
     buf.put(m.mid)    
     buf.put(m.flags)
     buf.put_vle(m.corr_id)
-    if m.properties is not None:
-        print("Encoding Properties...")
+    if m.properties is not None:        
         encode_properties(buf, m.properties)
     return buf
 
@@ -72,9 +71,11 @@ def decode_header(buf):
     mid = buf.get()
     flags = buf.get()
     corr_id = buf.get_vle()
-    properties = None
-    if Header.has_flag (flags, Header.P_FLAG):
-        properties = decode_properties(buf)    
+    properties = None    
+    if Header.has_flag (flags, Header.P_FLAG):        
+        properties = decode_properties(buf)
+        
+
     return Header(mid, corr_id, properties)       
 
 def encode_login(buf, m):
@@ -120,7 +121,7 @@ def encode_update(buf, m):
 
 def encode_delete(buf, m):
     pass 
-    
+
 def encode_message(buf, m):
     {
         Message.LOGIN: lambda m: encode_login(buf, m),

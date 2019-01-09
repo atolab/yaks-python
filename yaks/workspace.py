@@ -1,8 +1,10 @@
 from yaks.encoding import *
 
 class Workspace(object):
-    def __init__(self, runtime):
+    def __init__(self, runtime, path, wsid):
         self.runtime = runtime
+        self.path = path
+        self.wsid = wsid
 
     def put(self, path, value, quorum=1):
         return True

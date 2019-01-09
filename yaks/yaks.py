@@ -33,8 +33,13 @@ class Yaks(object):
         wsm  = WorkspaceM(path)        
         reply = self.rt.post_message(wsm).get()
         ws =  None
-        if check_reply_is_ok(reply, wsm):
-            ws = Workspace(self)
+        wsid = None
+        if check_reply_is_ok(reply, wsm):            
+            wsid = find_property(Message.WSID, reply.properties)
+            if wsid is None:
+                raise "Workspace id was not provided by YAKS"
+            else:
+                ws = Workspace(self.rt, path, wsid)
         return ws 
 
     def logout(self):

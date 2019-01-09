@@ -170,6 +170,7 @@ class OkM(Header):
     def make(header):
         vs = OkM()
         vs.corr_id = header.corr_id
+        vs.properties = header.properties
         return vs 
 
 class ErrorM(Header):
@@ -178,7 +179,8 @@ class ErrorM(Header):
         self.error_code = error_code
 
     @staticmethod
-    def make(corr_id, error_code):
+    def make(corr_id, error_code, properties=None):
         e = ErrorM(error_code)
-        e.corr_id = corr_id
+        e.corr_id = corr_id        
+        e.properties = properties
         return e 

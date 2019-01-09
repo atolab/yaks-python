@@ -35,7 +35,7 @@ class Value(object):
         return self.encoding
 
     def get_value(self):
-        if self.encoding is JSON:
+        if self.encoding is Encoding.JSON:
             return json.loads(self.value)
         return self.value
 

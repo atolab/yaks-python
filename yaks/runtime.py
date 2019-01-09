@@ -64,6 +64,7 @@ def check_reply_is_values(reply, msg):
         raise 'Yaks refused connection because of {}'.format(reply.error_code)
     else:
         raise 'Yaks replied with unexpected message'    
+        
 class Runtime(threading.Thread):    
     DEFAULT_TIMEOUT = 5
     def __init__(self,  sock, locator, on_close):
@@ -122,7 +123,8 @@ class Runtime(threading.Thread):
                 {
                     Message.NOTIFY: lambda m: self.notify_listeners(m),
                     Message.EVAL: lambda m: self.execute_eval(m),
-                    Message.OK : lambda m: self.handle_reply(m),
+                    Message.OK : lambda m: self.handle_reply(m),                    
+                    Message.VALUES : lambda m: self.handle_reply(m),
                     Message.ERROR : lambda m: self.handle_reply(m)
                 }.get(m.mid, lambda m: self.handle_unexpected_message(m))(m)                                
                 

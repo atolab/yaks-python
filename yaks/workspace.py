@@ -1,16 +1,23 @@
 from yaks.encoding import *
 from yaks.message import Message, PutM
 from papero.property import * 
+# from yaks.runtime import check_reply_is_values
 
 class Workspace(object):
     def __init__(self, runtime, path, wsid):
-        self.runtime = runtime
+        self.rt = runtime
         self.path = path
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
 
     def put(self, path, value, quorum=1):
         pm = PutM(self.wsid, path, value)
+        reply = self.rt.post_message(pm).get()
+        if check_reply_is_values(reply):
+            return reply.kvs
+        else:
+            raise "Invalid reply to put operation"
+
         
     def get(self,selector, quorum=1, encoding=Encoding.RAW, fallback=TranscodingFallback.KEEP):
         """Requests Yaks to get a list of the stored paths/values where all the paths match the selector [s].

@@ -4,7 +4,7 @@ from yaks.encoding import *
 
 def encode_raw_value(buf, v):
     buf.put_string(v.raw_format)
-    buf.put_bytes(v.value)
+    buf.put_bytes(v.value.encode())
 
 def decode_raw_value(buf, v):
     raw_format = buf.get_string()
@@ -44,8 +44,9 @@ def decode_value(buf):
     return v
 
 def encode_key_value(buf, key, value):
-    buf.put_string(str(key))
-    buf.encode_value(value)
+    print("encoding key.value with key {}".format(key))
+    buf.put_string(key)
+    encode_value(buf,value)
 
 def decode_key_value(buf):
     k = buf.get_string()
@@ -90,7 +91,7 @@ def encode_workspace(buf, m):
 
 def encode_put(buf, m):
     encode_header(buf, m)
-    encode_key_value(buf, m.key, m.value)
+    encode_key_value(buf, m.path, m.value)
 
 def encode_get(buf, m):
     encode_header(buf, m)

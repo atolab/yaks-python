@@ -9,22 +9,25 @@ def encode_raw_value(buf, v):
 
 
 def decode_raw_value(buf):
-    raw_format = buf.get_string()    
+    raw_format = buf.get_string()
     data = buf.get_bytes()
     return Value(data, encoding=Encoding.RAW, raw_format=raw_format)
 
+
 def encode_string_value(buf, v):
-    buf.put_string(v)
+    buf.put_string(str(v))
+
 
 def decode_string_value(buf):
     return buf.get_string()
+
 
 def encode_json_value(buf, v):
     buf.put_string(v.value)
 
 
 def decode_json_value(buf):
-    data = buf.get_string()
+    data = json.loads(buf.get_string())
     return Value(data, encoding=Encoding.JSON)
 
 
@@ -58,10 +61,10 @@ def decode_value(buf):
     return v
 
 
-def encode_key_value(buf, kv):    
+def encode_key_value(buf, kv):
     path, value = kv
     buf.put_string(str(path))
-    encode_value(buf,value)
+    encode_value(buf, value)
 
 
 def decode_key_value(buf):
@@ -128,12 +131,12 @@ def encode_update(buf, m):
 
 def encode_delete(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.path)
+    buf.put_string(str(m.path))
 
 
 def encode_sub(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.selector)
+    buf.put_string(str(m.selector))
 
 
 def encode_unsub(buf, m):
@@ -141,19 +144,25 @@ def encode_unsub(buf, m):
     buf.put_string(m.subid)
 
 
+def encode_notify(buf, m):
+    encode_header(buf, m)
+    buf.put_string(m.subid)
+    encode_key_value_list(buf, m.kvs)
+
+
 def encode_reg_eval(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.path)
+    buf.put_string(str(m.path))
 
 
 def encode_unreg_eval(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.path)
+    buf.put_string(str(m.path))
 
 
 def encode_eval(buf, m):
     encode_header(buf, m)
-    buf.put_string(m.selector)
+    buf.put_string(str(m.selector))
 
 
 def encode_values(buf, m):
@@ -211,6 +220,12 @@ def decode_unsub(buf, header):
     return UnsubscribeM(wsid, subid, properties)
 
 
+def decode_notify(buf, header):
+    subid = buf.get_string()
+    kvs = decode_key_value_list(buf)
+    return NotifyM('', subid, kvs)
+
+
 def decode_eval(buf, header):
     properties = header.properties
     wsid = find_property(Message.WSID, properties)
@@ -258,6 +273,7 @@ def decode_message(buf):
         Message.DELETE: lambda h: decode_delete(buf, h),
         Message.SUB: lambda h: decode_sub(buf, h),
         Message.UNSUB: lambda h: decode_unsub(buf, h),
+        Message.NOTIFY: lambda h: decode_notify(buf, h),
         Message.EVAL: lambda h: decode_eval(buf, h),
         Message.REG_EVAL: lambda h: decode_reg_eval(buf, h),
         Message.UNREG_EVAL: lambda h: decode_unreg_eval(buf, h),
@@ -278,6 +294,7 @@ def encode_message(buf, m):
         Message.VALUES: lambda m: encode_values(buf, m),
         Message.SUB: lambda m: encode_sub(buf, m),
         Message.UNSUB: lambda m: encode_unsub(buf, m),
+        Message.NOTIFY: lambda m: encode_notify(buf, m),
         Message.EVAL: lambda m: encode_eval(buf, m),
         Message.REG_EVAL: lambda m: encode_reg_eval(buf, m),
         Message.UNREG_EVAL: lambda m: encode_unreg_eval(buf, m),

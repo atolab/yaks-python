@@ -1,7 +1,8 @@
-from yaks import YAKS
+from yaks import Yaks
 from yaks import Selector
 from yaks import Path
 from yaks import Value
+from yaks import Encoding
 import sys
 import json
 
@@ -17,70 +18,62 @@ def evcb(path, param):
 
 def main():
     print('creating api')
-    y = YAKS.login(sys.argv[1])
-    print('>> Create storage')
-    input()
-    myst_id = 100
-    storage_selector = Selector('/myyaks')
-    properties = {'is.yaks.storage.selector': storage_selector}
-    y.create_storage(myst_id, properties)
-    print('>> Create access and subscription')
-    input()
-    workspace = y.workspace(Path('/myyaks'))
+    y = Yaks.login(sys.argv[1])
 
-    sid = workspace.subscribe(Selector('/myyaks/example/**'), obs,
-                              paths_as_strings=False)
+    print('>> Create workspace and subscription')
+    input()
+    workspace = y.workspace('/myyaks')
+
+    sid = workspace.subscribe('/myyaks/example/**', obs)
 
     print('>> Put Tuple')
     input()
-    workspace.put(Path('/myyaks/example/one'), Value('hello!'))
+    workspace.put('/myyaks/example/one',
+                  Value('hello!', encoding=Encoding.STRING))
 
     print('>> Put Tuple')
     input()
-    workspace.put(Path('/myyaks/example/two'), Value('hello2!'))
+    workspace.put('/myyaks/example/two', Value('hello2!'))
 
     print('>> Put Tuple')
     input()
-    workspace.put(Path('/myyaks/example/three'), Value('hello3!'))
+    workspace.put('/myyaks/example/three', Value('hello3!'))
 
     print('>> Put Tuple JSON as RAW')
     input()
-    d = Value(json.dumps({'this': 'is', 'a': 'json'}))
-    workspace.put(Path('/myyaks/example/four'), d)
+    d = Value({'this': 'is', 'a': 'json'}, encoding=Encoding.JSON)
+    workspace.put('/myyaks/example/four', d)
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(
-        Selector('/myyaks/example/one'), paths_as_strings=False)))
+    print('GET: {}'.format(workspace.get('/myyaks/example/one')))
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(
-        Selector('/myyaks/example'), paths_as_strings=False)))
+    print('GET: {}'.format(workspace.get('/myyaks/example')))
 
     print('>> Get Tuple')
     input()
-    print('GET: {}'.format(workspace.get(
-        Selector('/myyaks/example/*'), paths_as_strings=False)))
+    print('GET: {}'.format(workspace.get('/myyaks/example/*')))
 
-    print('>> Put Eval')
-    input()
-    workspace.eval(Path('/myyaks/key1'), evcb, paths_as_strings=False)
+    # print('>> Put Eval')
+    # input()
+    # workspace.eval(Path('/myyaks/key1'), evcb, paths_as_strings=False)
 
-    print('>> Get on Eval')
-    input()
-    print('GET: {}'.format(workspace.get(
-        Selector('/myyaks/key1?[param=1]'), paths_as_strings=False)))
+    # print('>> Get on Eval')
+    # input()
+    # print('GET: {}'.format(workspace.get(
+    #     Selector('/myyaks/key1?[param=1]'), paths_as_strings=False)))
 
-    print('>> Dispose Access')
-    input()
-    if sid:
-        workspace.unsubscribe(sid)
-    workspace.dispose()
+    # print('>> Dispose Access')
+    # input()
+    # if sid:
+    #     workspace.unsubscribe(sid)
+    # workspace.dispose()
 
-    print('>> Dispose Storage')
-    input()
-    y.remove_storage(myst_id)
+    # print('>> Dispose Storage')
+    # input()
+    # y.remove_storage(myst_id)
     y.logout()
     print('bye!')
 

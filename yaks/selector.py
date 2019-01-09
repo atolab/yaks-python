@@ -16,6 +16,7 @@ import re
 from yaks.exceptions import ValidationError
 from yaks.path import Path
 
+
 class Selector(object):
     def __init__(self, selector):
         self.__sel_regex = re.compile(
@@ -56,7 +57,7 @@ class Selector(object):
         return self.selector
 
     def get_path(self):
-        return self.path
+        return Path(self.path)
 
     def get_predicate(self):
         return self.predicate

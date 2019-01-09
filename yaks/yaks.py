@@ -2,14 +2,16 @@ from yaks.runtime import *
 from yaks.workspace import *
 from yaks.admin import *
 
+
 class Yaks(object):
     DEFAULT_PORT = 7887
+
     def __init__(self, rt):
         self.rt = rt
 
     @staticmethod
-    def login(locator, properties=None, on_close = lambda z : z , lease = 0):
-        addr,_,p = locator.partition(':')
+    def login(locator, properties=None, on_close=lambda z: z, lease=0):
+        addr, _, p = locator.partition(':')
         if p == '':
             port = Yaks.DEFAULT_PORT
         else:
@@ -19,33 +21,34 @@ class Yaks(object):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setblocking(1)
         sock.connect((addr, port))
-                
+
         login = LoginM(properties)
         send_msg(sock, login)
-        m = recv_msg(sock)        
+        m = recv_msg(sock)
         y = None
-        if check_reply_is_ok(m, login):        
-            rt = Runtime(sock, locator, on_close)                
-        rt.start()        
+        if check_reply_is_ok(m, login):
+            rt = Runtime(sock, locator, on_close)
+        rt.start()
         return Yaks(rt)
 
     def workspace(self, path):
-        wsm  = WorkspaceM(path)        
+        wsm = WorkspaceM(path)
         reply = self.rt.post_message(wsm).get()
-        ws =  None
+        ws = None
         wsid = None
-        if check_reply_is_ok(reply, wsm):            
+        if check_reply_is_ok(reply, wsm):
             wsid = find_property(Message.WSID, reply.properties)
             if wsid is None:
                 raise "Workspace id was not provided by YAKS"
             else:
                 ws = Workspace(self.rt, path, wsid)
-        return ws 
+        return ws
 
     def logout(self):
-        lom = LogoutM()
-        reply = self.rt.post_message(lom).get()
-        check_reply_is_ok(reply, lom)
+        self.rt.close()
+        # lom = LogoutM()
+        # reply = self.rt.post_message(lom).get()
+        # if check_reply_is_ok(reply, lom):
 
-    def admin(self): 
+    def admin(self):
         return Admin(self.workspace(Path("/@/local")))

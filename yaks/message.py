@@ -69,6 +69,7 @@ class Message(object):
 
     WSID = "wsid"
     AUTO = "auto"
+    SUBID = "subid"
 
     def __init__(self, mid):
         self.mid = mid
@@ -149,7 +150,7 @@ class DeleteM(WorkspaceMessage):
 class SubscribeM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(SubscribeM, self).__init__(Message.SUB, wsid, properties)
-        self.selector = str(selector)
+        self.selector = selector
 
 
 class UnsubscribeM(WorkspaceMessage):
@@ -158,23 +159,30 @@ class UnsubscribeM(WorkspaceMessage):
         self.subid = subid
 
 
+class NotifyM(WorkspaceMessage):
+    def __init__(self, wsid, subid, kvs, properties=None):
+        super(NotifyM, self).__init__(Message.NOTIFY, wsid, properties)
+        self.subid = subid
+        self.kvs = kvs
+
+
 class EvalM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(EvalM, self).__init__(Message.EVAL, wsid, properties)
-        self.selector = str(selector)
+        self.selector = selector
 
 
 class RegisterEvalM(WorkspaceMessage):
-    def __init__(self, wsid, selector, properties=None):
+    def __init__(self, wsid, path, properties=None):
         super(RegisterEvalM, self).__init__(Message.REG_EVAL, wsid, properties)
-        self.selector = str(selector)
+        self.path = path
 
 
 class UnregisterEvalM(WorkspaceMessage):
-    def __init__(self, wsid, selector, properties=None):
+    def __init__(self, wsid, path, properties=None):
         super(UnregisterEvalM, self).__init__(
             Message.UNREG_EVAL, wsid, properties)
-        self.selector = str(selector)
+        self.path = path
 
 
 class ValuesM(Header):

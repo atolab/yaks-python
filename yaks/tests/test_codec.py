@@ -50,14 +50,12 @@ class CodecTests(unittest.TestCase):
         # self.assertEqual(rv, rv2)
 
     def test_encode_decode_property_value(self):
-        self.assertTrue(True)
-        # TODO: fix this test
-        # buf = IOBuf()
-        # s = [Property('key', 'value')]
-        # rv = Value(s, encoding=Encoding.PROPERTY)
-        # encode_property_value(buf, rv)
-        # rv2 = decode_property_value(buf)
-        # self.assertEqual(rv, rv2)
+        buf = IOBuf()
+        s = [Property('key', 'value')]
+        rv = Value(s, encoding=Encoding.PROPERTY)
+        encode_property_value(buf, rv)
+        rv2 = decode_property_value(buf)
+        self.assertEqual(rv, rv2)
 
     # def test_decoding(self):
     #     e = encoder.VLEEncoder()

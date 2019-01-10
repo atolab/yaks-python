@@ -29,6 +29,7 @@ class ValueTests(unittest.TestCase):
         v = Value('test string value', encoding=Encoding.STRING)
         self.assertEqual('test string value', v.get_value())
         self.assertEqual(Encoding.STRING, v.encoding)
+        self.assertEquals(Encoding.STRING, v.get_encoding())
 
     def test_json_value(self):
         d = {
@@ -61,6 +62,11 @@ class ValueTests(unittest.TestCase):
         v1 = Value('test string value', encoding=Encoding.STRING)
         v2 = Value('test string value', encoding=Encoding.STRING)
         self.assertEqual(v1, v2)
+
+    def test_repr(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = 'test string value'
+        self.assertEqual(repr(v1), v2)
 
     def test_not_equal(self):
         v1 = Value('test string value', encoding=Encoding.STRING)

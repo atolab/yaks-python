@@ -29,7 +29,7 @@ class Workspace(object):
         self.properties = [Property(Message.WSID, wsid)]
 
     def put(self, path, value, quorum=1):
-        path = Path(path)
+        path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
         reply = self.rt.post_message(pm).get()
         return check_reply_is_ok(reply, pm)

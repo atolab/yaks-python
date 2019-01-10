@@ -96,7 +96,7 @@ class Header(Message):
 
     @staticmethod
     def has_flag(h, f):
-        return h.flags & f != 0
+        return h & f != 0
 
     def __init__(self, mid, corr_id=None, properties=None):
         super(Header, self).__init__(mid)

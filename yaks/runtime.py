@@ -50,10 +50,9 @@ def recv_msg(sock):
 
         rbuf = IOBuf.from_bytes(bs)
         m = decode_message(rbuf)
-        # return m
+        return m
     except OSError:
         m = ErrorM(0)
-    finally:
         return m
 
 

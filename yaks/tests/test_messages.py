@@ -30,12 +30,12 @@ class MessagesTests(unittest.TestCase):
         p = [('pkey', 'pvalue')]
         h = Header(Message.OK, 0, p)
         h2 = Header(Message.LOGIN, 0)
-        self.assertTrue(Header.has_flag(h, Header.P_FLAG))
+        self.assertTrue(Header.has_flag(h.flags, Header.P_FLAG))
         self.assertEqual(h.corr_id, 0)
         self.assertEqual(h.properties, p)
         self.assertEqual(h.mid, Message.OK)
 
-        self.assertFalse(Header.has_flag(h2, Header.P_FLAG))
+        self.assertFalse(Header.has_flag(h2.flags, Header.P_FLAG))
         self.assertEqual(h2.corr_id, 0)
         self.assertEqual(h2.properties, None)
         self.assertEqual(h2.mid, Message.LOGIN)

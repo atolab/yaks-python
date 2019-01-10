@@ -27,7 +27,8 @@ def encode_json_value(buf, v):
 
 
 def decode_json_value(buf):
-    data = json.loads(buf.get_string())
+    data = buf.get_string()
+    #json.loads()
     return Value(data, encoding=Encoding.JSON)
 
 
@@ -227,10 +228,13 @@ def decode_notify(buf, header):
 
 
 def decode_eval(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
+    # properties = header.properties
+    # wsid = find_property(Message.WSID, properties)
+    # TODO: need a function EvalM.make(selector, header)
     selector = Selector(buf.get_string())
-    return EvalM(wsid, selector, properties)
+    m = EvalM('', selector)
+    m.corr_id = header.corr_id
+    return m
 
 
 def decode_reg_eval(buf, header):

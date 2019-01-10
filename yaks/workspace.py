@@ -22,7 +22,7 @@ class Workspace(object):
     def get(self, selector, quorum=1, encoding=Encoding.RAW, fallback=TranscodingFallback.KEEP):
         """Requests Yaks to get a list of the stored paths/values where all the paths match the selector [s].
            [s] can be absolute or relative to the workspace [w].
-           The [quorum] (default value is 1) is used by Yaks to decide for each matching path the number of 
+           The [quorum] (default value is 1) is used by Yaks to decide for each matching path the number of
            answer from storages to wait before returning the associated value.
            The [encoding] indicates the expected encoding of the resulting values. If the original values have a different encoding, Yaks will try to transcode them into the expected encoding.
            By default, if no encoding is specified, the vaules are returned with their original encoding.
@@ -66,3 +66,33 @@ class Workspace(object):
             return True
         else:
             raise "Unsubscribe received an invalid reply"
+
+    def register_eval(self, path, callback):
+        path = Path.to_path(path)
+        rem = RegisterEvalM(self.wsid, path)
+        reply = self.rt.post_message(rem).get()
+        if check_reply_is_ok(reply, rem):
+            self.rt.add_eval_callback(path, callback)
+            return True
+        else:
+            raise "Register_eval received an invalid reply"
+
+    def unregister_eval(self, path):
+        path = Path.to_path(path)
+        uem = UnregisterEvalM(self.wsid, path)
+        reply = self.rt.post_message(uem).get()
+        if check_reply_is_ok(reply, uem):
+            self.rt.remove_eval_callback(path)
+            return True
+        else:
+            raise "Unregister_eval received an invalid reply"
+
+    def eval(self, selector, multiplicity=1, encoding=Encoding.RAW, fallback=TranscodingFallback.KEEP):
+        s = Selector.to_selector(selector)
+        em = EvalM(self.wsid, s)
+        reply = self.rt.post_message(em).get()
+        if check_reply_is_values(reply, em):
+            return reply.kvs
+        else:
+            raise "Get received an invalid reply"
+        return []

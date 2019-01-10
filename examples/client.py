@@ -56,24 +56,68 @@ def main():
     input()
     print('GET: {}'.format(workspace.get('/myyaks/example/*')))
 
-    # print('>> Put Eval')
-    # input()
-    # workspace.eval(Path('/myyaks/key1'), evcb, paths_as_strings=False)
+    print('>> Remove Tuple')
+    input()
+    print('REMOVE: {}'.format(workspace.remove('/myyaks/example/one')))
 
-    # print('>> Get on Eval')
-    # input()
-    # print('GET: {}'.format(workspace.get(
-    #     Selector('/myyaks/key1?[param=1]'), paths_as_strings=False)))
+    print('>> Get Removed Tuple')
+    input()
+    print('GET: {}'.format(workspace.get('/myyaks/example/one')))
 
-    # print('>> Dispose Access')
-    # input()
-    # if sid:
-    #     workspace.unsubscribe(sid)
-    # workspace.dispose()
+    print('>> Unsubscribe')
+    input()
+    if sid:
+        workspace.unsubscribe(sid)
+
+    print('>> Put Tuple')
+    input()
+    workspace.put('/myyaks/example2/three',
+                  Value('hello3!', encoding=Encoding.STRING))
+
+    print('>> Get Tuple')
+    input()
+    print('GET: {}'.format(workspace.get('/myyaks/example/three')))
+
+    print('>> Create subscription without listener')
+    input()
+    sid2 = workspace.subscribe('/myyaks/example2/**')
+
+    print('>> Put Tuple')
+    input()
+    workspace.put('/myyaks/example2/three',
+                  Value('hello3!', encoding=Encoding.STRING))
+
+    print('>> Get Tuple')
+    input()
+    print('GET: {}'.format(workspace.get('/myyaks/example2/three')))
+
+    print('>> Unsubscribe')
+    input()
+    if sid2:
+        workspace.unsubscribe(sid2)
+
+    print('>> Register Eval')
+    input()
+    workspace.register_eval('/myyaks/key1', evcb)
+
+    print('>> Get on Eval')
+    input()
+    print('GET: {}'.format(workspace.eval('/myyaks/key1?[param=1]')))
+
+    print('>> Unregister Eval')
+    input()
+    workspace.unregister_eval('/myyaks/key1')
+
+    print('>> Dispose Access')
+    input()
+
+    #workspace.dispose()
 
     # print('>> Dispose Storage')
     # input()
     # y.remove_storage(myst_id)
+    print('>> Close')
+    input()
     y.logout()
     print('bye!')
 

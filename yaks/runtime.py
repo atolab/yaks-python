@@ -23,19 +23,24 @@ def get_frame_len(sock):
 
 
 def recv_msg(sock):
-    flen = get_frame_len(sock)
+    try:
+        flen = get_frame_len(sock)
 
-    bs = sock.recv(flen)
-    n = len(bs)
-    while n < flen:
-        m = flen - n
-        cs = sock.recv(m)
-        n = n + len(cs)
-        bs = bs + cs
+        bs = sock.recv(flen)
+        n = len(bs)
+        while n < flen:
+            m = flen - n
+            cs = sock.recv(m)
+            n = n + len(cs)
+            bs = bs + cs
 
-    rbuf = IOBuf.from_bytes(bs)
-    m = decode_message(rbuf)
-    return m
+        rbuf = IOBuf.from_bytes(bs)
+        m = decode_message(rbuf)
+        # return m
+    except OSError as ose:
+        m = ErrorM(0)
+    finally:
+        return m
 
 
 def send_msg(sock, msg):
@@ -121,12 +126,12 @@ class Runtime(threading.Thread):
         if subid in self.listeners.keys():
             self.listeners.pop(subid)
 
-    def add_eval_callback(self, selector, callback):
-        self.eval_callbacks.update({selector: callback})
+    def add_eval_callback(self, path, callback):
+        self.eval_callbacks.update({path: callback})
 
-    def remove_eval_callback(self, selector):
-        if selector in self.eval_callbacks.keys():
-            self.eval_callbacks.pop(selector)
+    def remove_eval_callback(self, path):
+        if path in self.eval_callbacks.keys():
+            self.eval_callbacks.pop(path)
 
     def notify_listeners(self, m):
         subid = m.subid
@@ -135,7 +140,17 @@ class Runtime(threading.Thread):
             listener(m.kvs)
 
     def execute_eval(self, m):
-        print("EVAL NOT COMPLETELY IMPLEMENTED YET")
+        selector = m.selector
+        for path in self.eval_callbacks:
+            if selector.is_prefixed_by_path(path):
+                cb = self.eval_callbacks.get(path)
+                p = selector.get_path()
+                args = selector.dict_from_properties()
+                # TODO: should be called in another thread
+                kvs = [(path, cb(p, **args))]
+                vm = ValuesM(kvs)
+                vm.corr_id = m.corr_id
+                reply = self.post_message(vm)
 
     def handle_reply(self, m):
         mvar = self.posted_messages.get(m.corr_id)

@@ -51,7 +51,7 @@ class Selector(object):
         return '*' not in self.path
 
     def is_prefixed_by_path(self, path):
-        return self.path.startswith(path)
+        return self.path.startswith(str(path))
 
     def to_string(self):
         return self.selector

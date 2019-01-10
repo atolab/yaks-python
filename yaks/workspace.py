@@ -1,3 +1,17 @@
+# Copyright (c) 2018 ADLINK Technology Inc.
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
+
 from yaks.encoding import *
 from yaks.message import *
 from papero.property import *
@@ -19,14 +33,25 @@ class Workspace(object):
         reply = self.rt.post_message(pm).get()
         return check_reply_is_ok(reply, pm)
 
-    def get(self, selector, quorum=1, encoding=Encoding.RAW, fallback=TranscodingFallback.KEEP):
-        """Requests Yaks to get a list of the stored paths/values where all the paths match the selector [s].
+    def update(self, path, value, quorum=1):
+        raise NotImplementedError("Update not yet...")
+
+    def get(self, selector, quorum=1, encoding=Encoding.RAW,
+                fallback=TranscodingFallback.KEEP):
+        """Requests Yaks to get a list of the stored paths/values where 
+            all the paths match the selector [s].
            [s] can be absolute or relative to the workspace [w].
-           The [quorum] (default value is 1) is used by Yaks to decide for each matching path the number of
+           The [quorum] (default value is 1) is used by Yaks 
+           to decide for each matching path the number of
            answer from storages to wait before returning the associated value.
-           The [encoding] indicates the expected encoding of the resulting values. If the original values have a different encoding, Yaks will try to transcode them into the expected encoding.
-           By default, if no encoding is specified, the vaules are returned with their original encoding.
-           The [fallback] indicates the action that Yakss will perform if the transcoding of a value fails. *)
+           The [encoding] indicates the expected encoding of the 
+           resulting values.
+            If the original values have a different encoding,
+             Yaks will try to transcode them into the expected encoding.
+           By default, if no encoding is specified,
+            the vaules are returned with their original encoding.
+           The [fallback] indicates the action that Yaks will perform
+            if the transcoding of a value fails. *)
         """
         s = Selector.to_selector(selector)
         gm = GetM(self.wsid, s)
@@ -87,7 +112,8 @@ class Workspace(object):
         else:
             raise "Unregister_eval received an invalid reply"
 
-    def eval(self, selector, multiplicity=1, encoding=Encoding.RAW, fallback=TranscodingFallback.KEEP):
+    def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
+             fallback=TranscodingFallback.KEEP):
         s = Selector.to_selector(selector)
         em = EvalM(self.wsid, s)
         reply = self.rt.post_message(em).get()

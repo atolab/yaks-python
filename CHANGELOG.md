@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Internal refactoring of the API
+- **Admin** object added to management of YAKS 
 
 ## [0.1.1] - 2018-12-21
 

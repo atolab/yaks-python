@@ -14,6 +14,7 @@
 
 import re
 from yaks.exceptions import ValidationError
+from yaks.path import Path
 
 
 class Selector(object):
@@ -30,6 +31,13 @@ class Selector(object):
         self.properties = res.group(5)
         self.fragment = res.group(7)
 
+    @staticmethod
+    def to_selector(s):
+        if isinstance(s, Selector):
+            return s
+        else:
+            return Selector(s)
+
     def is_valid(self, selector):
         return self.__sel_regex.match(selector) is not None \
             and not selector.startswith('//')
@@ -43,13 +51,13 @@ class Selector(object):
         return '*' not in self.path
 
     def is_prefixed_by_path(self, path):
-        return self.path.startswith(path)
+        return self.path.startswith(str(path))
 
     def to_string(self):
         return self.selector
 
     def get_path(self):
-        return self.path
+        return Path(self.path.split('*')[0])
 
     def get_predicate(self):
         return self.predicate

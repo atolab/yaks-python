@@ -15,6 +15,7 @@
 import unittest
 from yaks import Value
 from yaks.encoding import *
+from yaks.exceptions import ValidationError
 
 
 class ValueTests(unittest.TestCase):
@@ -22,32 +23,52 @@ class ValueTests(unittest.TestCase):
     def test_raw_value(self):
         v = Value('test raw value')
         self.assertEqual('test raw value', v.get_value())
-        self.assertEqual(RAW, v.encoding)
+        self.assertEqual(Encoding.RAW, v.encoding)
 
     def test_string_value(self):
-        v = Value('test string value', encoding=STRING)
+        v = Value('test string value', encoding=Encoding.STRING)
         self.assertEqual('test string value', v.get_value())
-        self.assertEqual(STRING, v.encoding)
+        self.assertEqual(Encoding.STRING, v.encoding)
+        self.assertEquals(Encoding.STRING, v.get_encoding())
 
     def test_json_value(self):
         d = {
             'this': 'is',
             'a': 'json value'
         }
-        v = Value(d, encoding=JSON)
+        v = Value(d, encoding=Encoding.JSON)
         self.assertEqual(d, v.get_value())
-        self.assertEqual(JSON, v.encoding)
+        self.assertEqual(Encoding.JSON, v.encoding)
 
     def test_sql_value(self):
         sql = ['this', 'is', 'a', 'sql', 'value']
-        v = Value(sql, encoding=SQL)
+        v = Value(sql, encoding=Encoding.SQL)
         self.assertEqual(sql, v.get_value())
-        self.assertEqual(SQL, v.encoding)
+        self.assertEqual(Encoding.SQL, v.encoding)
 
     def test_pb_value(self):
         pb = 'some protobuf...'
-        self.assertRaises(ValueError, Value, pb, PROTOBUF)
+        self.assertRaises(ValueError, Value, pb, Encoding.PROTOBUF)
 
     def test_unsupported_value(self):
         pb = 'some value...'
         self.assertRaises(ValueError, Value, pb, 0x100)
+
+    def test_not_valid_json(self):
+        nvj = ['hello!']
+        self.assertRaises(ValidationError, Value, nvj, Encoding.JSON)
+
+    def test_equal(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = Value('test string value', encoding=Encoding.STRING)
+        self.assertEqual(v1, v2)
+
+    def test_repr(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = 'test string value'
+        self.assertEqual(repr(v1), v2)
+
+    def test_not_equal(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = 'test string value'
+        self.assertNotEqual(v1, v2)

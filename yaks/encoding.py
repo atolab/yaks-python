@@ -13,9 +13,26 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API
 
 # Encoding
-RAW = 0x01
-STRING = 0x02
-JSON = 0x03
-PROTOBUF = 0x04
-SQL = 0x05
-INVALID = 0x00
+
+from enum import Enum
+
+# TODO: This should be changed in enum
+
+
+class Encoding(object):
+    RAW = 0x01
+    STRING = 0x02
+    JSON = 0x03
+    PROTOBUF = 0x04
+    SQL = 0x05
+    PROPERTY = 0x6
+    # The following are both invalid encoding,
+    # only numbers in this range are valid
+    MIN = 0x00
+    MAX = 0xff
+
+
+class TranscodingFallback(Enum):
+    FAIL = 0x01
+    DROP = 0x02
+    KEEP = 0x03

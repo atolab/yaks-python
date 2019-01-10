@@ -14,177 +14,105 @@
 
 import unittest
 import json
-from yaks import mvar
-from yaks import YAKS
-
+import mvar
+import time
+from yaks import Yaks
+from papero import Property
 from yaks import Selector
 from yaks import Path
 from yaks import Value
-from yaks.exceptions import *
-import time
+from yaks.exceptions import ValidationError
+from yaks import Encoding
 
 
 class APITest(unittest.TestCase):
 
     def test_create_close_api(self):
-        #y = YAKS()
-        #self.assertFalse(y.is_connected)
-        y = YAKS.login(server_address='127.0.0.1')
-        self.assertTrue(y.is_connected)
+        y = Yaks.login('127.0.0.1')
+        self.assertTrue(y.rt.running)
         y.logout()
-        self.assertFalse(y.is_connected)
+        self.assertFalse(y.rt.running)
 
     def test_create_delete_storage(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        sid = y.create_storage('123', properties)
-        self.assertEqual(sid, '123')
-        y.remove_storage(sid)
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        res1 = admin.add_storage(stid, properties)
+        res2 = admin.remove_storage(stid)
         y.logout()
-
-    def test_create_delete_storage_non_str_id(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        sid = y.create_storage(123, properties)
-        self.assertEqual(sid, '123')
-        y.remove_storage(sid)
-        y.logout()
+        self.assertTrue(res1)
+        self.assertTrue(res2)
 
     def test_create_delete_workspace(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        sid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
-        self.assertEqual(sid, '123')
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
+        workspace = y.workspace('/myyaks')
         self.assertEqual(workspace.path, Path('/myyaks'))
-        workspace.dispose()
-        y.remove_storage(sid)
+        admin.remove_storage(stid)
         y.logout()
 
     def test_put_get_remove(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        sid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
-        d = Value(json.dumps({'value': 1}))
-        self.assertTrue(workspace.put(Path('/myyaks/key1'), d))
-        nd = workspace.get(Selector('/myyaks/key1'), paths_as_strings=False)[0]
-        k = nd.get('key')
-        v = nd.get('value')
-        self.assertEqual(v, d)
-        self.assertEqual(k, Path('/myyaks/key1'))
-        d = Value(json.dumps({'value': 2}))
-        self.assertTrue(workspace.remove(Path('/myyaks/key1')))
-        self.assertEqual(workspace.get(Selector('/myyaks/key1'),
-                                       paths_as_strings=False), [])
-        workspace.dispose()
-        y.remove_storage(sid)
-        y.logout()
-
-    def test_put_get_remove_strings(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': '/myyaks'}
-        sid = y.create_storage('123', properties)
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
-        d = Value(json.dumps({'value': 1}))
+        d = Value('hello!', encoding=Encoding.STRING)
         self.assertTrue(workspace.put('/myyaks/key1', d))
         nd = workspace.get('/myyaks/key1')[0]
-        k = nd.get('key')
-        v = nd.get('value')
+        k, v = nd
         self.assertEqual(v, d)
         self.assertEqual(k, '/myyaks/key1')
-        d = Value(json.dumps({'value': 2}))
         self.assertTrue(workspace.remove('/myyaks/key1'))
         self.assertEqual(workspace.get('/myyaks/key1'), [])
-        workspace.dispose()
-        y.remove_storage(sid)
+        admin.remove_storage(stid)
         y.logout()
 
     def test_sub_unsub(self):
-        #self.assertTrue(True)
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        stid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
+        workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
 
         def cb(kvs):
             self.assertEqual(kvs,
-                             [{'key': Path('/myyaks/key1'),
-                               'value': Value('123')}])
+                             [('/myyaks/key1',
+                               Value('123', encoding=Encoding.STRING))])
             local_var.put(kvs)
 
-        sid = workspace.subscribe(
-            Selector('/myyaks/key1'), cb, paths_as_strings=False)
-        workspace.put(Path('/myyaks/key1'), Value('123'))
+        sid = workspace.subscribe('/myyaks/key1', cb)
+        workspace.put('/myyaks/key1', Value('123', encoding=Encoding.STRING))
         self.assertEqual(local_var.get(),
-                         [{'key': Path('/myyaks/key1'),
-                              'value': Value('123')}])
+                         [('/myyaks/key1',
+                           Value('123', encoding=Encoding.STRING))])
         self.assertTrue(workspace.unsubscribe(sid))
-        workspace.dispose()
-        y.remove_storage(stid)
+        admin.remove_storage(stid)
         y.logout()
 
     def test_eval(self):
-        #self.assertTrue(True)
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        stid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
+        workspace = y.workspace('/myyaks')
 
         def cb(path, hello):
-            return Value('{} World!'.format(hello))
+            return Value('{} World!'.format(hello), encoding=Encoding.STRING)
 
-        workspace.eval(Path('/myyaks/key1'), cb, paths_as_strings=False)
-        kvs = workspace.get(
-            Selector('/myyaks/key1?[hello=mondo]'), paths_as_strings=False)
+        workspace.register_eval('/myyaks/key1', cb)
+        kvs = workspace.eval('/myyaks/key1?[hello=mondo]')
         self.assertEqual(kvs,
-                         [{'key': Path('/myyaks/key1'),
-                              'value': Value('mondo World!')}])
-        workspace.remove(Path('/myyaks/key1'))
-        workspace.dispose()
-        y.remove_storage(stid)
-        y.logout()
-
-    def test_sub_unsub_strings(self):
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        stid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
-        local_var = mvar.MVar()
-
-        def cb(kvs):
-            self.assertEqual(kvs,
-                             [{'key': '/myyaks/key1',
-                               'value': Value('123')}])
-            local_var.put(kvs)
-        sid = workspace.subscribe('/myyaks/key1', cb)
-        workspace.put('/myyaks/key1', Value('123'))
-        self.assertEqual(local_var.get(),
-                         [{'key': '/myyaks/key1',
-                            'value': Value('123')}])
-        self.assertTrue(workspace.unsubscribe(sid))
-        workspace.dispose()
-        y.remove_storage(stid)
-        y.logout()
-
-    def test_eval_string(self):
-        #self.assertTrue(True)
-        y = YAKS.login(server_address='127.0.0.1')
-        properties = {'is.yaks.storage.selector': Selector('/myyaks')}
-        stid = y.create_storage('123', properties)
-        workspace = y.workspace(Path('/myyaks'))
-
-        def cb(path, hello):
-            self.assertTrue(isinstance(path, str))
-            return Value('{} World!'.format(hello))
-
-        workspace.eval('/myyaks/key1', cb)
-        kvs = workspace.get('/myyaks/key1?[hello=mondo]')
-        self.assertEqual(kvs,
-                         [{'key': '/myyaks/key1',
-                              'value': Value('mondo World!')}])
-        workspace.remove('/myyaks/key1')
-        workspace.dispose()
-        y.remove_storage(stid)
+                         [('/myyaks/key1',
+                           Value('mondo World!', encoding=Encoding.STRING))])
+        workspace.unregister_eval('/myyaks/key1')
+        admin.remove_storage(stid)
         y.logout()

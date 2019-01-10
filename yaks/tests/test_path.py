@@ -47,14 +47,33 @@ class PathTests(unittest.TestCase):
         p.remove_prefix('/that/is/a/path')
         self.assertEqual(p.to_string(), '/this/is/a/path/with/a/prefix')
 
+    def test_to_path(self):
+        p = '/yaks'
+        p2 = Path('/yaks')
+        self.assertEqual(Path.to_path(p), Path('/yaks'))
+        self.assertEqual(Path.to_path(p2), Path('/yaks'))
+
     def test_path_equal(self):
         p1 = Path('/this/is/a/path')
         p2 = Path('/this/is/a/path')
         self.assertEqual(p1, p2)
 
+    def test_path_not_equal(self):
+        p1 = Path('/this/is/a/path')
+        p2 = '/this/is/not/a/path'
+        self.assertNotEqual(p1, p2)
+
     def test_path_str(self):
         p1 = Path('/this/is/a/path')
         self.assertEqual(str(p1), '/this/is/a/path')
+
+    def test_path_hash(self):
+        p1 = Path('/this/is/a/path')
+        self.assertEqual(hash(p1), hash('/this/is/a/path'))
+
+    def test_path_repr(self):
+        p1 = Path('/this/is/a/path')
+        self.assertEqual(repr(p1), '/this/is/a/path')
 
     def test_path_len(self):
         s = '/this/is/a/path'

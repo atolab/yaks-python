@@ -1,11 +1,5 @@
 before_install:
-  - curl -L -o ssl.deb http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4.3_amd64.deb
-  - sudo dpkg -i ssl.deb 
-  - sudo apt-get install -y software-properties-common
-  - sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-  - sudo add-apt-repository 'deb [arch=amd64] http://mariadb.mirrors.ovh.net/MariaDB/repo/10.1/ubuntu xenial main'
-  - sudo apt update -qq
-  - sudo apt-get install -y libmariadbclient18  libpq5
+  - sudo apt-get install -y libssl1.0.0
 addons:
   apt:
     update: true

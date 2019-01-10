@@ -26,17 +26,17 @@ class SelectorTests(unittest.TestCase):
 
     def test_selector_with_predicate(self):
         s = Selector('/this/is/a/selector?x>10')
-        self.assertEqual('/this/is/a/selector', s.get_path())
+        self.assertEqual(Path('/this/is/a/selector'), s.get_path())
         self.assertEqual('x>10', s.get_predicate())
 
     def test_selector_with_fragment(self):
         s = Selector('/this/is/a/selector#field')
-        self.assertEqual('/this/is/a/selector', s.get_path())
+        self.assertEqual(Path('/this/is/a/selector'), s.get_path())
         self.assertEqual('field', s.get_fragment())
 
     def test_selector_complete(self):
         s = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
-        self.assertEqual('/this/is/a/**', s.get_path())
+        self.assertEqual(Path('/this/is/a/'), s.get_path())
         self.assertEqual('field', s.get_fragment())
         self.assertEqual('x.y.z=100', s.get_properties())
         self.assertEqual('x>10', s.get_predicate())
@@ -70,7 +70,18 @@ class SelectorTests(unittest.TestCase):
         d = {'x': '100', 'y': {'z': '1'}}
         self.assertEqual(s1.dict_from_properties(), d)
 
-    def test_selector__not_equal(self):
+    def test_selector_properties_dic_emptyt(self):
+        s1 = Selector('/this/is/a/**?x>10')
+        d = {}
+        self.assertEqual(s1.dict_from_properties(), d)
+
+    def test_to_selector(self):
+        s = '/yaks/**'
+        s2 = Selector('/yaks/**')
+        self.assertEqual(Selector.to_selector(s), Selector('/yaks/**'))
+        self.assertEqual(Selector.to_selector(s2), Selector('/yaks/**'))
+
+    def test_selector_not_equal(self):
         s1 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
         s2 = Path('/this/is/a/path')
         self.assertNotEqual(s1, s2)
@@ -78,6 +89,10 @@ class SelectorTests(unittest.TestCase):
     def test_selector_str(self):
         s1 = Selector('/this/is/a/selector')
         self.assertEqual(str(s1), '/this/is/a/selector')
+
+    def test_selector_repr(self):
+        s1 = Selector('/this/is/a/selector')
+        self.assertEqual(repr(s1), '/this/is/a/selector')
 
     def test_selector_len(self):
         s = '/this/is/a/selector'

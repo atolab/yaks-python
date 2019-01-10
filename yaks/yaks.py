@@ -68,4 +68,5 @@ class Yaks(object):
         # if check_reply_is_ok(reply, lom):
 
     def admin(self):
-        return Admin(self.workspace("/{}/local".format(Admin.PREFIX)))
+        return Admin(self.workspace(
+            '/{}/{}'.format(Admin.PREFIX, Admin.MY_YAKS)))

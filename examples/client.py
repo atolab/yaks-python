@@ -3,6 +3,7 @@ from yaks import Selector
 from yaks import Path
 from yaks import Value
 from yaks import Encoding
+from papero import Property
 import sys
 import json
 
@@ -19,6 +20,13 @@ def evcb(path, param):
 def main():
     print('creating api')
     y = Yaks.login(sys.argv[1])
+    admin = y.admin()
+
+    print('>> Create Storage')
+    input()
+    stid = 'demo'
+    p = [Property('selector', '/myyaks/**')]
+    admin.add_storage(stid, p, beid='Memory')
 
     print('>> Create workspace and subscription')
     input()
@@ -113,9 +121,9 @@ def main():
 
     #workspace.dispose()
 
-    # print('>> Dispose Storage')
-    # input()
-    # y.remove_storage(myst_id)
+    print('>> Dispose Storage')
+    input()
+    admin.remove_storage(stid)
     print('>> Close')
     input()
     y.logout()

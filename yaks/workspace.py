@@ -24,7 +24,7 @@ from yaks.selector import Selector
 class Workspace(object):
     def __init__(self, runtime, path, wsid):
         self.rt = runtime
-        self.path = path
+        self.path = Path.to_path(path)
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
 

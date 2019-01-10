@@ -21,10 +21,6 @@ class Admin(object):
     PREFIX = '@'
     MY_YAKS = 'local'
 
-    def __extract_id_v(kv):
-        k, v = kv
-        return (k.split('/')[-1], v.value)
-
     def __init__(self, ws):
         self.ws = ws
 
@@ -34,46 +30,88 @@ class Admin(object):
         return self.ws.put(path, value, quorum=1)
 
     def get_frontends(self, yaks=MY_YAKS):
-        s = '{}/{}/frontend/*'.format(Admin.PREFIX, yaks)
+        s = '/{}/{}/frontend/*'.format(Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
-        #return list(map((lambda e: return self.__extract_id_v(e)), kvs))
-        return list(map(self.__extract_id_v, kvs))
+        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_frontend(self, feid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
+        kvs = self.ws.get(s)
+        if len(kvs) > 0:
+            return kvs[0][1].value
+        return None
 
     def remove_frontend(self, feid, yaks=MY_YAKS):
-        return True
+        path = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
+        return self.ws.remove(path, quorum=1)
 
     def add_backend(self, beid, properties, yaks=MY_YAKS):
-        return True
+        path = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        value = Value(properties, encoding=Encoding.PROPERTY)
+        return self.ws.put(path, value, quorum=1)
 
     def get_backends(self, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/backend/*'.format(Admin.PREFIX, yaks)
+        kvs = self.ws.get(s)
+        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_backend(self, beid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        kvs = self.ws.get(s)
+        if len(kvs) > 0:
+            return kvs[0][1].value
+        return None
 
     def remove_backend(self, beid, yaks=MY_YAKS):
-        pass
+        path = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        return self.ws.remove(path, quorum=1)
 
     def add_storage(self, stid, properties, beid=None, yaks=MY_YAKS):
-        return True
+        if not beid:
+            beid = 'auto'
+        p = '/{}/{}/backend/{}/storage/{}'.format(
+            Admin.PREFIX, yaks, beid, stid)
+        v = Value(properties, encoding=Encoding.PROPERTY)
+        return self.ws.put(p, v, quorum=1)
 
     def get_storages(self, beid=None, yaks=MY_YAKS):
-        return []
+        if not beid:
+            beid = '*'
+        s = '/{}/{}/backend/{}/storage/*'.format(Admin.PREFIX, yaks, beid)
+        kvs = self.ws.get(s)
+        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_storage(self, stid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
+        kvs = self.ws.get(s)
+        if len(kvs) > 0:
+            return kvs[0][1].value
+        return None
 
     def remove_storage(self, stid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
+        kvs = self.ws.get(s)
+        if len(kvs) > 0:
+            p = kvs[0][0]
+            return self.ws.remove(p, quorum=1)
+        return False
 
     def get_sessions(self, yaks=MY_YAKS, feid=None):
-        return []
+        if not feid:
+            feid = '*'
+        s = '/{}/{}/frontend/{}/session/*'.format(Admin.PREFIX, yaks, feid)
+        kvs = self.ws.get(s)
+        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def close_session(self, sid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
+        kvs = self.ws.get(s)
+        if len(kvs) > 0:
+            p = kvs[0][0]
+            return self.ws.remove(p, quorum=1)
+        return False
 
     def get_subscriptions(self, sid, yaks=MY_YAKS):
-        pass
+        s = '/{}/{}/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
+        kvs = self.ws.get(s)
+        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))

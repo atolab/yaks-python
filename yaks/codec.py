@@ -13,7 +13,7 @@
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
 from papero import find_property, encode_sequence, decode_sequence
-from papero import encode_properties, decode_properties
+from papero import encode_properties, decode_properties, Property
 from yaks.message import Message, Header, WorkspaceM, OkM, ErrorM, GetM, PutM
 from yaks.message import UpdateM, DeleteM, SubscribeM, UnsubscribeM
 from yaks.message import EvalM, RegisterEvalM, UnregisterEvalM, ValuesM
@@ -54,12 +54,24 @@ def decode_json_value(buf):
 
 
 def encode_property_value(buf, v):
-    encode_properties(buf, v.value)
+    s = ''
+    length = len(v.value)
+    if length > 0:
+        for i in range(0, length):
+            s = s + v.value[i].key + '=' + v.value[i].value
+            if i < length - 1:
+                s = s + '&'
+        buf.put_string(s)
 
 
 def decode_property_value(buf):
-    data = buf.get_string()
-    return Value(data, encoding=Encoding.PROPERTY)
+    ps = []
+    s = buf.get_string()
+    s = s.split('&')
+    for ss in s:
+        p = ss.split('=')
+        ps.append(Property(p[0], p[1]))
+    return Value(ps, encoding=Encoding.PROPERTY)
 
 
 def encode_value(buf, v):

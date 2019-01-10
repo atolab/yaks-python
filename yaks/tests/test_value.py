@@ -15,6 +15,7 @@
 import unittest
 from yaks import Value
 from yaks.encoding import *
+from yaks.exceptions import ValidationError
 
 
 class ValueTests(unittest.TestCase):
@@ -51,3 +52,17 @@ class ValueTests(unittest.TestCase):
     def test_unsupported_value(self):
         pb = 'some value...'
         self.assertRaises(ValueError, Value, pb, 0x100)
+
+    def test_not_valid_json(self):
+        nvj = ['hello!']
+        self.assertRaises(ValidationError, Value, nvj, Encoding.JSON)
+
+    def test_equal(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = Value('test string value', encoding=Encoding.STRING)
+        self.assertEqual(v1, v2)
+
+    def test_not_equal(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        v2 = 'test string value'
+        self.assertNotEqual(v1, v2)

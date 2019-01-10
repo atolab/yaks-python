@@ -13,7 +13,7 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Tests
 
 import unittest
-from yaks import message
+from yaks.message import *
 from yaks import Selector
 from yaks import Path
 from yaks import Value
@@ -22,310 +22,149 @@ from yaks.encoding import *
 
 class MessagesTests(unittest.TestCase):
 
-    def bogustest(self):
-        self.assertTrue(True)
-    # def test_pack_unpack(self):
-    #     msg1 = messages.Message()
-    #     msg1.message_code = 0xFE
-    #     msg1.generate_corr_id()
+    def test_message(self):
+        m = Message(123)
+        self.assertEqual(m.mid, 123)
 
-    #     cid = msg1.corr_id
-    #     msg1.add_property('key1', 'value1')
-    #     msg1.add_property('key2', 'value2')
+    def test_header(self):
+        p = [('pkey', 'pvalue')]
+        h = Header(Message.OK, 0, p)
+        h2 = Header(Message.LOGIN, 0)
+        self.assertTrue(Header.has_flag(h, Header.P_FLAG))
+        self.assertEqual(h.corr_id, 0)
+        self.assertEqual(h.properties, p)
+        self.assertEqual(h.mid, Message.OK)
 
-    #     packed_msg1 = msg1.pack()
+        self.assertFalse(Header.has_flag(h2, Header.P_FLAG))
+        self.assertEqual(h2.corr_id, 0)
+        self.assertEqual(h2.properties, None)
+        self.assertEqual(h2.mid, Message.LOGIN)
+        self.assertFalse(h2.has_properties())
 
-    #     msg2 = messages.Message(packed_msg1)
+    def test_login(self):
+        lm = LoginM()
+        self.assertEqual(lm.mid, Message.LOGIN)
 
-    #     self.assertEqual(cid, msg2.corr_id)
-    #     self.assertEqual(msg1.message_code, msg2.message_code)
-    #     self.assertEqual(msg1.flags, msg2.flags)
-    #     self.assertEqual(msg1.properties, msg2.properties)
-    #     self.assertEqual(msg2.get_property('key1'), 'value1')
+    def test_logout(self):
+        lom = LogoutM()
+        self.assertEqual(lom.mid, Message.LOGOUT)
 
-    # def test_pack_for_tx(self):
-    #     msg1 = messages.Message()
-    #     msg1.message_code = 0xFE
-    #     msg1.corr_id = 1
-    #     packed_msg1 = msg1.pack_for_transport()
-    #     data = b'\x03\xfe\x00\x01'
+    def test_workspacem(self):
+        p = Path('/yaks')
+        wm = WorkspaceM(p)
+        self.assertEqual(wm.mid, Message.WORKSPACE)
+        self.assertEqual(wm.path, Path('/yaks'))
 
-    #     self.assertEqual(data, packed_msg1)
+    def test_workspace_message(self):
+        wsid = '123'
+        wsm = WorkspaceMessage(Message.PUT, wsid)
+        self.assertEqual(wsm.mid, Message.PUT)
+        self.assertEqual(wsm.wsid, wsid)
+        self.assertEqual(wsm.properties, [Property('wsid', wsid)])
 
-    # def test_set_unset_flags(self):
-    #     msg1 = messages.Message()
-    #     msg1.set_a()
-    #     msg1.set_p()
-    #     msg1.set_s()
-    #     msg2 = messages.Message(msg1.pack())
+    def test_put(self):
+        kvs = [(Path('/yaks/1'), Value('1234'))]
+        wsid = '1'
+        pm = PutM(wsid, kvs)
+        self.assertEqual(pm.mid, Message.PUT)
+        self.assertEqual(pm.wsid, wsid)
+        self.assertEquals(pm.kvs, kvs)
 
-    #     self.assertEqual(msg2.flags, 7)
-    #     msg2.unset_p()
-    #     self.assertEqual(msg2.flags, 6)
-    #     msg2.unset_s()
-    #     self.assertEqual(msg2.flags, 4)
-    #     msg2.unset_a()
-    #     self.assertEqual(msg2.flags, 0)
+    def test_get(self):
+        s = Selector('/yaks/**')
+        wsid = '123'
+        gm = GetM(wsid, s)
+        self.assertEqual(gm.mid, Message.GET)
+        self.assertEqual(gm.wsid, wsid)
+        self.assertEqual(gm.selector, s)
 
-    # def test_add_remove_property(self):
-    #     msg1 = messages.Message()
-    #     msg1.add_property('key1', 'value1')
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     msg2.remove_property('key1')
-    #     self.assertEqual(msg2.properties, [])
+    def test_update(self):
+        kvs = [(Path('/yaks/2'), Value('1235'))]
+        wsid = '1'
+        um = UpdateM(wsid, kvs)
+        self.assertEqual(um.mid, Message.UPDATE)
+        self.assertEqual(um.wsid, wsid)
+        self.assertEquals(um.kvs, kvs)
 
-    # def test_get_none_property(self):
-    #     msg1 = messages.Message()
-    #     self.assertEqual(msg1.get_property('key1'), None)
+    def test_delete(self):
+        p = Path('/yaks/123')
+        wsid = '123'
+        dm = DeleteM(wsid, p)
+        self.assertEqual(dm.mid, Message.DELETE)
+        self.assertEqual(dm.wsid, wsid)
+        self.assertEqual(dm.path, p)
 
-    # def test_add_get_string(self):
-    #     msg1 = messages.Message()
-    #     msg1.add_path(Path('/test_string_as_payload'))
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     self.assertEqual(Path('/test_string_as_payload'), msg2.get_path())
+    def test_subscribe(self):
+        s = Selector('/yaks/**')
+        wsid = '123'
+        sm = SubscribeM(wsid, s)
+        self.assertEqual(sm.mid, Message.SUB)
+        self.assertEqual(sm.wsid, wsid)
+        self.assertEqual(sm.selector, s)
 
-    # def test_add_get_values(self):
-    #     msg1 = messages.Message()
-    #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world')},
-    #         {'key': Path('/another'), 'value': Value('longvalue')}
-    #     ]
-    #     msg1.message_code = messages.VALUES
-    #     msg1.add_values(v1)
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     v2 = msg2.get_values()
-    #     self.assertEqual(v1, v2)
+    def test_unsubscribe(self):
+        wsid = '123'
+        subid = '456'
+        usm = UnsubscribeM(wsid, subid)
+        self.assertEqual(usm.mid, Message.UNSUB)
+        self.assertEqual(usm.wsid, wsid)
+        self.assertEqual(usm.subid, subid)
 
-    # def test_set_encoding_json(self):
-    #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world', encoding=JSON)},
-    #         {'key': Path('/another'),
-    #                      'value': Value('longvalue', encoding=JSON)}
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     msg1.add_values(v1)
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     self.assertEqual(msg1.flags, msg2.flags)
-    #     self.assertEqual(msg2.get_values(), v1)
+    def test_notify(self):
+        wsid = '123'
+        subid = '456'
+        kvs = [(Path('/yaks/2'), Value('1235'))]
+        nm = NotifyM(wsid, subid, kvs)
+        self.assertEqual(nm.mid, Message.NOTIFY)
+        self.assertEqual(nm.wsid, wsid)
+        self.assertEqual(nm.subid, subid)
+        self.assertEquals(nm.kvs, kvs)
 
-    # def test_set_encoding_raw(self):
-    #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world')},
-    #         {'key': Path('/another'), 'value': Value('longvalue')}
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     msg1.add_values(v1)
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     self.assertEqual(msg1.flags, msg2.flags)
-    #     self.assertEqual(msg2.get_values(), v1)
+    def test_eval(self):
+        s = Selector('/yaks/**')
+        wsid = '123'
+        em = EvalM(wsid, s)
+        self.assertEqual(em.mid, Message.EVAL)
+        self.assertEqual(em.wsid, wsid)
+        self.assertEqual(em.selector, s)
 
-    # def test_set_encoding_string(self):
-    #     v1 = [
-    #      {'key': Path('/hello'), 'value': Value('world', encoding=STRING)},
-    #      {'key': Path('/another'),
-    #                      'value': Value('longvalue', encoding=STRING)}
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     msg1.add_values(v1)
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     self.assertEqual(msg1.flags, msg2.flags)
-    #     self.assertEqual(msg2.get_values(), v1)
+    def test_register_eval(self):
+        p = Path('/yaks/eval')
+        wsid = '1'
+        msg = RegisterEvalM(wsid, p)
+        self.assertEqual(msg.mid, Message.REG_EVAL)
+        self.assertEqual(msg.wsid, wsid)
+        self.assertEqual(msg.path, Path('/yaks/eval'))
 
-    # def test_set_encoding_sql(self):
-    #     v1 = [
-    #         {'key': Path('/sql'),
-    #                      'value': Value((['val1', 'val2'], ['col1', 'col2']),
-    #                                     encoding=SQL)}
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     msg1.add_values(v1)
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-    #     self.assertEqual(msg1.flags, msg2.flags)
-    #     self.assertEqual(msg2.get_values(), v1)
+    def test_unregister_eval(self):
+        p = Path('/yaks/eval')
+        wsid = '1'
+        msg = UnregisterEvalM(wsid, p)
+        self.assertEqual(msg.mid, Message.UNREG_EVAL)
+        self.assertEqual(msg.wsid, wsid)
+        self.assertEqual(msg.path, Path('/yaks/eval'))
 
-    # def test_value_encoding_invalid(self):
-    #     v1 = [
-    #     {'key': Path('/hello'), 'value': Value('world', encoding=INVALID)},
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     self.assertRaises(ValueError, msg1.add_values, v1)
+    def test_values(self):
+        kvs = [(Path('/yaks/1'), Value('1234'))]
+        msg = ValuesM(kvs)
+        h = Header(0, '123')
+        msg2 = ValuesM.make(h, kvs)
+        self.assertEqual(msg.mid, Message.VALUES)
+        self.assertEquals(msg.kvs, kvs)
+        self.assertEqual(msg2.mid, Message.VALUES)
+        self.assertEquals(msg2.kvs, kvs)
+        self.assertEquals(msg2.corr_id, '123')
 
-    # def test_value_encoding_unknown(self):
-    #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world', encoding=0xFE)},
-    #     ]
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.VALUES
-    #     self.assertRaises(ValueError, msg1.add_values, v1)
+    def test_ok(self):
+        h = Header(0, '123', [Property('a', 'b')])
+        msg = OkM.make(h)
+        self.assertEqual(msg.mid, Message.OK)
+        self.assertEquals(msg.properties, [Property('a', 'b')])
+        self.assertEquals(msg.corr_id, '123')
 
-    # def test_set_notification(self):
-    #     v1 = [{'key': Path('hello'), 'value': Value('world')}]
-    #     sid = '1234'
-    #     msg1 = messages.Message()
-    #     msg1.message_code = messages.NOTIFY
-    #     msg1.add_notification(sid, v1)
-
-    #     packed = msg1.pack()
-    #     msg2 = messages.Message(packed)
-
-    #     self.assertEqual(msg2.message_code, messages.NOTIFY)
-    #     self.assertEqual(msg2.get_notification(), (sid, v1))
-
-    # def test_ok_message(self):
-    #     msg1 = messages.MessageOk('123')
-    #     self.assertEqual(msg1.message_code, 0xD0)
-
-    # def test_error_message(self):
-    #     msg1 = messages.MessageError('123', 1234)
-
-    #     self.assertEqual(msg1.message_code, 0xE0)
-    #     self.assertEqual(1234, msg1.get_error())
-
-    # def test_open_message(self):
-    #     msg1 = messages.MessageOpen()
-    #     self.assertEqual(msg1.message_code, 0x01)
-
-    # def test_open_message_w_credentials(self):
-    #     msg1 = messages.MessageOpen('usr', 'pwd')
-    #     msg2 = messages.Message(msg1.pack())
-
-    #     self.assertEqual(msg2.message_code, 0x01)
-    #     self.assertEqual(msg1.get_property('yaks.login'), 'usr:pwd')
-
-    # def test_create_access(self):
-    #     msg1 = messages.MessageCreate(
-    #         messages.EntityType.WORKSPACE, Path('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0x02)
-    #     self.assertEqual(msg1.flag_a, 1)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_path(), Path('/my/path'))
-
-    # def test_create_access_w_properties(self):
-    #     properties = {
-    #         'is.yaks.access.alias': 123,
-    #         'is.yaks.access.cachesize': '1024'
-    #     }
-    #     msg1 = messages.MessageCreate(
-    #         messages.EntityType.WORKSPACE, Path('/my/path'), properties)
-    #     self.assertEqual(msg1.message_code, 0x02)
-    #     self.assertEqual(msg1.flag_a, 1)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_path(), Path('/my/path'))
-
-    # def test_create_storage(self):
-    #     msg1 = messages.MessageCreate(
-    #         messages.EntityType.STORAGE, Selector('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0x02)
-    #     self.assertEqual(msg1.flag_s, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.get_selector(), Selector('/my/path'))
-
-    # def test_create_storage_w_properties_n_config(self):
-    #     config = {'backendip': '127.0.0.1', 'port': 8888}
-    #     properties = {
-    #         'is.yaks.storage.config': config,
-    #         'is.yaks.storage.alias': 'store1'
-    #     }
-    #     msg1 = messages.MessageCreate(
-    #         messages.EntityType.STORAGE, Selector('/my/path'), properties)
-    #     self.assertEqual(msg1.message_code, 0x02)
-    #     self.assertEqual(msg1.flag_s, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.get_selector(), Selector('/my/path'))
-
-    # def test_delete_storage(self):
-    #     msg1 = messages.MessageDelete('123', messages.EntityType.STORAGE)
-    #     self.assertEqual(msg1.message_code, 0x03)
-    #     self.assertEqual(msg1.flag_s, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_p, 1)
-
-    # def test_delete_access(self):
-    #     msg1 = messages.MessageDelete('321', messages.EntityType.WORKSPACE)
-    #     self.assertEqual(msg1.message_code, 0x03)
-    #     self.assertEqual(msg1.flag_a, 1)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.flag_p, 1)
-
-    # def test_delete_value(self):
-    #     msg1 = messages.MessageDelete('321', path=Path('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0x03)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_path(), Path('/my/path'))
-
-    # def test_put_value(self):
-    #     msg1 = messages.MessagePut('321', Path('/my/path'), Value('avalue'))
-    #     v = [{'key': Path('/my/path'), 'value': Value('avalue')}]
-    #     self.assertEqual(msg1.message_code, 0xA0)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_values(), v)
-
-    # def test_patch_value(self):
-    #     msg1 = messages.MessagePatch(
-    #         '321', Path('/my/path'), Value('a_new_value'))
-    #     v = [{'key': Path('/my/path'), 'value': Value('a_new_value')}]
-    #     self.assertEqual(msg1.message_code, 0xA1)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_values(), v)
-
-    # def test_get_value(self):
-    #     msg1 = messages.MessageGet('321', Selector('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0xA2)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_selector(), Selector('/my/path'))
-
-    # def test_value_message(self):
-    #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world')},
-    #     ]
-    #     msg1 = messages.MessageValues('321', v1)
-    #     self.assertEqual(msg1.message_code, 0xD1)
-    #     self.assertEqual(msg1.flag_p, 0)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_values(), v1)
-    #     self.assertEqual(msg1.corr_id, '321')
-
-    # def test_subscribe_message(self):
-    #     msg1 = messages.MessageSub('321', Selector('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0xB0)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_subscription(), Selector('/my/path'))
-
-    # def test_unsubscribe_message(self):
-    #     msg1 = messages.MessageUnsub('321', '121241')
-    #     self.assertEqual(msg1.message_code, 0xB1)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_subscription_id(), '121241')
-
-    # def test_eval_message(self):
-    #     msg1 = messages.MessageEval('321', Path('/my/path'))
-    #     self.assertEqual(msg1.message_code, 0xB3)
-    #     self.assertEqual(msg1.flag_p, 1)
-    #     self.assertEqual(msg1.flag_a, 0)
-    #     self.assertEqual(msg1.flag_s, 0)
-    #     self.assertEqual(msg1.get_path(), Path('/my/path'))
+    def test_error(self):
+        msg = ErrorM.make('123', 100, [Property('a', 'b')])
+        self.assertEqual(msg.mid, Message.ERROR)
+        self.assertEqual(msg.error_code, 100)
+        self.assertEquals(msg.properties, [Property('a', 'b')])
+        self.assertEquals(msg.corr_id, '123')

@@ -5,7 +5,7 @@ cd $(mktemp -d)
 YD=$(pwd)
 curl -L -o yaks.tar.gz https://www.dropbox.com/s/pke1dt78ra1okgv/yaksd.tar.gz
 tar -xzvf yaks.tar.gz
-$YD/yaksd -w --verbosity=debug > $YD/yaks.out 2>&1 & echo $! > $YD/yaks.pid
+$YD/yaksd -w --verbosity=debug > $YD/yaks.out 2>&1 & echo $! > $YD/yaks2.pid
 YPID=$(<"$YD/yaks.pid")
 cat $YD/yaks.out
 echo "YAKS PID $YPID"

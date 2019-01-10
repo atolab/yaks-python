@@ -14,9 +14,11 @@
 
 # Encoding
 
-from enum import Enum 
+from enum import Enum
 
 # TODO: This should be changed in enum
+
+
 class Encoding(object):
     RAW = 0x01
     STRING = 0x02
@@ -24,8 +26,9 @@ class Encoding(object):
     PROTOBUF = 0x04
     SQL = 0x05
     PROPERTY = 0x6
-    # The following are both invalid encoding, only numbers in this range are valid
-    MIN = 0x00 
+    # The following are both invalid encoding,
+    # only numbers in this range are valid
+    MIN = 0x00
     MAX = 0xff
 
 

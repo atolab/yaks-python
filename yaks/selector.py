@@ -57,7 +57,7 @@ class Selector(object):
         return self.selector
 
     def get_path(self):
-        return Path(self.path)
+        return Path(self.path.split('*')[0])
 
     def get_predicate(self):
         return self.predicate

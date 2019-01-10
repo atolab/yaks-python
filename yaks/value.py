@@ -14,7 +14,7 @@
 
 import re
 from yaks.exceptions import ValidationError
-from yaks.encoding import *
+from yaks.encoding import Encoding
 import json
 
 
@@ -26,6 +26,8 @@ class Value(object):
             raise ValueError('PROTOBUF Encoding not implemented')
         self.encoding = encoding
         if self.encoding == Encoding.JSON:
+            if not (isinstance(value, dict) or isinstance(value, str)):
+                raise ValidationError("Value is not a valid JSON")
             self.value = json.dumps(value)
         else:
             self.value = value

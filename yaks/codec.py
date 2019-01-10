@@ -12,9 +12,16 @@
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
-from papero import *
-from yaks.message import *
-from yaks.encoding import *
+from papero import find_property, encode_sequence, decode_sequence
+from papero import encode_properties, decode_properties
+from yaks.message import Message, Header, WorkspaceM, OkM, ErrorM, GetM, PutM
+from yaks.message import UpdateM, DeleteM, SubscribeM, UnsubscribeM
+from yaks.message import EvalM, RegisterEvalM, UnregisterEvalM, ValuesM
+from yaks.message import NotifyM
+from yaks.encoding import Encoding
+from yaks.value import Value
+from yaks.path import Path
+from yaks.selector import Selector
 
 
 def encode_raw_value(buf, v):
@@ -33,7 +40,7 @@ def encode_string_value(buf, v):
 
 
 def decode_string_value(buf):
-    return buf.get_string()
+    return Value(buf.get_string(), encoding=Encoding.STRING)
 
 
 def encode_json_value(buf, v):

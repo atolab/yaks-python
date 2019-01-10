@@ -13,8 +13,10 @@
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
 
-from yaks.runtime import *
-from yaks.workspace import *
+from yaks.runtime import check_reply_is_ok, socket, send_msg, Runtime, recv_msg
+from yaks.workspace import Workspace
+from yaks.message import LoginM, LogoutM, WorkspaceM, Message
+from papero import find_property
 from yaks.admin import *
 
 
@@ -40,7 +42,7 @@ class Yaks(object):
         login = LoginM(properties)
         send_msg(sock, login)
         m = recv_msg(sock)
-        y = None
+        # y = None
         if check_reply_is_ok(m, login):
             rt = Runtime(sock, locator, on_close)
         rt.start()
@@ -66,4 +68,4 @@ class Yaks(object):
         # if check_reply_is_ok(reply, lom):
 
     def admin(self):
-        return Admin(self.workspace(Path("/@/local")))
+        return Admin(self.workspace("/@/local"))

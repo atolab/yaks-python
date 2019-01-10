@@ -12,10 +12,11 @@
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
-from yaks.encoding import *
-from yaks.message import *
+from yaks.encoding import Encoding, TranscodingFallback
+from yaks.message import GetM, PutM, DeleteM, UnsubscribeM, SubscribeM
+from yaks.message import RegisterEvalM, UnregisterEvalM, EvalM, Message
 from papero.property import *
-from yaks.runtime import *
+from yaks.runtime import check_reply_is_ok, check_reply_is_values
 from yaks.path import Path
 from yaks.selector import Selector
 
@@ -38,13 +39,13 @@ class Workspace(object):
 
     def get(self, selector, quorum=1, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
-        """Requests Yaks to get a list of the stored paths/values where 
+        """Requests Yaks to get a list of the stored paths/values where
             all the paths match the selector [s].
            [s] can be absolute or relative to the workspace [w].
-           The [quorum] (default value is 1) is used by Yaks 
+           The [quorum] (default value is 1) is used by Yaks
            to decide for each matching path the number of
            answer from storages to wait before returning the associated value.
-           The [encoding] indicates the expected encoding of the 
+           The [encoding] indicates the expected encoding of the
            resulting values.
             If the original values have a different encoding,
              Yaks will try to transcode them into the expected encoding.

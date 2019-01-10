@@ -17,8 +17,8 @@ import uuid
 import os
 from papero import *
 from mvar import MVar
-from yaks.codec import *
-from yaks.message import *
+from yaks.codec import decode_message, encode_message
+from yaks.message import Message, ErrorM, LogoutM, ValuesM
 import threading
 import logging
 import sys
@@ -51,7 +51,7 @@ def recv_msg(sock):
         rbuf = IOBuf.from_bytes(bs)
         m = decode_message(rbuf)
         # return m
-    except OSError as ose:
+    except OSError:
         m = ErrorM(0)
     finally:
         return m
@@ -61,23 +61,23 @@ def send_msg(sock, msg):
     buf = IOBuf()
     encode_message(buf, msg)
     lbuf = IOBuf(16)
-    l = buf.write_pos
-    lbuf.put_vle(l)
+    length = buf.write_pos
+    lbuf.put_vle(length)
     sock.send(lbuf.get_raw_bytes())
     sock.send(buf.get_raw_bytes())
 
 
 def get_log_level():
-    l = logging.ERROR
+    log_level = logging.ERROR
     i = 0
     for a in sys.argv:
         if a.startswith('--log='):
             _, _, lvl = a.partition('=')
-            l = getattr(logging, lvl.upper())
+            log_level = getattr(logging, lvl.upper())
         elif a == '-l':
-            l = getattr(logging, sys.argv[i + 1].upper())
+            log_level = getattr(logging, sys.argv[i + 1].upper())
         i += 1
-    return l
+    return log_level
 
 
 def check_reply_is_ok(reply, msg):
@@ -164,7 +164,7 @@ class Runtime(threading.Thread):
                 kvs = [(path, cb(p, **args))]
                 vm = ValuesM(kvs)
                 vm.corr_id = m.corr_id
-                reply = self.post_message(vm)
+                self.post_message(vm)
 
     def handle_reply(self, m):
         mvar = self.posted_messages.get(m.corr_id)

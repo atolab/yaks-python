@@ -29,7 +29,7 @@ class Path(object):
             return p
         else:
             return Path(p)
-            
+
     def is_valid(self, path):
         return self.__path_regex.match(path) is not None \
             and not path.startswith('//')

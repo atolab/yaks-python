@@ -13,7 +13,7 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Tests
 
 import unittest
-from yaks import messages
+from yaks import message
 from yaks import Selector
 from yaks import Path
 from yaks import Value
@@ -128,8 +128,8 @@ class MessagesTests(unittest.TestCase):
 
     # def test_set_encoding_string(self):
     #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world', encoding=STRING)},
-    #         {'key': Path('/another'),
+    #      {'key': Path('/hello'), 'value': Value('world', encoding=STRING)},
+    #      {'key': Path('/another'),
     #                      'value': Value('longvalue', encoding=STRING)}
     #     ]
     #     msg1 = messages.Message()
@@ -156,7 +156,7 @@ class MessagesTests(unittest.TestCase):
 
     # def test_value_encoding_invalid(self):
     #     v1 = [
-    #         {'key': Path('/hello'), 'value': Value('world', encoding=INVALID)},
+    #     {'key': Path('/hello'), 'value': Value('world', encoding=INVALID)},
     #     ]
     #     msg1 = messages.Message()
     #     msg1.message_code = messages.VALUES

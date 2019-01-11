@@ -213,81 +213,59 @@ def encode_error(buf, m):
 
 
 def decode_put(buf, header):
-    properties = header.properties
     kvs = decode_key_value_list(buf)
-    wsid = find_property(Message.WSID, properties)
-    return PutM(wsid, kvs, properties)
+    return PutM.make(kvs, header.properties)
 
 
 def decode_get(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     selector = Selector(buf.get_string())
-    return GetM(wsid, selector, properties)
+    return GetM.make(selector, header.properties)
 
 
 def decode_update(buf, header):
-    properties = header.properties
     kvs = decode_key_value_list(buf)
-    wsid = find_property(Message.WSID, properties)
-    return UpdateM(wsid, kvs, properties)
+    return UpdateM.make(kvs, header.properties)
 
 
 def decode_delete(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     path = buf.get_string()
-    return DeleteM(wsid, path, properties)
+    return DeleteM.make(path, header.properties)
 
 
 def decode_sub(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     selector = Selector(buf.get_string())
-    return SubscribeM(wsid, selector. properties)
+    return SubscribeM.make(selector, header.properties)
 
 
 def decode_unsub(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     subid = buf.get_string()
-    return UnsubscribeM(wsid, subid, properties)
+    return UnsubscribeM.make(subid, header.properties)
 
 
 def decode_notify(buf, header):
     subid = buf.get_string()
     kvs = decode_key_value_list(buf)
-    return NotifyM('', subid, kvs)
+    return NotifyM.make(subid, kvs, header.properties)
 
 
 def decode_eval(buf, header):
-    # properties = header.properties
-    # wsid = find_property(Message.WSID, properties)
-    # TODO: need a function EvalM.make(selector, header)
     selector = Selector(buf.get_string())
-    m = EvalM('', selector)
-    m.corr_id = header.corr_id
-    return m
+    return EvalM.make(selector, header)
 
 
 def decode_reg_eval(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     selector = Selector(buf.get_string())
-    return RegisterEvalM(wsid, selector, properties)
+    return RegisterEvalM.make(selector, header.properties)
 
 
 def decode_unreg_eval(buf, header):
-    properties = header.properties
-    wsid = find_property(Message.WSID, properties)
     selector = Selector(buf.get_string())
-    return UnregisterEvalM(wsid, selector, properties)
+    return UnregisterEvalM.make(selector, header.properties)
 
 
 def decode_values(buf, header):
     kvs = decode_key_value_list(buf)
-    vm = ValuesM.make(header, kvs)
-    return vm
+    return ValuesM.make(header, kvs)
 
 
 def decode_ok(buf, header):

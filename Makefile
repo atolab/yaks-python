@@ -29,3 +29,7 @@ clean:
 
 test:
 	tox
+	
+doc:	
+	mkdir -p docs/html &>/dev/null
+	pdoc --html --html-dir ./docs/html/ --all-submodules --overwrite yaks

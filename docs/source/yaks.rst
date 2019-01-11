@@ -1,4 +1,4 @@
-yaks package
+Yaks package
 =============
 
 Submodules

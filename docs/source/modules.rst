@@ -1,5 +1,5 @@
-yaks
-=====
+Yaks API
+========
 
 .. toctree::
    :maxdepth: 4

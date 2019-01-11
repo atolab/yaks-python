@@ -67,14 +67,14 @@ Client:
 
 #### Docs
 
-To generate html documentation you need **pdoc**, that uses the installed
-version of the YAKS API to generate html docs
+To generate html documentation you need **sphinx** and **sphinx_rtd_theme**
 
-    $ pip3 install pdoc
-    $ make install
+    $ pip3 install sphinx sphinx_rtd_theme
     $ make doc
 
-
+The documentation can be find in two forms, pdf and html respectively under
+- docs/build/latex/yaks.pdf
+- docs/build/dirhtml/index.html
 
 
 Copyright 2018 ADLINK Technology Inc.

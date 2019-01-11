@@ -28,8 +28,10 @@ clean:
 	rm -rf yaks_api.log .tox yaks.egg-info ./yaks/__pycache__/ ./yaks/tests/__pycache__/;
 
 test:
+	rm -rf ./tox
 	tox
-	
-doc:	
-	mkdir -p docs/html &>/dev/null
-	pdoc --html --html-dir ./docs/html/ --all-submodules --overwrite yaks
+
+doc:
+	cd docs && $(MAKE) clean
+	cd docs && $(MAKE) latexpdf
+	cd docs && $(MAKE) dirhtml

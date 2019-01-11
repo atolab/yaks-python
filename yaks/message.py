@@ -11,8 +11,7 @@
 # SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
-
-
+#
 # 7 6 5 4 3 2 1 0
 # +-+-+-+-+-+-+-+-+ ----------------------+
 # |  MESSAGE CODE |    8bit               |

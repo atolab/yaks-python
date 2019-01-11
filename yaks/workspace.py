@@ -30,6 +30,7 @@ class Workspace(object):
 
     def put(self, path, value, quorum=1):
         '''The put operation:
+        
         - causes the notification of all subscriptions whose selector matches the path
          parameter, and
 

@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
-<< << << < HEAD
 #
 #
 #
@@ -49,46 +48,6 @@
 
 
 from papero import Property, find_property
-== == == =
-
-
-'''
-
-7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~   Corr. ID    ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ --> its structure depends on the message code
-+---------------+
-
-
-WIRE MESSAGE for framing on TCP/IP:
-
- 7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+
-~    Length     ~ VLE max 64bit
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~    Corr. id   ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ VL
-+---------------+
-
-
-'''
-from papero import Property
->>>>>> > master
 import random
 import json
 import hexdump
@@ -96,10 +55,6 @@ from enum import Enum
 from yaks.value import Value
 from yaks.path import Path
 from yaks.selector import Selector
-<< << << < HEAD
-== == == =
-from yaks.encoding import *
->>>>>> > master
 
 
 class Message(object):

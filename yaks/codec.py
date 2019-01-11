@@ -213,6 +213,7 @@ def encode_error(buf, m):
 
 
 def decode_put(buf, header):
+
     kvs = decode_key_value_list(buf)
     return PutM.make(kvs, header.properties)
 

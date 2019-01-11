@@ -29,6 +29,7 @@ class Workspace(object):
         self.properties = [Property(Message.WSID, wsid)]
 
     def put(self, path, value, quorum=1):
+
         '''
 
         The put operation:
@@ -59,6 +60,7 @@ class Workspace(object):
         return check_reply_is_ok(reply, pm)
 
     def update(self, path, value, quorum=1):
+
         '''
 
         Allows to **put** a delta,
@@ -66,10 +68,12 @@ class Workspace(object):
 
         '''
 
+
         raise NotImplementedError("Update not yet...")
 
     def get(self, selector, quorum=1, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
+
         '''
 
         gets the set of tuples  *<path,value>* available in YAKS
@@ -121,6 +125,7 @@ class Workspace(object):
         return []
 
     def remove(self, path, quorum=1):
+
         '''
 
         Removes from all  Yaks's storages the tuples having the given **path**.
@@ -131,12 +136,14 @@ class Workspace(object):
 
         '''
 
+
         path = Path.to_path(path)
         rm = DeleteM(self.wsid, path)
         reply = self.rt.post_message(rm).get()
         return check_reply_is_ok(reply, rm)
 
     def subscribe(self, selector, listener=None):
+
         '''
 
         Registers a subscription to tuples whose path matches the **selector**.
@@ -149,12 +156,12 @@ class Workspace(object):
 
         '''
 
+
         s = Selector.to_selector(selector)
         sm = SubscribeM(self.wsid, s)
         reply = self.rt.post_message(sm).get()
         if check_reply_is_ok(reply, sm):
             subid = find_property(Message.SUBID, reply.properties)
-            print('########## SUBID {}'.format(subid))
             if listener is not None:
                 self.rt.add_listener(subid, listener)
             return subid
@@ -162,12 +169,12 @@ class Workspace(object):
             raise "Subscribe received an invalid reply"
 
     def unsubscribe(self, subscription_id):
+
         '''
 
         Unregisters a previous subscription with the identifier **subid**
 
         '''
-
         um = UnsubscribeM(self.wsid, subscription_id)
         reply = self.rt.post_message(um).get()
         if check_reply_is_ok(reply, um):
@@ -177,6 +184,7 @@ class Workspace(object):
             raise "Unsubscribe received an invalid reply"
 
     def register_eval(self, path, callback):
+
         '''
 
         Registers an evaluation function **eval** under the provided **path**.
@@ -213,6 +221,7 @@ class Workspace(object):
 
     def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
              fallback=TranscodingFallback.KEEP):
+
         '''
 
         Requests the evaluation of registered evals whose registration

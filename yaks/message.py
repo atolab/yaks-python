@@ -57,6 +57,7 @@ from yaks.path import Path
 from yaks.selector import Selector
 
 
+
 class Message(object):
     LOGIN = 0x01
     LOGOUT = 0x02
@@ -192,7 +193,6 @@ class SubscribeM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(SubscribeM, self).__init__(Message.SUB, wsid, properties)
         self.selector = selector
-
     @staticmethod
     def make(selector, properties=None):
         wsid = ''
@@ -220,7 +220,6 @@ class NotifyM(WorkspaceMessage):
         self.subid = subid
         self.kvs = kvs
 
-    @staticmethod
     def make(subid, kvs, properties=None):
         wsid = ''
         if properties:

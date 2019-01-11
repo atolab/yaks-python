@@ -67,7 +67,6 @@ class MessagesTests(unittest.TestCase):
         kvs = [(Path('/yaks/1'), Value('1234'))]
         wsid = '1'
         pm = PutM(wsid, kvs)
-
         ps = [Property('wsid', wsid)]
         msg2 = PutM.make(kvs, ps)
         msg3 = PutM.make(kvs)

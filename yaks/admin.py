@@ -28,24 +28,29 @@ class Admin(object):
         '''
         Not supported in this version.
         '''
+
         path = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
         value = Value(properties, encoding=Encoding.PROPERTY)
         return self.ws.put(path, value, quorum=1)
 
     def get_frontends(self, yaks=MY_YAKS):
+
         '''
         Returns the list of frontends available on the Yaks
         instance with UUID **yaks**.
         '''
+
         s = '/{}/{}/frontend/*'.format(Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_frontend(self, feid, yaks=MY_YAKS):
+
         '''
         Returns the frontend with the front-end ID **feid**
         on the Yaks instance with UUID **yaks**.
         '''
+
         s = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
@@ -53,34 +58,42 @@ class Admin(object):
         return None
 
     def remove_frontend(self, feid, yaks=MY_YAKS):
+
         '''
         Not supported in this version.
         '''
+
         path = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
         return self.ws.remove(path, quorum=1)
 
     def add_backend(self, beid, properties, yaks=MY_YAKS):
+
         '''
         Not supported in this version.
         '''
+
         path = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
         value = Value(properties, encoding=Encoding.PROPERTY)
         return self.ws.put(path, value, quorum=1)
 
     def get_backends(self, yaks=MY_YAKS):
+
         '''
         Gets the list of all available back-ends on the Yaks instance
         with UUID **yaks**.
         '''
+
         s = '/{}/{}/backend/*'.format(Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_backend(self, beid, yaks=MY_YAKS):
+
         '''
         Gets the  back-end with id **beid** on the Yaks instance
         with UUID **yaks**.
         '''
+
         s = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
@@ -88,13 +101,16 @@ class Admin(object):
         return None
 
     def remove_backend(self, beid, yaks=MY_YAKS):
+
         '''
         Not supported in this version.
         '''
+
         path = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
         return self.ws.remove(path, quorum=1)
 
     def add_storage(self, stid, properties, beid=None, yaks=MY_YAKS):
+
         '''
 
         Adds a storage named **stid** on the backend **beid** and with
@@ -117,10 +133,12 @@ class Admin(object):
         return self.ws.put(p, v, quorum=1)
 
     def get_storages(self, beid=None, yaks=MY_YAKS):
+
         '''
         Gets the list of all available storages on the Yaks instance
         with UUID **yaks**.
         '''
+
         if not beid:
             beid = '*'
         s = '/{}/{}/backend/{}/storage/*'.format(Admin.PREFIX, yaks, beid)
@@ -128,10 +146,12 @@ class Admin(object):
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_storage(self, stid, yaks=MY_YAKS):
+
         '''
         Gets the  storage with id **stid** on the Yaks instance
         with UUID **yaks**.
         '''
+
         s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
@@ -139,10 +159,12 @@ class Admin(object):
         return None
 
     def remove_storage(self, stid, yaks=MY_YAKS):
+
         '''
         Removes the  storage with id **stid** on the Yaks instance
         with UUID **yaks**.
         '''
+
         s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
@@ -151,10 +173,12 @@ class Admin(object):
         return False
 
     def get_sessions(self, yaks=MY_YAKS, feid=None):
+
         '''
         Gets the list of all available sessions on the Yaks instance
         with UUID **yaks**.
         '''
+
         if not feid:
             feid = '*'
         s = '/{}/{}/frontend/{}/session/*'.format(Admin.PREFIX, yaks, feid)
@@ -162,9 +186,11 @@ class Admin(object):
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def close_session(self, sid, yaks=MY_YAKS):
+
         '''
         Not supported in this version.
         '''
+
         s = '/{}/{}/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
@@ -173,10 +199,12 @@ class Admin(object):
         return False
 
     def get_subscriptions(self, sid, yaks=MY_YAKS):
+
         '''
         Gets the list of all active subscriptions on the Yaks instance
         with UUID **yaks**.
         '''
+
         s = '/{}/{}/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
         kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))

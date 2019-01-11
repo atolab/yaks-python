@@ -37,10 +37,8 @@ class Workspace(object):
         matches the path parameter.
 
         Notice that the **path** can be absolute or erelative to the workspace.
-
-        @param path: the path that will be associated with the value
-        @param value: the value to store in Yaks at the provided path
-        @param quorum: If a quorum is provided then the put will success only if and only if a number 
+        
+        If a **quorum** is provided then the put will success only if and only if a number 
         quorum of independent storages exist that match path. If such a set exist, the 
         put operation will complete only ater the tuple <path,value>
         has been written on all these storages.

@@ -14,8 +14,7 @@
 
 
 '''
-
-7 6 5 4 3 2 1 0
+`7 6 5 4 3 2 1 0
 +-+-+-+-+-+-+-+-+ ----------------------+
 |  MESSAGE CODE |    8bit               |
 +-+-+-+-+-+-+-+-+                       |
@@ -44,8 +43,7 @@ WIRE MESSAGE for framing on TCP/IP:
 ~   Properties  ~ --> Present if P = 1  |
 +---------------+ ----------------------+
 ~     Body      ~ VL
-+---------------+
-
++---------------+`
 
 '''
 from papero import Property

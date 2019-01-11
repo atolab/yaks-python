@@ -34,8 +34,8 @@ class Admin(object):
 
     def get_frontends(self, yaks=MY_YAKS):
         '''
-        Returns the list of frontends available on the Yaks 
-        instance with UUID **yaks**. 
+        Returns the list of frontends available on the Yaks
+        instance with UUID **yaks**.
         '''
         s = '/{}/{}/frontend/*'.format(Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
@@ -43,7 +43,7 @@ class Admin(object):
 
     def get_frontend(self, feid, yaks=MY_YAKS):
         '''
-        Returns the frontend with the front-end ID **feid** 
+        Returns the frontend with the front-end ID **feid**
         on the Yaks instance with UUID **yaks**.
         '''
         s = '/{}/{}/frontend/{}'.format(Admin.PREFIX, yaks, feid)
@@ -70,7 +70,7 @@ class Admin(object):
     def get_backends(self, yaks=MY_YAKS):
         '''
         Gets the list of all available back-ends on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         s = '/{}/{}/backend/*'.format(Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
@@ -79,7 +79,7 @@ class Admin(object):
     def get_backend(self, beid, yaks=MY_YAKS):
         '''
         Gets the  back-end with id **beid** on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         s = '/{}/{}/backend/{}'.format(Admin.PREFIX, yaks, beid)
         kvs = self.ws.get(s)
@@ -96,14 +96,19 @@ class Admin(object):
 
     def add_storage(self, stid, properties, beid=None, yaks=MY_YAKS):
         '''
-        Adds a storage named **stid** on the backend **beid** and with 
-        storage and back-end specific configuration defined through **properties**.
-        The **properties** should always include the selector, 
+
+        Adds a storage named **stid** on the backend **beid** and with
+        storage and back-end specific configuration defined through
+        **properties**.
+        The **properties** should always include the selector,
         e.g., *{"selector":"/demo/astore/**"}*.
         Main memory is the default backend used when **beid** is unset.
-        
-        Finally, the storage is created on the Yaks instance with UUID **yaks**. 
+
+        Finally, the storage is created on the Yaks instance with UUID
+        **yaks**.
+
         '''
+
         if not beid:
             beid = 'auto'
         p = '/{}/{}/backend/{}/storage/{}'.format(
@@ -114,7 +119,7 @@ class Admin(object):
     def get_storages(self, beid=None, yaks=MY_YAKS):
         '''
         Gets the list of all available storages on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         if not beid:
             beid = '*'
@@ -125,7 +130,7 @@ class Admin(object):
     def get_storage(self, stid, yaks=MY_YAKS):
         '''
         Gets the  storage with id **stid** on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
@@ -136,7 +141,7 @@ class Admin(object):
     def remove_storage(self, stid, yaks=MY_YAKS):
         '''
         Removes the  storage with id **stid** on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         s = '/{}/{}/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
@@ -148,7 +153,7 @@ class Admin(object):
     def get_sessions(self, yaks=MY_YAKS, feid=None):
         '''
         Gets the list of all available sessions on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         if not feid:
             feid = '*'
@@ -170,7 +175,7 @@ class Admin(object):
     def get_subscriptions(self, sid, yaks=MY_YAKS):
         '''
         Gets the list of all active subscriptions on the Yaks instance
-        with UUID **yaks**. 
+        with UUID **yaks**.
         '''
         s = '/{}/{}/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
         kvs = self.ws.get(s)

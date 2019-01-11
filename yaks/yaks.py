@@ -29,11 +29,13 @@ class Yaks(object):
     @staticmethod
     def login(locator, properties=None, on_close=lambda z: z, lease=0):
         '''
-        Establish a session with the Yaks instance reachable through the 
-        provided *locator*. 
 
-        Valid format for the locator are valid  IP addresses as well as the combination
-        IP:PORT.    
+        Establish a session with the Yaks instance reachable through the
+        provided *locator*.
+
+        Valid format for the locator are valid  IP addresses as well
+        as the combination IP:PORT.
+
         '''
         addr, _, p = locator.partition(':')
         if p == '':
@@ -57,10 +59,13 @@ class Yaks(object):
 
     def workspace(self, path):
         '''
-        Creates a workspace relative to the provided **path**. Any *put* or *get* 
-        operation with relative paths on this workspace will be prepended with the 
-        workspace *path*.
+
+        Creates a workspace relative to the provided **path**.
+        Any *put* or *get* operation with relative paths on this workspace
+        will be prepended with the workspace *path*.
+
         '''
+
         wsm = WorkspaceM(path)
         reply = self.rt.post_message(wsm).get()
         ws = None
@@ -84,8 +89,10 @@ class Yaks(object):
 
     def admin(self):
         '''
-        Creates an admin workspace that provides helper operations to administer 
-        Yaks.
+
+        Creates an admin workspace that provides helper operations to
+        administer Yaks.
+
         '''
         return Admin(self.workspace(
             '/{}/{}'.format(Admin.PREFIX, Admin.MY_YAKS)))

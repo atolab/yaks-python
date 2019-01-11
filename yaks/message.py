@@ -13,40 +13,38 @@
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
 
-'''
-```
-7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~   Corr. ID    ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ --> its structure depends on the message code
-+---------------+
+# 7 6 5 4 3 2 1 0
+# +-+-+-+-+-+-+-+-+ ----------------------+
+# |  MESSAGE CODE |    8bit               |
+# +-+-+-+-+-+-+-+-+                       |
+# |X|X|X|X|X|A|S|P|    8bit               +--> Header
+# +-+-+-+-+-+-+-+-+                       |
+# ~   Corr. ID    ~  VLE max 64bit        |
+# +---------------+                       |
+# ~   Properties  ~ --> Present if P = 1  |
+# +---------------+ ----------------------+
+# ~     Body      ~ --> its structure depends on the message code
+# +---------------+
 
 
-WIRE MESSAGE for framing on TCP/IP:
+# WIRE MESSAGE for framing on TCP/IP:
 
- 7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+
-~    Length     ~ VLE max 64bit
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~    Corr. id   ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ VL
-+---------------+
-```
-'''
+#  7 6 5 4 3 2 1 0
+# +-+-+-+-+-+-+-+-+
+# ~    Length     ~ VLE max 64bit
+# +-+-+-+-+-+-+-+-+ ----------------------+
+# |  MESSAGE CODE |    8bit               |
+# +-+-+-+-+-+-+-+-+                       |
+# |X|X|X|X|X|A|S|P|    8bit               +--> Header
+# +-+-+-+-+-+-+-+-+                       |
+# ~    Corr. id   ~  VLE max 64bit        |
+# +---------------+                       |
+# ~   Properties  ~ --> Present if P = 1  |
+# +---------------+ ----------------------+
+# ~     Body      ~ VL
+# +---------------+
+
+
 from papero import Property
 import random
 import json

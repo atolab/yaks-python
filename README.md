@@ -9,13 +9,17 @@ This repo contains the YAKS API binding for Python
 
 #### Installation
 
-    $ python3 setup.py install
+    $ make install
 
 or
 
     $ pip3 install yaks
 
-#### Changelog 
+To uninstall old versions run this until pip says there are no more packages
+
+    $ pip3 uninstall yaks
+
+#### Changelog
 
 See [changelog file](CHANGELOG.md)
 
@@ -42,7 +46,7 @@ You need a database demo and a table test.
 
 Database Creation:
 
-    # mysql -u root -p 
+    # mysql -u root -p
     > create database demo;
     > use demo;
 
@@ -60,6 +64,17 @@ Starting YAKS Server:
 Client:
     python3 client-sql.py <yasks-ip>
 
+
+#### Docs
+
+To generate html documentation you need **sphinx** and **sphinx_rtd_theme**
+
+    $ pip3 install sphinx sphinx_rtd_theme
+    $ make doc
+
+The documentation can be find in two forms, pdf and html respectively under
+- docs/build/latex/yaks.pdf
+- docs/build/dirhtml/index.html
 
 
 Copyright 2018 ADLINK Technology Inc.

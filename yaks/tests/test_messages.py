@@ -18,6 +18,7 @@ from yaks import Selector
 from yaks import Path
 from yaks import Value
 from yaks.encoding import *
+from papero import Property
 
 
 class MessagesTests(unittest.TestCase):
@@ -66,6 +67,14 @@ class MessagesTests(unittest.TestCase):
         kvs = [(Path('/yaks/1'), Value('1234'))]
         wsid = '1'
         pm = PutM(wsid, kvs)
+        ps = [Property('wsid', wsid)]
+        msg2 = PutM.make(kvs, ps)
+        msg3 = PutM.make(kvs)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.kvs, kvs)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.kvs, kvs)
         self.assertEqual(pm.mid, Message.PUT)
         self.assertEqual(pm.wsid, wsid)
         self.assertEquals(pm.kvs, kvs)
@@ -74,6 +83,14 @@ class MessagesTests(unittest.TestCase):
         s = Selector('/yaks/**')
         wsid = '123'
         gm = GetM(wsid, s)
+        ps = [Property('wsid', wsid)]
+        msg2 = GetM.make(s, ps)
+        msg3 = GetM.make(s)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.selector, s)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.selector, s)
         self.assertEqual(gm.mid, Message.GET)
         self.assertEqual(gm.wsid, wsid)
         self.assertEqual(gm.selector, s)
@@ -82,6 +99,14 @@ class MessagesTests(unittest.TestCase):
         kvs = [(Path('/yaks/2'), Value('1235'))]
         wsid = '1'
         um = UpdateM(wsid, kvs)
+        ps = [Property('wsid', wsid)]
+        msg2 = UpdateM.make(kvs, ps)
+        msg3 = UpdateM.make(kvs)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.kvs, kvs)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.kvs, kvs)
         self.assertEqual(um.mid, Message.UPDATE)
         self.assertEqual(um.wsid, wsid)
         self.assertEquals(um.kvs, kvs)
@@ -90,6 +115,14 @@ class MessagesTests(unittest.TestCase):
         p = Path('/yaks/123')
         wsid = '123'
         dm = DeleteM(wsid, p)
+        ps = [Property('wsid', wsid)]
+        msg2 = DeleteM.make(p, ps)
+        msg3 = DeleteM.make(p)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.path, p)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.path, p)
         self.assertEqual(dm.mid, Message.DELETE)
         self.assertEqual(dm.wsid, wsid)
         self.assertEqual(dm.path, p)
@@ -98,6 +131,14 @@ class MessagesTests(unittest.TestCase):
         s = Selector('/yaks/**')
         wsid = '123'
         sm = SubscribeM(wsid, s)
+        ps = [Property('wsid', wsid)]
+        msg2 = SubscribeM.make(s, ps)
+        msg3 = SubscribeM.make(s)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.selector, s)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.selector, s)
         self.assertEqual(sm.mid, Message.SUB)
         self.assertEqual(sm.wsid, wsid)
         self.assertEqual(sm.selector, s)
@@ -106,6 +147,14 @@ class MessagesTests(unittest.TestCase):
         wsid = '123'
         subid = '456'
         usm = UnsubscribeM(wsid, subid)
+        ps = [Property('wsid', wsid)]
+        msg2 = UnsubscribeM.make(subid, ps)
+        msg3 = UnsubscribeM.make(subid)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.subid, subid)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.subid, subid)
         self.assertEqual(usm.mid, Message.UNSUB)
         self.assertEqual(usm.wsid, wsid)
         self.assertEqual(usm.subid, subid)
@@ -115,6 +164,16 @@ class MessagesTests(unittest.TestCase):
         subid = '456'
         kvs = [(Path('/yaks/2'), Value('1235'))]
         nm = NotifyM(wsid, subid, kvs)
+        ps = [Property('wsid', wsid)]
+        msg2 = NotifyM.make(subid, kvs, ps)
+        msg3 = NotifyM.make(subid, kvs)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.subid, subid)
+        self.assertEquals(msg2.kvs, kvs)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.subid, subid)
+        self.assertEquals(msg3.kvs, kvs)
         self.assertEqual(nm.mid, Message.NOTIFY)
         self.assertEqual(nm.wsid, wsid)
         self.assertEqual(nm.subid, subid)
@@ -124,6 +183,18 @@ class MessagesTests(unittest.TestCase):
         s = Selector('/yaks/**')
         wsid = '123'
         em = EvalM(wsid, s)
+        ps = [Property('wsid', wsid)]
+        h1 = Header(Message.VALUES, '0', ps)
+        h2 = Header(Message.VALUES, '1')
+        msg2 = EvalM.make(s, h1)
+        msg3 = EvalM.make(s, h2)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.selector, s)
+        self.assertEqual(msg2.corr_id, h1.corr_id)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.selector, s)
+        self.assertEqual(msg3.corr_id, h2.corr_id)
         self.assertEqual(em.mid, Message.EVAL)
         self.assertEqual(em.wsid, wsid)
         self.assertEqual(em.selector, s)
@@ -132,6 +203,14 @@ class MessagesTests(unittest.TestCase):
         p = Path('/yaks/eval')
         wsid = '1'
         msg = RegisterEvalM(wsid, p)
+        ps = [Property('wsid', wsid)]
+        msg2 = RegisterEvalM.make(p, ps)
+        msg3 = RegisterEvalM.make(p)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.path, p)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.path, p)
         self.assertEqual(msg.mid, Message.REG_EVAL)
         self.assertEqual(msg.wsid, wsid)
         self.assertEqual(msg.path, Path('/yaks/eval'))
@@ -140,6 +219,14 @@ class MessagesTests(unittest.TestCase):
         p = Path('/yaks/eval')
         wsid = '1'
         msg = UnregisterEvalM(wsid, p)
+        ps = [Property('wsid', wsid)]
+        msg2 = UnregisterEvalM.make(p, ps)
+        msg3 = UnregisterEvalM.make(p)
+
+        self.assertEqual(msg2.wsid, wsid)
+        self.assertEquals(msg2.path, p)
+        self.assertEqual(msg3.wsid, '')
+        self.assertEquals(msg3.path, p)
         self.assertEqual(msg.mid, Message.UNREG_EVAL)
         self.assertEqual(msg.wsid, wsid)
         self.assertEqual(msg.path, Path('/yaks/eval'))

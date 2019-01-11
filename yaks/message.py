@@ -11,44 +11,43 @@
 # SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
+#
+#
+#
+# 7 6 5 4 3 2 1 0
+# +-+-+-+-+-+-+-+-+ ----------------------+
+# |  MESSAGE CODE |    8bit               |
+# +-+-+-+-+-+-+-+-+                       |
+# |X|X|X|X|X|A|S|P|    8bit               +--> Header
+# +-+-+-+-+-+-+-+-+                       |
+# ~   Corr. ID    ~  VLE max 64bit        |
+# +---------------+                       |
+# ~   Properties  ~ --> Present if P = 1  |
+# +---------------+ ----------------------+
+# ~     Body      ~ --> its structure depends on the message code
+# +---------------+
+#
+#
+# WIRE MESSAGE for framing on TCP/IP:
+#
+#  7 6 5 4 3 2 1 0
+# +-+-+-+-+-+-+-+-+
+# ~    Length     ~ VLE max 64bit
+# +-+-+-+-+-+-+-+-+ ----------------------+
+# |  MESSAGE CODE |    8bit               |
+# +-+-+-+-+-+-+-+-+                       |
+# |X|X|X|X|X|A|S|P|    8bit               +--> Header
+# +-+-+-+-+-+-+-+-+                       |
+# ~    Corr. id   ~  VLE max 64bit        |
+# +---------------+                       |
+# ~   Properties  ~ --> Present if P = 1  |
+# +---------------+ ----------------------+
+# ~     Body      ~ VL
+# +---------------+
+#
 
 
-'''
-
-7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~   Corr. ID    ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ --> its structure depends on the message code
-+---------------+
-
-
-WIRE MESSAGE for framing on TCP/IP:
-
- 7 6 5 4 3 2 1 0
-+-+-+-+-+-+-+-+-+
-~    Length     ~ VLE max 64bit
-+-+-+-+-+-+-+-+-+ ----------------------+
-|  MESSAGE CODE |    8bit               |
-+-+-+-+-+-+-+-+-+                       |
-|X|X|X|X|X|A|S|P|    8bit               +--> Header
-+-+-+-+-+-+-+-+-+                       |
-~    Corr. id   ~  VLE max 64bit        |
-+---------------+                       |
-~   Properties  ~ --> Present if P = 1  |
-+---------------+ ----------------------+
-~     Body      ~ VL
-+---------------+
-
-
-'''
-from papero import Property
+from papero import Property, find_property
 import random
 import json
 import hexdump
@@ -56,7 +55,6 @@ from enum import Enum
 from yaks.value import Value
 from yaks.path import Path
 from yaks.selector import Selector
-from yaks.encoding import *
 
 
 class Message(object):
@@ -143,11 +141,25 @@ class PutM(WorkspaceMessage):
         super(PutM, self).__init__(Message.PUT, wsid, properties)
         self.kvs = kvs
 
+    @staticmethod
+    def make(kvs, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return PutM(wsid, kvs, properties)
+
 
 class GetM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(GetM, self).__init__(Message.GET, wsid, properties)
         self.selector = selector
+
+    @staticmethod
+    def make(selector, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return GetM(wsid, selector, properties)
 
 
 class UpdateM(WorkspaceMessage):
@@ -155,11 +167,25 @@ class UpdateM(WorkspaceMessage):
         super(UpdateM, self).__init__(Message.UPDATE, wsid, properties)
         self.kvs = kvs
 
+    @staticmethod
+    def make(kvs, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return UpdateM(wsid, kvs, properties)
+
 
 class DeleteM(WorkspaceMessage):
     def __init__(self, wsid, path, properties=None):
         super(DeleteM, self).__init__(Message.DELETE, wsid, properties)
         self.path = path
+
+    @staticmethod
+    def make(path, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return DeleteM(wsid, path, properties)
 
 
 class SubscribeM(WorkspaceMessage):
@@ -167,11 +193,25 @@ class SubscribeM(WorkspaceMessage):
         super(SubscribeM, self).__init__(Message.SUB, wsid, properties)
         self.selector = selector
 
+    @staticmethod
+    def make(selector, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return SubscribeM(wsid, selector, properties)
+
 
 class UnsubscribeM(WorkspaceMessage):
     def __init__(self, wsid, subid, properties=None):
         super(UnsubscribeM, self).__init__(Message.UNSUB, wsid, properties)
         self.subid = subid
+
+    @staticmethod
+    def make(subid, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return UnsubscribeM(wsid, subid, properties)
 
 
 class NotifyM(WorkspaceMessage):
@@ -180,11 +220,27 @@ class NotifyM(WorkspaceMessage):
         self.subid = subid
         self.kvs = kvs
 
+    @staticmethod
+    def make(subid, kvs, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return NotifyM(wsid, subid, kvs, properties)
+
 
 class EvalM(WorkspaceMessage):
     def __init__(self, wsid, selector, properties=None):
         super(EvalM, self).__init__(Message.EVAL, wsid, properties)
         self.selector = selector
+
+    @staticmethod
+    def make(selector, header):
+        wsid = ''
+        if header.properties:
+            wsid = find_property(Message.WSID, header.properties)
+        m = EvalM(wsid, selector, header.properties)
+        m.corr_id = header.corr_id
+        return m
 
 
 class RegisterEvalM(WorkspaceMessage):
@@ -192,12 +248,26 @@ class RegisterEvalM(WorkspaceMessage):
         super(RegisterEvalM, self).__init__(Message.REG_EVAL, wsid, properties)
         self.path = path
 
+    @staticmethod
+    def make(path, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return RegisterEvalM(wsid, path, properties)
+
 
 class UnregisterEvalM(WorkspaceMessage):
     def __init__(self, wsid, path, properties=None):
         super(UnregisterEvalM, self).__init__(
             Message.UNREG_EVAL, wsid, properties)
         self.path = path
+
+    @staticmethod
+    def make(path, properties=None):
+        wsid = ''
+        if properties:
+            wsid = find_property(Message.WSID, properties)
+        return UnregisterEvalM(wsid, path, properties)
 
 
 class ValuesM(Header):

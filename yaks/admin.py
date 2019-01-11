@@ -121,10 +121,6 @@ class Admin(object):
         Gets the list of all available storages on the Yaks instance
         with UUID **yaks**.
         '''
-        if not beid:
-            beid = '*'
-        s = '/{}/{}/backend/{}/storage/*'.format(Admin.PREFIX, yaks, beid)
-        kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def get_storage(self, stid, yaks=MY_YAKS):
@@ -155,10 +151,6 @@ class Admin(object):
         Gets the list of all available sessions on the Yaks instance
         with UUID **yaks**.
         '''
-        if not feid:
-            feid = '*'
-        s = '/{}/{}/frontend/{}/session/*'.format(Admin.PREFIX, yaks, feid)
-        kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
     def close_session(self, sid, yaks=MY_YAKS):

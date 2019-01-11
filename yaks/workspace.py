@@ -166,7 +166,6 @@ class Workspace(object):
         Unregisters a previous subscription with the identifier **subid**
 
         '''
-
         um = UnsubscribeM(self.wsid, subscription_id)
         reply = self.rt.post_message(um).get()
         if check_reply_is_ok(reply, um):

@@ -154,7 +154,6 @@ class Workspace(object):
         reply = self.rt.post_message(sm).get()
         if check_reply_is_ok(reply, sm):
             subid = find_property(Message.SUBID, reply.properties)
-            print('########## SUBID {}'.format(subid))
             if listener is not None:
                 self.rt.add_listener(subid, listener)
             return subid

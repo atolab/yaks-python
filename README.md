@@ -2,20 +2,24 @@
 [![Build Status](https://travis-ci.com/atolab/yaks-python.svg?token=LBmcudV28U4KHP4F42om&branch=master)](https://travis-ci.com/atolab/yaks-python)
 [![codecov](https://codecov.io/gh/atolab/yaks-python/branch/master/graph/badge.svg)](https://codecov.io/gh/atolab/yaks-python)
 
-# YAKS Python API v0.1
+# YAKS Python API v0.2
 
 This repo contains the YAKS API binding for Python
 
 
 #### Installation
 
-    $ python3 setup.py install
+    $ make install
 
 or
 
     $ pip3 install yaks
 
-#### Changelog 
+To uninstall old versions run this until pip says there are no more packages
+
+    $ pip3 uninstall yaks
+
+#### Changelog
 
 See [changelog file](CHANGELOG.md)
 
@@ -42,7 +46,7 @@ You need a database demo and a table test.
 
 Database Creation:
 
-    # mysql -u root -p 
+    # mysql -u root -p
     > create database demo;
     > use demo;
 
@@ -59,6 +63,17 @@ Starting YAKS Server:
 
 Client:
     python3 client-sql.py <yasks-ip>
+
+
+#### Docs
+
+To generate html documentation you need **pdoc**, that uses the installed
+version of the YAKS API to generate html docs
+
+    $ pip3 install pdoc
+    $ make install
+    $ make doc
+
 
 
 

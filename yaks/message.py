@@ -12,6 +12,8 @@
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 #
+#
+#
 # 7 6 5 4 3 2 1 0
 # +-+-+-+-+-+-+-+-+ ----------------------+
 # |  MESSAGE CODE |    8bit               |
@@ -24,10 +26,10 @@
 # +---------------+ ----------------------+
 # ~     Body      ~ --> its structure depends on the message code
 # +---------------+
-
-
+#
+#
 # WIRE MESSAGE for framing on TCP/IP:
-
+#
 #  7 6 5 4 3 2 1 0
 # +-+-+-+-+-+-+-+-+
 # ~    Length     ~ VLE max 64bit
@@ -42,6 +44,7 @@
 # +---------------+ ----------------------+
 # ~     Body      ~ VL
 # +---------------+
+#
 
 
 from papero import Property

@@ -20,7 +20,7 @@ from yaks.path import Path
 class Selector(object):
     def __init__(self, selector):
         self.__sel_regex = re.compile(
-            '^([^?#]+)(\?([^\[\]#]*)(\[(.*)\])?)?(\#(.*))?$')
+            '^([^?#]+)(\?([^\[()\]#]*)(\((.*)\))?)?(\#(.*))?$')
         if not self.is_valid(selector):
             raise ValidationError(
                 "{} is not a valid Selector".format(selector))

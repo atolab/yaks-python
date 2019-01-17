@@ -2,11 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 
-## [0.2.1] - 2019-01-10
+## [0.2.1] - 2019-01-xx
 
 ### Changed
 - Evals and listeners are now called in separate threads, to avoid locks on the runtime.
-
+- In **Selectors** changed the separator for the properties from '[' and ']' to '(' and ')' according to RFC3986
 
 ## [0.2.0] - 2019-01-10
 

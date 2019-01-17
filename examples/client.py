@@ -110,7 +110,7 @@ def main():
 
     print('>> Get on Eval')
     input()
-    print('GET: {}'.format(workspace.eval('/myyaks/key1?[param=1]')))
+    print('GET: {}'.format(workspace.eval('/myyaks/key1?(param=1)')))
 
     print('>> Unregister Eval')
     input()

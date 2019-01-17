@@ -150,7 +150,8 @@ class Runtime(threading.Thread):
         subid = m.subid
         listener = self.listeners.get(subid)
         if listener:
-            listener(m.kvs)
+            l_th = threading.Thread(target=listener, args=(m.kvs,))
+            l_th.start()
 
     def execute_eval(self, m):
         selector = m.selector
@@ -160,10 +161,15 @@ class Runtime(threading.Thread):
                 p = selector.get_path()
                 args = selector.dict_from_properties()
                 # TODO: should be called in another thread
-                kvs = [(path, cb(p, **args))]
-                vm = ValuesM(kvs)
-                vm.corr_id = m.corr_id
-                self.post_message(vm)
+
+                def eval_cb_adaptor(path, p, args, cid):
+                    kvs = [(path, cb(p, **args))]
+                    vm = ValuesM(kvs)
+                    vm.corr_id = cid
+                    self.post_message(vm)
+                eval_th = threading.Thread(target=eval_cb_adaptor,
+                                           args=(path, p, args, m.corr_id))
+                eval_th.start()
 
     def handle_reply(self, m):
         mvar = self.posted_messages.get(m.corr_id)

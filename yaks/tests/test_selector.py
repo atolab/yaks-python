@@ -35,16 +35,16 @@ class SelectorTests(unittest.TestCase):
         self.assertEqual('field', s.get_fragment())
 
     def test_selector_complete(self):
-        s = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
         self.assertEqual(Path('/this/is/a/'), s.get_path())
         self.assertEqual('field', s.get_fragment())
         self.assertEqual('x.y.z=100', s.get_properties())
         self.assertEqual('x>10', s.get_predicate())
 
     def test_selector_is_path_unique(self):
-        s = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
         self.assertFalse(s.is_path_unique())
-        s = Selector('/this/is/a/selector?x>10[x.y.z=100]#field')
+        s = Selector('/this/is/a/selector?x>10(x.y.z=100)#field')
         self.assertTrue(s.is_path_unique())
 
     def test_selector_check_absolute_ok(self):
@@ -61,12 +61,12 @@ class SelectorTests(unittest.TestCase):
         self.assertFalse(s.is_prefixed_by_path('/that/is/a/selector'))
 
     def test_selector_equal(self):
-        s1 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
-        s2 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s1 = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
+        s2 = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
         self.assertEqual(s1, s2)
 
     def test_selector_properties_dict(self):
-        s1 = Selector('/this/is/a/**?x>10[x=100;y.z=1]#field')
+        s1 = Selector('/this/is/a/**?x>10(x=100;y.z=1)#field')
         d = {'x': '100', 'y': {'z': '1'}}
         self.assertEqual(s1.dict_from_properties(), d)
 
@@ -82,7 +82,7 @@ class SelectorTests(unittest.TestCase):
         self.assertEqual(Selector.to_selector(s2), Selector('/yaks/**'))
 
     def test_selector_not_equal(self):
-        s1 = Selector('/this/is/a/**?x>10[x.y.z=100]#field')
+        s1 = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
         s2 = Path('/this/is/a/path')
         self.assertNotEqual(s1, s2)
 

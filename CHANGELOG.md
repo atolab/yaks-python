@@ -2,11 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-<<<<<<< HEAD
-## [0.2.1] - 2019-01-xx
-=======
 ## [0.2.1] - 2019-01-17
->>>>>>> 8842131c25b591aa46e99d161ed7ba41daccd10d
 
 ### Changed
 - Evals and listeners are now called in separate threads, to avoid locks on the runtime.

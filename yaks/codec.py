@@ -54,24 +54,11 @@ def decode_json_value(buf):
 
 
 def encode_property_value(buf, v):
-    s = ''
-    length = len(v.value)
-    if length > 0:
-        for i in range(0, length):
-            s = s + v.value[i].key + '=' + v.value[i].value
-            if i < length - 1:
-                s = s + '&'
-        buf.put_string(s)
+    encode_properties(buf, v.value)
 
 
 def decode_property_value(buf):
-    ps = []
-    s = buf.get_string()
-    s = s.split('&')
-    for ss in s:
-        p = ss.split('=')
-        ps.append(Property(p[0], p[1]))
-    return Value(ps, encoding=Encoding.PROPERTY)
+    return Value(decode_properties(buf), encoding=Encoding.PROPERTY)
 
 
 def encode_value(buf, v):

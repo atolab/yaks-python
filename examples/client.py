@@ -116,11 +116,6 @@ def main():
     input()
     workspace.unregister_eval('/myyaks/key1')
 
-    print('>> Dispose Access')
-    input()
-
-    #workspace.dispose()
-
     print('>> Dispose Storage')
     input()
     admin.remove_storage(stid)

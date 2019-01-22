@@ -235,11 +235,11 @@ To setup this topology you need to do the following steps.
     # on 192.168.86.50
     $ zenohd.exe --peers=tcp/192.168.86.55:7447
 
-    # on 192.168.86.57
+    # on 192.168.86.54
     $ zenohd.exe --peers=tcp/192.168.86.50:7447
 
-    # on 192.168.86.54
-    $ zenohd.exe --peers=tcp/192.168.86.57:7447,tcp/192.168.86.55:7447
+    # on 192.168.86.52
+    $ zenohd.exe --peers=tcp/192.168.86.55:7447,tcp/192.168.86.54:7447
 
 **Step #2 — Setup YAKS**
 
@@ -268,7 +268,7 @@ commands.
     from yaks import *
     y = Yaks.login('127.0.0.1')
     adm = y.admin()
-    s = adm.create_storage("AC-Storage", [Property("selector", "/demo/ac/**")])
+    s = adm.add_storage("AC-Storage", [Property("selector", "/demo/ac/**")])
     ws = y.workspace('/demo/ac') # or your initials
 
     ws.put('/demo/ac/uno', Value('ac-uno'))

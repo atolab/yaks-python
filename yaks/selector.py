@@ -74,7 +74,7 @@ class Selector(object):
             return data
         uri_values = self.properties.split(';')
         for tokens in uri_values:
-            v = tokens.split('=')[-1]
+            v = '='.join(tokens.split('=')[1:])
             k = tokens.split('=')[0]
             if len(k.split('.')) < 2:
                 data.update({k: v})

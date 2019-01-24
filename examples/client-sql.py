@@ -51,22 +51,22 @@ def main():
     print('>> Put /is/test/db/new-table/A/B')
     input()
     workspace.put(Path('new-table/A/B'),
-        Value("BCD", encoding=Encoding.STRING))
+                  Value("BCD", encoding=Encoding.STRING))
 
     print('>> Put /is/test/db/new-table/A/D')
     input()
     workspace.put(Path('new-table/A/D'),
-        Value("DEF", encoding=Encoding.STRING))
+                  Value("DEF", encoding=Encoding.STRING))
 
     print('>> Put /is/test/db/new-table/A/B/G')
     input()
     workspace.put(Path('new-table/A/B/G'),
-        Value("GHI", encoding=Encoding.STRING))
+                  Value("GHI", encoding=Encoding.STRING))
 
     print('>> Put /is/test/db/new-table/A/B/H/I/J')
     input()
     workspace.put(Path('new-table/A/B/H/I/J'),
-        Value("JKL", encoding=Encoding.STRING))
+                  Value("JKL", encoding=Encoding.STRING))
 
     print('>> Get /is/test/db/new-table/A/B')
     input()
@@ -91,7 +91,7 @@ def main():
     print('>> Put /is/test/db/new-table/A/B/G')
     input()
     workspace.put(Path('new-table/A/B/G'),
-        Value("XXXX", encoding=Encoding.STRING))
+                  Value("XXXX", encoding=Encoding.STRING))
 
     print('>> Get /is/test/db/new-table/A/**')
     input()

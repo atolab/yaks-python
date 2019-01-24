@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 
+
+## [0.2.2] - 2019-01-xx
+
+### Fixed
+- In **Eval** string properties can now contain the '='
+
+### Changed
+- Encoding of properties
+
 ## [0.2.1] - 2019-01-17
 
 ### Changed

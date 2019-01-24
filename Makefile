@@ -24,7 +24,7 @@ install:
 
 
 clean:
-	rm -rf ./build ./dist ./yaks.egg-info;
+	rm -rf ./build ./dist ./yaks.egg-info .coverage;
 	rm -rf yaks_api.log .tox yaks.egg-info ./yaks/__pycache__/ ./yaks/tests/__pycache__/;
 
 test:

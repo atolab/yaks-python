@@ -24,7 +24,7 @@ from yaks import Value
 from yaks.exceptions import ValidationError
 from yaks import Encoding
 
-YSERVER = '10.100.1.248'
+YSERVER = '127.0.0.1'
 
 
 class APITest(unittest.TestCase):

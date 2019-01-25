@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [0.2.2] - 2019-01-xx
+## [0.2.2] - 2019-01-25
 
 ### Fixed
 - In **Eval** string properties can now contain the '='

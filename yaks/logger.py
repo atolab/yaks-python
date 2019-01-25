@@ -20,26 +20,13 @@ import os
 
 class APILogger:
     class __SingletonLogger:
-        def __init__(self, file_name=None, debug_flag=False):
-
-            if file_name is None:
-                self.log_file = 'yaks_api.log'
-            else:
-                self.log_file = file_name
-
-            self.debug_flag = debug_flag
+        def __init__(self, level, debug_flag):
 
             log_format = '[%(asctime)s] - [%(levelname)s] > %(message)s'
 
-            level = os.environ.get('YAKS_PYTHON_API_VERBOSITY')
-            if level:
-                log_level = int(level)
-            else:
-                log_level = logging.ERROR
-
             self.logger = logging.getLogger('is.yaks.python.api')
 
-            self.logger.setLevel(log_level)
+            self.logger.setLevel(level)
             formatter = logging.Formatter(log_format)
             if not debug_flag:
                 platform = sys.platform
@@ -69,11 +56,11 @@ class APILogger:
     instance = None
     enabled = True
 
-    def __init__(self, file_name=None, debug_flag=False):
+    def __init__(self, level, debug_flag):
 
         if not APILogger.instance:
             APILogger.instance = \
-                APILogger.__SingletonLogger(file_name, debug_flag)
+                APILogger.__SingletonLogger(level, debug_flag)
 
     def enable(self):
         self.enabled = True

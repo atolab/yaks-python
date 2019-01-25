@@ -29,8 +29,8 @@ class MessagesTests(unittest.TestCase):
 
     def test_header(self):
         p = [('pkey', 'pvalue')]
-        h = Header(Message.OK, 0, p)
-        h2 = Header(Message.LOGIN, 0)
+        h = Header(Message.OK, corr_id=0, properties=p)
+        h2 = Header(Message.LOGIN, corr_id=0)
         self.assertTrue(Header.has_flag(h.flags, Header.P_FLAG))
         self.assertEqual(h.corr_id, 0)
         self.assertEqual(h.properties, p)
@@ -184,8 +184,8 @@ class MessagesTests(unittest.TestCase):
         wsid = '123'
         em = EvalM(wsid, s)
         ps = [Property('wsid', wsid)]
-        h1 = Header(Message.VALUES, '0', ps)
-        h2 = Header(Message.VALUES, '1')
+        h1 = Header(Message.VALUES, corr_id='0', properties=ps)
+        h2 = Header(Message.VALUES, corr_id='1')
         msg2 = EvalM.make(s, h1)
         msg3 = EvalM.make(s, h2)
 
@@ -234,7 +234,7 @@ class MessagesTests(unittest.TestCase):
     def test_values(self):
         kvs = [(Path('/yaks/1'), Value('1234'))]
         msg = ValuesM(kvs)
-        h = Header(0, '123')
+        h = Header(0, corr_id='123')
         msg2 = ValuesM.make(h, kvs)
         self.assertEqual(msg.mid, Message.VALUES)
         self.assertEquals(msg.kvs, kvs)
@@ -243,14 +243,14 @@ class MessagesTests(unittest.TestCase):
         self.assertEquals(msg2.corr_id, '123')
 
     def test_ok(self):
-        h = Header(0, '123', [Property('a', 'b')])
+        h = Header(0, corr_id='123', properties=[Property('a', 'b')])
         msg = OkM.make(h)
         self.assertEqual(msg.mid, Message.OK)
         self.assertEquals(msg.properties, [Property('a', 'b')])
         self.assertEquals(msg.corr_id, '123')
 
     def test_error(self):
-        msg = ErrorM.make('123', 100, [Property('a', 'b')])
+        msg = ErrorM.make('123', 100, properties=[Property('a', 'b')])
         self.assertEqual(msg.mid, Message.ERROR)
         self.assertEqual(msg.error_code, 100)
         self.assertEquals(msg.properties, [Property('a', 'b')])

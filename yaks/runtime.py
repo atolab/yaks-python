@@ -23,6 +23,7 @@ import threading
 import logging
 import sys
 import traceback
+from yaks.logger import APILogger
 
 
 def get_frame_len(sock):
@@ -83,9 +84,10 @@ def check_reply_is_ok(reply, msg):
     if reply.mid == Message.OK and msg.corr_id == reply.corr_id:
         return True
     elif reply.mid == Message.ERROR:
-        raise 'Yaks refused connection because of {}'.format(reply.error_code)
+        raise RuntimeError(
+            'Yaks refused connection because of {}'.format(reply.error_code))
     else:
-        raise 'Yaks replied with unexpected message'
+        raise RuntimeError('Yaks replied with unexpected message')
 
 
 def check_reply_is_values(reply, msg):
@@ -102,6 +104,8 @@ class Runtime(threading.Thread):
 
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
+        self.logger = APILogger(get_log_level(), True)
+        self.daemon = True
         self.connected = True
         self.posted_messages = {}
         self.sock = sock
@@ -109,26 +113,18 @@ class Runtime(threading.Thread):
         self.on_close = on_close
         self.listeners = {}
         self.eval_callbacks = {}
-        self.logger = logging.getLogger('is.yaks')
-        self.log_level = get_log_level()
-        self.logger.setLevel(self.log_level)
-        ch = logging.StreamHandler()
-        ch.setLevel(self.log_level)
-        # create formatter and add it to the handlers
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
 
     def close(self):
-        send_msg(self.sock, LogoutM())
+        self.post_message(LogoutM()).get()
         self.on_close(self)
         self.running = False
         self.sock.close()
 
     def post_message(self, msg):
         mbox = MVar()
-        self.posted_messages[msg.corr_id] = mbox
+        self.posted_messages.update({msg.corr_id: (mbox, [])})
+        self.logger.debug('post_message()',
+                          '<< Sending message CorrID: {}'.format(msg.corr_id))
         send_msg(self.sock, msg)
         return mbox
 
@@ -171,26 +167,60 @@ class Runtime(threading.Thread):
                                            args=(path, p, args, m.corr_id))
                 eval_th.start()
 
+    def consolidate_reply(self, ms):
+        ckvs = []
+        for m in ms:
+            ckvs = ckvs + m.kvs
+
+        m = ms[len(ms) - 1]
+        m.kvs = ckvs
+        return m
+
     def handle_reply(self, m):
-        mvar = self.posted_messages.get(m.corr_id)
+        map_value = self.posted_messages.get(m.corr_id)
+        if map_value is None:
+            self.logger.warning('handle_reply()',
+                                '>> Received not matching message {}'
+                                .format(m.corr_id))
+            return
+        self.logger.warning('handle_reply()',
+                                '>> Received matching message {}'
+                                .format(m.corr_id))
+        (mvar, partial) = map_value
         if mvar is not None:
-            mvar.put(m)
-            self.posted_messages.pop(m.corr_id)
-        else:
-            self.logger.debug(
-                '>> Received msg  with corr-id \
-                for which we have nothing pending: {}'.format(m.corr_id))
+            if m.mid == Message.VALUES:
+                if m.is_complete():
+                    self.logger.warning('handle_reply()',
+                                        '>> Complete message received {}'
+                                        .format(m.corr_id))
+                    if len(partial) > 0:
+                        partial.append(m)
+                        m = self.consolidate_reply(partial)
+                    mvar.put(m)
+                    self.posted_messages.pop(m.corr_id)
+                else:
+                    self.logger.warning('handle_reply()',
+                                        '>> Partial message received {}'
+                                        .format(m.corr_id))
+                    partial.append(m)
+                    self.posted_messages.update({m.corr_id: (mvar, partial)})
+
+            else:
+                mvar.put(m)
+                self.posted_messages.pop(m.corr_id)
 
     def handle_unexpected_message(self, m):
-        self.logger.warning(
-            '>> Received unexpected message with id {} -- ignoring'
-            .format(m.mid))
+        self.logger.warning('handle_unexpected_message()',
+                            '>> Received unexpected message with id {}\
+                             -- ignoring'
+                            .format(m.mid))
 
     def run(self):
         try:
             while self.running:
                 m = recv_msg(self.sock)
-                self.logger.debug('>> Received msg with id: {}'.format(m.mid))
+                self.logger.debug('run()',
+                                  '>> Received msg with id: {}'.format(m.mid))
                 {
                     Message.NOTIFY: lambda m: self.notify_listeners(m),
                     Message.EVAL: lambda m: self.execute_eval(m),
@@ -201,6 +231,6 @@ class Runtime(threading.Thread):
 
         except Exception as e:
             traceback.print_exc()
-            print('Terminating the runloop because of {}'.format(e))
-            self.logger.debug(
-                'Terminating the runloop because of {}'.format(e))
+            self.logger.debug('run()',
+                              'Terminating the runloop because of {}'
+                              .format(e))

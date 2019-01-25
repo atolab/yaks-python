@@ -28,7 +28,7 @@ class Workspace(object):
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
 
-    def put(self, path, value, quorum=1):
+    def put(self, path, value, quorum=0):
         '''
 
         The put operation:
@@ -58,7 +58,7 @@ class Workspace(object):
         reply = self.rt.post_message(pm).get()
         return check_reply_is_ok(reply, pm)
 
-    def update(self, path, value, quorum=1):
+    def update(self, path, value, quorum=0):
         '''
 
         Allows to **put** a delta,
@@ -68,7 +68,7 @@ class Workspace(object):
 
         raise NotImplementedError("Update not yet...")
 
-    def get(self, selector, quorum=1, encoding=Encoding.RAW,
+    def get(self, selector, quorum=0, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
         '''
 
@@ -120,7 +120,7 @@ class Workspace(object):
             raise "Get received an invalid reply"
         return []
 
-    def remove(self, path, quorum=1):
+    def remove(self, path, quorum=0):
         '''
 
         Removes from all  Yaks's storages the tuples having the given **path**.

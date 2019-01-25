@@ -14,7 +14,7 @@ def obs(kvs):
 
 def evcb(path, param):
     print('Executing eval on {}'.format(path))
-    return Value('executed {}'.format(param))
+    return Value('executed {}'.format(param), encoding=Encoding.STRING)
 
 
 def main():
@@ -115,11 +115,6 @@ def main():
     print('>> Unregister Eval')
     input()
     workspace.unregister_eval('/myyaks/key1')
-
-    print('>> Dispose Access')
-    input()
-
-    #workspace.dispose()
 
     print('>> Dispose Storage')
     input()

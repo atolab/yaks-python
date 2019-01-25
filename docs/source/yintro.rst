@@ -46,12 +46,12 @@ YAKS builds upon relatively small set of abstractions, notably:
 -  **Backend.** A storage technology, such as DBMS, Main Memory, NoSQL
    stores, etc.
 -  **Frontend.** A connectivity technology, such as REST, TCP/IP, etc.
--  **Storage.** An entity storing **** tuples on a specific backend.
+-  **Storage.** An entity storing tuples on a specific backend.
    Storages can be created by applications and take responsibility for
    storing all tuples whose **path** matches the storage **selector**
 -  **Subscriber.** An entity registering interest for being notified
-   whenever a tuple **** with a **path** matchings the subscriber
-   selector is put on YAKS. \*\*\*\*
+   whenever a tuple with a **path** matchings the subscriber
+   selector is put on YAKS. 
 -  **Eval.** A computation registered at a specific path. These
    computation can be triggered by evaluating those matching a selector.
 -  **Workspace.** The abstraction that give you access to YAKS
@@ -264,8 +264,16 @@ At this point the infrastructure is setup and you can try to issues some
 commands.
 
 ::
-
+ 
     from yaks import *
+
+    def obs(kvs):
+        print('Called OBSERVER KVS: {}'.format(kvs))
+
+    def evcb(path, param):
+        print('Executing eval on {}'.format(path))
+        return Value('executed {}'.format(param), encoding=Encoding.STRING)
+
     y = Yaks.login('127.0.0.1')
     adm = y.admin()
     s = adm.add_storage("AC-Storage", [Property("selector", "/demo/ac/**")])
@@ -277,10 +285,13 @@ commands.
     ws.put('/demo/gb/due', Value('ac-quattro'))
     ws.get('/demo/**')
 
-    def obs(kvs):
-        print('Called OBSERVER KVS: {}'.format(kvs))
-
     sid = workspace.subscribe('/demo/gb/**', obs)
+
+    # register an eval
+     ws.register_eval('/demo/ac/evalme', evcb)
+
+    # trigger the evaluation passing 1 as parameter
+    ws.eval('/demo/ac/evalme?(param=1)')
 
 With this set-up you will see how the data is crawled and resolved
 across the various instances if YAKS.
@@ -289,7 +300,7 @@ YAKS Features
 =============
 
 The table below reports the list of missing and partial features for
-YAKS 0.2.0.
+YAKS 0.2.1.
 
 ========================  ==========  ============================================
 Name	                   Available   Note

@@ -128,7 +128,7 @@ class Runtime(threading.Thread):
 
     def post_message(self, msg):
         mbox = MVar()
-        self.posted_messages[msg.corr_id] = mbox
+        self.posted_messages[msg.corr_id] = (mbox, [])
         send_msg(self.sock, msg)
         return mbox
 
@@ -171,11 +171,29 @@ class Runtime(threading.Thread):
                                            args=(path, p, args, m.corr_id))
                 eval_th.start()
 
+    def consolidate_reply(self, ms):
+        ckvs = []
+        for m in ms:
+            ckvs.append(m.kvs)
+                
+        m = ms[len(ms) - 1]
+        m.kvs = ckvs
+        return m
+
     def handle_reply(self, m):
-        mvar = self.posted_messages.get(m.corr_id)
+        (mvar, partial) = self.posted_messages.get(m.corr_id)
         if mvar is not None:
-            mvar.put(m)
-            self.posted_messages.pop(m.corr_id)
+            if m.mid == Message.VALUES:                
+                if m.is_complete():
+                    partial.append(m) 
+                    mvar.put(self.consolidate_reply(partial))
+                    self.posted_messages.pop(m.corr_id)                    
+                else:
+                    partial.append(m)
+            else:
+                mvar.put(m)
+                self.posted_messages.pop(m.corr_id)
+                
         else:
             self.logger.debug(
                 '>> Received msg  with corr-id \

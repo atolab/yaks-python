@@ -89,7 +89,9 @@ class Message(object):
 
 
 class Header(Message):
-    P_FLAG = 0x01
+    P_FLAG = 0x01 # Property Flag
+    I_FLAG = 0x02 # Incomplete Result 
+                  # This flag is only relevant for values.
     FLAGS_MASK = 0x01
 
     @staticmethod
@@ -109,6 +111,9 @@ class Header(Message):
 
     def has_properties(self):
         return self.flags & Header.P_FLAG != 0
+    
+    def is_complete(self):
+        return self.flags & Header.I_FLAG == 0
 
 
 class LoginM(Header):

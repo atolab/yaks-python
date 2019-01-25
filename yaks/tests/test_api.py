@@ -25,17 +25,19 @@ from yaks import Value
 from yaks.exceptions import ValidationError
 from yaks import Encoding
 
+YSERVER = '127.0.0.1'
+
 
 class APITest(unittest.TestCase):
 
     def test_create_close_api(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         self.assertTrue(y.rt.running)
         y.logout()
         self.assertFalse(y.rt.running)
 
     def test_create_delete_storage(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
@@ -46,7 +48,7 @@ class APITest(unittest.TestCase):
         self.assertTrue(res2)
 
     def test_create_delete_workspace(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
@@ -57,7 +59,7 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_put_get_remove(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
@@ -93,7 +95,7 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_sub_unsub(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
@@ -117,7 +119,7 @@ class APITest(unittest.TestCase):
         y.logout()
 
     def test_eval(self):
-        y = Yaks.login('127.0.0.1')
+        y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'

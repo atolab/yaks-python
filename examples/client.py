@@ -14,7 +14,7 @@ def obs(kvs):
 
 def evcb(path, param):
     print('Executing eval on {}'.format(path))
-    return Value('executed {}'.format(param))
+    return Value('executed {}'.format(param), encoding=Encoding.STRING)
 
 
 def main():

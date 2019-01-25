@@ -23,6 +23,9 @@ install:
 	python3 setup.py install --record yaks_files.txt
 
 
+dist:
+	python3 setup.py sdist bdist_wheel
+
 clean:
 	rm -rf ./build ./dist ./yaks.egg-info .coverage;
 	rm -rf yaks_api.log .tox yaks.egg-info ./yaks/__pycache__/ ./yaks/tests/__pycache__/;

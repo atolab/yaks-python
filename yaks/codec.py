@@ -119,7 +119,7 @@ def decode_header(buf):
     if Header.has_flag(flags, Header.P_FLAG):
         properties = decode_properties(buf)
 
-    return Header(mid, corr_id, properties)
+    return Header(mid, flags, corr_id, properties)
 
 
 def encode_login(buf, m):

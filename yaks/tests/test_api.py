@@ -16,6 +16,7 @@ import unittest
 import json
 import mvar
 import time
+import os
 from yaks import Yaks
 from papero import Property
 from yaks import Selector
@@ -70,6 +71,24 @@ class APITest(unittest.TestCase):
         self.assertEqual(k, '/myyaks/key1')
         self.assertTrue(workspace.remove('/myyaks/key1'))
         self.assertEqual(workspace.get('/myyaks/key1'), [])
+        admin.remove_storage(stid)
+        y.logout()
+
+    def test__big_put_get_remove(self):
+        y = Yaks.login('127.0.0.1')
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
+        workspace = y.workspace('/myyaks')
+
+        for i in range(0, 100):
+            v = 'x{}'.format(i) * 512
+            workspace.put('/myyaks/big/{}'.format(i),
+                          Value(v, encoding=Encoding.STRING))
+
+        nd = workspace.get('/myyaks/big/**')
+        self.assertEqual(len(nd), 100)
         admin.remove_storage(stid)
         y.logout()
 

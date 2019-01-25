@@ -5,4 +5,4 @@ nose>=1.3.7
 coverage>=4.1
 mock>=1.3.0
 mvar>=0.0.1
-papero==0.2.0
+papero==0.2.1

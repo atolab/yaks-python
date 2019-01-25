@@ -89,36 +89,37 @@ class Message(object):
 
 
 class Header(Message):
-    P_FLAG = 0x01 # Property Flag
-    I_FLAG = 0x02 # Incomplete Result 
-                  # This flag is only relevant for values.
+    # Property Flag
+    P_FLAG = 0x01
+    # Incomplete Result
+    # This flag is only relevant for values.
+    I_FLAG = 0x02
     FLAGS_MASK = 0x01
 
     @staticmethod
     def has_flag(h, f):
         return h & f != 0
 
-    def __init__(self, mid, corr_id=None, properties=None):
+    def __init__(self, mid, flags=0, corr_id=random.getrandbits(16),
+                 properties=None):
         super(Header, self).__init__(mid)
-        if corr_id is None:
-            self.corr_id = random.getrandbits(16)
-        else:
-            self.corr_id = corr_id
-        self.flags = 0
+
+        self.corr_id = corr_id
+        self.flags = flags
         self.properties = properties
         if properties is not None:
-            self.flags = Header.P_FLAG
+            self.flags = self.flags | Header.P_FLAG
 
     def has_properties(self):
         return self.flags & Header.P_FLAG != 0
-    
+
     def is_complete(self):
         return self.flags & Header.I_FLAG == 0
 
 
 class LoginM(Header):
     def __init__(self, properties=None):
-        super(LoginM, self).__init__(Message.LOGIN, properties)
+        super(LoginM, self).__init__(Message.LOGIN, properties=properties)
 
 
 class LogoutM(Header):
@@ -128,7 +129,8 @@ class LogoutM(Header):
 
 class WorkspaceM(Header):
     def __init__(self, path, properties=None):
-        super(WorkspaceM, self).__init__(Message.WORKSPACE, properties)
+        super(WorkspaceM, self).__init__(Message.WORKSPACE,
+                                         properties=properties)
         self.path = path
 
 
@@ -283,6 +285,7 @@ class ValuesM(Header):
     @staticmethod
     def make(header, kvs):
         vs = ValuesM(kvs)
+        vs.flags = header.flags
         vs.corr_id = header.corr_id
         return vs
 

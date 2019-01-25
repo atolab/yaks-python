@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - In **Eval** string properties can now contain the '='
+- Message and Header encoding, support for larger get and put
 
 ### Changed
 - Encoding of properties

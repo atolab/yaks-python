@@ -197,6 +197,7 @@ def encode_ok(buf, m):
 
 def encode_error(buf, m):
     encode_header(buf, m)
+    buf.put_vle(m.error_code)
 
 
 def decode_put(buf, header):
@@ -260,7 +261,7 @@ def decode_ok(buf, header):
 
 
 def decode_error(buf, header):
-    ec = buf.get()
+    ec = buf.get_vle()
     return ErrorM.make(header, ec)
 
 

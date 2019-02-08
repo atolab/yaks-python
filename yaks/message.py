@@ -303,6 +303,14 @@ class OkM(Header):
 
 
 class ErrorM(Header):
+    BAD_REQUEST = 400
+    FORBIDDEN = 403
+    NOT_FOUND = 404
+    PRECONDITION_FAILED = 412
+    INTERNAL_SERVER_ERROR = 500
+    NOT_IMPLEMENTED = 501
+    INSUFFICIENT_STORAGE = 507
+
     def __init__(self, error_code):
         super(ErrorM, self).__init__(Message.ERROR)
         self.error_code = error_code

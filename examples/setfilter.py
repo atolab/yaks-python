@@ -6,7 +6,7 @@ y = Yaks.login('localhost')
 ws = y.workspace('/demo/')
 
 while True:
-    f = input('input a filter expression in x, such as \"x > 40\", \"x%2 == 0\": ')
+    f = input(':> input a filter expression in x, such as \"x > 40\", \"x%2 == 0\":\n:>')
     ws.put('/demo/fprod/filter', Value(f, encoding=Encoding.STRING))
 
 

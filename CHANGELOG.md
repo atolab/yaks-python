@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 
+## [0.2.4] - 2019-xx-xx
+
+### Fixed
+
+### Changed
+
 ## [0.2.3] - 2019-02-11
 
 ### Fixed

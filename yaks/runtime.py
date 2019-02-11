@@ -160,13 +160,13 @@ class Runtime(threading.Thread):
 
                 def eval_cb_adaptor(path, p, args, cid):
                     try:
-                        kvs = [(path, cb(p, **args))]                    
+                        kvs = [(path, cb(p, **args))]
                         vm = ValuesM(kvs)
                         vm.corr_id = cid
                         self.post_message(vm)
-                    except:
+                    except (Exception, RuntimeError):
                         self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST))
-                        
+
                 eval_th = threading.Thread(target=eval_cb_adaptor,
                                            args=(path, p, args, m.corr_id))
                 eval_th.start()

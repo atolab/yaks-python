@@ -1,6 +1,8 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2019-xx-xx
+
 
 ## [0.2.4] - 2019-02-11
 

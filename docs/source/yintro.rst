@@ -296,6 +296,69 @@ commands.
 With this set-up you will see how the data is crawled and resolved
 across the various instances if YAKS.
 
+Posting and Evaluating Code
+===========================
+At times it could be useful to have the ability to store code in YAKS and
+have some applications evaluate it. As an example, imagine that you have 
+some business logic producing some sensor data, now if we wanted to 
+dynamically control the filters applied to this data, we may be able to do this
+by storing the filters in YAKS and having the application evaluate the filter
+available in YAKS. 
+
+The code snippet below, shows precisely this use case.
+
+::
+
+    from yaks import Yaks 
+    import jsonpickle
+    import random
+    import sys 
+    import time
+
+    filter = "x > 50"
+
+    def update_filter(kvs):
+        global filter
+        for kv in kvs:        
+            _,v = kv                
+            filter = v.value
+            print('New Filter: {}'.format(v))        
+
+
+    def main(addr):
+        y = Yaks.login(addr)
+        ws = y.workspace('/demo/fprod')
+        ws.subscribe('/demo/fprod/filter', update_filter)
+
+        while(True):
+            x = random.randint(0, 100) 
+            ## The filter is evaluated in the current context
+            if eval (filter) == True:
+                print (x)
+            else:
+                print ('Filtered...')
+            time.sleep(1)
+
+    if __name__ == "__main__":
+        if len(sys.argv) < 2:
+            print('[Usage] {} <yaks server address>'.format(sys.argv[0]))
+            exit(-1)
+        
+        addr = sys.argv[1]
+        main(addr)
+
+
+In this code snipped you can see how the filter is associated to the YAKS path '/demo/fprod/filter'
+and that this application is triggered each time a filter changed. Changing the filter is as simple
+as setting a YAKS value, as shown in the snippet below:
+
+::
+
+    while True:
+        f = input(':> input a filter expression in x, such as \"x > 40\", \"x%2 == 0\":\n:>')
+        ws.put('/demo/fprod/filter', Value(f, encoding=Encoding.STRING))
+
+
 YAKS Features
 =============
 

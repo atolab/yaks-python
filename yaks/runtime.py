@@ -94,9 +94,10 @@ def check_reply_is_values(reply, msg):
     if reply.mid == Message.VALUES and msg.corr_id == reply.corr_id:
         return True
     elif reply.mid == Message.ERROR:
-        raise 'Yaks refused connection because of {}'.format(reply.error_code)
+        raise RuntimeError(
+            'Yaks refused connection because of {}'.format(reply.error_code))
     else:
-        raise 'Yaks replied with unexpected message'
+        raise RuntimeError('Yaks replied with unexpected message')
 
 
 class Runtime(threading.Thread):

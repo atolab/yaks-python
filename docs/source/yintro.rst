@@ -46,12 +46,12 @@ YAKS builds upon relatively small set of abstractions, notably:
 -  **Backend.** A storage technology, such as DBMS, Main Memory, NoSQL
    stores, etc.
 -  **Frontend.** A connectivity technology, such as REST, TCP/IP, etc.
--  **Storage.** An entity storing **** tuples on a specific backend.
+-  **Storage.** An entity storing tuples on a specific backend.
    Storages can be created by applications and take responsibility for
    storing all tuples whose **path** matches the storage **selector**
 -  **Subscriber.** An entity registering interest for being notified
-   whenever a tuple **** with a **path** matchings the subscriber
-   selector is put on YAKS. \*\*\*\*
+   whenever a tuple with a **path** matchings the subscriber
+   selector is put on YAKS. 
 -  **Eval.** A computation registered at a specific path. These
    computation can be triggered by evaluating those matching a selector.
 -  **Workspace.** The abstraction that give you access to YAKS
@@ -264,8 +264,16 @@ At this point the infrastructure is setup and you can try to issues some
 commands.
 
 ::
-
+ 
     from yaks import *
+
+    def obs(kvs):
+        print('Called OBSERVER KVS: {}'.format(kvs))
+
+    def evcb(path, param):
+        print('Executing eval on {}'.format(path))
+        return Value('executed {}'.format(param), encoding=Encoding.STRING)
+
     y = Yaks.login('127.0.0.1')
     adm = y.admin()
     s = adm.add_storage("AC-Storage", [Property("selector", "/demo/ac/**")])
@@ -277,19 +285,85 @@ commands.
     ws.put('/demo/gb/due', Value('ac-quattro'))
     ws.get('/demo/**')
 
-    def obs(kvs):
-        print('Called OBSERVER KVS: {}'.format(kvs))
-
     sid = workspace.subscribe('/demo/gb/**', obs)
+
+    # register an eval
+     ws.register_eval('/demo/ac/evalme', evcb)
+
+    # trigger the evaluation passing 1 as parameter
+    ws.eval('/demo/ac/evalme?(param=1)')
 
 With this set-up you will see how the data is crawled and resolved
 across the various instances if YAKS.
+
+Posting and Evaluating Code
+===========================
+At times it could be useful to have the ability to store code in YAKS and
+have some applications evaluate it. As an example, imagine that you have 
+some business logic producing some sensor data, now if we wanted to 
+dynamically control the filters applied to this data, we may be able to do this
+by storing the filters in YAKS and having the application evaluate the filter
+available in YAKS. 
+
+The code snippet below, shows precisely this use case.
+
+::
+
+    from yaks import Yaks 
+    import jsonpickle
+    import random
+    import sys 
+    import time
+
+    filter = "x > 50"
+
+    def update_filter(kvs):
+        global filter
+        for kv in kvs:        
+            _,v = kv                
+            filter = v.value
+            print('New Filter: {}'.format(v))        
+
+
+    def main(addr):
+        y = Yaks.login(addr)
+        ws = y.workspace('/demo/fprod')
+        ws.subscribe('/demo/fprod/filter', update_filter)
+
+        while(True):
+            x = random.randint(0, 100) 
+            ## The filter is evaluated in the current context
+            if eval (filter) == True:
+                print (x)
+            else:
+                print ('Filtered...')
+            time.sleep(1)
+
+    if __name__ == "__main__":
+        if len(sys.argv) < 2:
+            print('[Usage] {} <yaks server address>'.format(sys.argv[0]))
+            exit(-1)
+        
+        addr = sys.argv[1]
+        main(addr)
+
+
+In this code snipped you can see how the filter is associated to the YAKS path '/demo/fprod/filter'
+and that this application is triggered each time a filter changed. Changing the filter is as simple
+as setting a YAKS value, as shown in the snippet below:
+
+::
+
+    while True:
+        f = input(':> input a filter expression in x, such as \"x > 40\", \"x%2 == 0\":\n:>')
+        ws.put('/demo/fprod/filter', Value(f, encoding=Encoding.STRING))
+
 
 YAKS Features
 =============
 
 The table below reports the list of missing and partial features for
-YAKS 0.2.0.
+YAKS 0.2.1.
 
 ========================  ==========  ============================================
 Name	                   Available   Note

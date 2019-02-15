@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2019-xx-xx
+
+## [0.2.4.post1] - 2019-02-15
+
+### Fixed
+- Using last version of papero (0.2.3) on setup.py
+
+
+## [0.2.4] - 2019-02-11
+
+### Fixed
+- Align version number
+
+### Changed
 
 ## [0.2.4] - 2019-02-11
 

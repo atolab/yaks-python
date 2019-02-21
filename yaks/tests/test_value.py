@@ -20,9 +20,15 @@ from yaks.exceptions import ValidationError
 
 class ValueTests(unittest.TestCase):
 
-    def test_raw_value(self):
+    def test_raw_value_str(self):
         v = Value('test raw value')
-        self.assertEqual('test raw value', v.get_value())
+        self.assertEqual('test raw value'.encode(), v.get_value())
+        self.assertEqual(Encoding.RAW, v.encoding)
+
+    def test_raw_value_bytes(self):
+        iv = 'test raw value bytes'.encode()
+        v = Value(iv)
+        self.assertEqual(iv, v.get_value())
         self.assertEqual(Encoding.RAW, v.encoding)
 
     def test_string_value(self):

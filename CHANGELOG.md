@@ -3,9 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [0.2.5] - 2019-xx-xx
 
+<<<<<<< HEAD
 ### Fixed
 - RAW encoded value was expecting str, now it support str and bytes, and does the encoding if the value is a string
 
+=======
+>>>>>>> origin/master
 ## [0.2.4.post1] - 2019-02-15
 
 ### Fixed

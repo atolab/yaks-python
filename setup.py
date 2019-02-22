@@ -27,7 +27,7 @@ setup(
     packages=['yaks'],
     url='https://github.com/atolab/yaks-python',
     authon_email='gabriele.baldoni@adlinktech.com',
-    install_requires=['hexdump', 'mvar', 'papero==0.2.3'],
+    install_requires=['hexdump', 'mvar', 'papero==0.2.5'],
     license='Apache 2.O or EPL 2.0',
     classifiers=[
           'Development Status :: 2 - Pre-Alpha',

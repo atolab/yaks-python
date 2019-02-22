@@ -29,9 +29,11 @@ class Value(object):
             if not (isinstance(value, dict) or isinstance(value, str)):
                 raise ValidationError("Value is not a valid JSON")
             self.value = json.dumps(value)
+        elif self.encoding == Encoding.RAW and isinstance(value, str):
+            self.value = value.encode()
         else:
             self.value = value
-            self.raw_format = raw_format
+        self.raw_format = raw_format
 
     def get_encoding(self):
         return self.encoding

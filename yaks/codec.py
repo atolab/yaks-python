@@ -26,7 +26,7 @@ from yaks.selector import Selector
 
 def encode_raw_value(buf, v):
     buf.put_string(v.raw_format)
-    buf.put_bytes(v.value.encode())
+    buf.put_bytes(v.value)
 
 
 def decode_raw_value(buf):

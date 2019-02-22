@@ -63,8 +63,9 @@ def send_msg(sock, msg):
     lbuf = IOBuf(16)
     length = buf.write_pos
     lbuf.put_vle(length)
-    sock.sendall(lbuf.get_raw_bytes().append(buf.get_raw_bytes()))    
-
+    lbb = lbuf.get_raw_bytes()[0:lbuf.write_pos]
+    bb = buf.get_raw_bytes()[0:buf.write_pos]     
+    sock.sendall(lbb.append(bb))
 
 def get_log_level():
     log_level = logging.ERROR

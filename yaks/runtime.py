@@ -60,10 +60,11 @@ def recv_msg(sock):
 def send_msg(sock, msg):
     buf = IOBuf()
     encode_message(buf, msg)
-    lbuf = IOBuf(16)
+    lbuf = IOBuf()
     length = buf.write_pos
-    lbuf.put_vle(length)    
-    sock.sendall(lbuf.append(buf))
+    lbuf.put_vle(length)        
+    lbuf.append(buf)
+    sock.sendall(lbuf.get_raw_bytes())
 
 def get_log_level():
     log_level = logging.ERROR

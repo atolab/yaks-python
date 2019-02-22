@@ -30,7 +30,7 @@ class Value(object):
                 raise ValidationError("Value is not a valid JSON")
             self.value = json.dumps(value)
         elif self.encoding == Encoding.RAW and isinstance(value, str):
-            self.value = value.encode()            
+            self.value = value.encode()
         else:
             self.value = value
         self.raw_format = raw_format

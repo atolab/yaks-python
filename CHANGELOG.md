@@ -1,14 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.2.5] - 2019-xx-xx
+## [0.2.5] - 2019-02-22
 
-<<<<<<< HEAD
 ### Fixed
 - RAW encoded value was expecting str, now it support str and bytes, and does the encoding if the value is a string
+- Error caused by concurrency on put
 
-=======
->>>>>>> origin/master
 ## [0.2.4.post1] - 2019-02-15
 
 ### Fixed

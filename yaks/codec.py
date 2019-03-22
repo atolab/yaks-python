@@ -19,7 +19,7 @@ from yaks.message import UpdateM, DeleteM, SubscribeM, UnsubscribeM
 from yaks.message import EvalM, RegisterEvalM, UnregisterEvalM, ValuesM
 from yaks.message import NotifyM
 from yaks.encoding import Encoding
-from yaks.value import Value
+from yaks.value import Value, Change
 from yaks.path import Path
 from yaks.selector import Selector
 
@@ -40,7 +40,8 @@ def encode_string_value(buf, v):
 
 
 def decode_string_value(buf):
-    return Value(buf.get_string(), encoding=Encoding.STRING)
+    v = buf.get_string()
+    return Value(v, encoding=Encoding.STRING)
 
 
 def encode_json_value(buf, v):
@@ -51,6 +52,12 @@ def decode_json_value(buf):
     data = buf.get_string()
     #json.loads()
     return Value(data, encoding=Encoding.JSON)
+
+
+def decode_timestamp(buf):
+    ts_time = buf.get_vle()
+    ts_uuid = buf.get_n_bytes(16)
+    return (ts_time, ts_uuid)
 
 
 def encode_property_value(buf, v):
@@ -82,6 +89,16 @@ def decode_value(buf):
     return v
 
 
+def decode_change(buf):
+    k = chr(buf.get())
+    ts = decode_timestamp(buf)
+    c = Change(k, ts)
+    if k in ['P', 'U']:
+        v = decode_value(buf)
+        c.set_value(v)
+    return c
+
+
 def encode_key_value(buf, kv):
     path, value = kv
     buf.put_string(str(path))
@@ -94,12 +111,22 @@ def decode_key_value(buf):
     return (k, v)
 
 
+def decode_key_change(buf):
+    k = buf.get_string()
+    v = decode_change(buf)
+    return (k, v)
+
+
 def encode_key_value_list(buf, kvs):
     encode_sequence(buf, kvs, encode_key_value)
 
 
 def decode_key_value_list(buf):
     return decode_sequence(buf, decode_key_value)
+
+
+def decode_key_change_list(buf):
+    return decode_sequence(buf, decode_key_change)
 
 
 def encode_header(buf, m):
@@ -232,7 +259,7 @@ def decode_unsub(buf, header):
 
 def decode_notify(buf, header):
     subid = buf.get_string()
-    kvs = decode_key_value_list(buf)
+    kvs = decode_key_change_list(buf)
     return NotifyM.make(subid, kvs, header.properties)
 
 

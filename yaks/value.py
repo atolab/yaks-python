@@ -13,9 +13,16 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Yaks API
 
 import re
+import json
+from enum import Enum
 from yaks.exceptions import ValidationError
 from yaks.encoding import Encoding
-import json
+
+
+class ChangeKind(Enum):
+    PUT = 'P'
+    UPDATE = 'U'
+    REMOVE = 'R'
 
 
 class Value(object):
@@ -50,6 +57,47 @@ class Value(object):
 
     def __str__(self):
         return str(self.value)
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Change(object):
+    def __init__(self, kind, ts, value=None):
+        self.set_kind(kind)
+        self.ts = ts
+        self.value = value
+
+    def set_kind(self, kind):
+        kd = {
+            'P': ChangeKind.PUT,
+            'U': ChangeKind.UPDATE,
+            'R': ChangeKind.REMOVE
+        }
+        if isinstance(kind, ChangeKind):
+            self.kind = kind
+        else:
+            self.kind = kd[kind]
+
+    def get_kind(self):
+        return self.kind
+
+    def set_timestamp(self, timestamp):
+        self.ts = timestamp
+
+    def get_timestamp(self):
+        return self.ts
+
+    def set_value(self, value):
+        self.value = value
+
+    def get_value(self):
+        return self.value
+
+    def __str__(self):
+        return 'Kind: {} TS: {} Value: {}'.format(self.kind,
+                                                    self.ts,
+                                                    self.value)
 
     def __repr__(self):
         return self.__str__()

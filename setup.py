@@ -20,14 +20,14 @@ def read(fname):
 
 setup(
     name='yaks',
-    version='0.2.5',
+    version='0.2.6',
     author='ADLINK Advance Technology Office',
     description='Python API to access the YAKS service',
     long_description=read('README.md'),
     packages=['yaks'],
     url='https://github.com/atolab/yaks-python',
     authon_email='gabriele.baldoni@adlinktech.com',
-    install_requires=['hexdump', 'mvar', 'papero==0.2.5'],
+    install_requires=['hexdump', 'mvar', 'papero==0.2.6'],
     license='Apache 2.O or EPL 2.0',
     classifiers=[
           'Development Status :: 2 - Pre-Alpha',

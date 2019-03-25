@@ -21,7 +21,7 @@ from yaks import Yaks
 from papero import Property
 from yaks import Selector
 from yaks import Path
-from yaks import Value
+from yaks import Value, ChangeKind
 from yaks.exceptions import ValidationError
 from yaks import Encoding
 
@@ -104,16 +104,36 @@ class APITest(unittest.TestCase):
         local_var = mvar.MVar()
 
         def cb(kvs):
-            self.assertEqual(kvs,
-                             [('/myyaks/key1',
-                               Value('123', encoding=Encoding.STRING))])
+            v = Value('123', encoding=Encoding.STRING)
+
+            self.assertEqual(kvs[0][1].get_value(), v)
+            self.assertEqual(kvs[0][0], '/myyaks/key1')
+            self.assertEqual(kvs[0][1].get_kind(), ChangeKind.PUT)
             local_var.put(kvs)
 
         sid = workspace.subscribe('/myyaks/key1', cb)
         workspace.put('/myyaks/key1', Value('123', encoding=Encoding.STRING))
-        self.assertEqual(local_var.get(),
-                         [('/myyaks/key1',
-                           Value('123', encoding=Encoding.STRING))])
+        self.assertTrue(workspace.unsubscribe(sid))
+        admin.remove_storage(stid)
+        y.logout()
+
+    def test_sub_remove(self):
+        y = Yaks.login(YSERVER)
+        admin = y.admin()
+        properties = [Property('selector', '/myyaks/**')]
+        stid = '123'
+        admin.add_storage(stid, properties)
+        workspace = y.workspace('/myyaks')
+        local_var = mvar.MVar()
+        workspace.put('/myyaks/key1', Value('123', encoding=Encoding.STRING))
+
+        def cb(kvs):
+            self.assertEqual(kvs[0][0], '/myyaks/key1')
+            self.assertEqual(kvs[0][1].get_kind(), ChangeKind.REMOVE)
+            local_var.put(kvs)
+
+        sid = workspace.subscribe('/myyaks/key1', cb)
+        workspace.remove('/myyaks/key1')
         self.assertTrue(workspace.unsubscribe(sid))
         admin.remove_storage(stid)
         y.logout()

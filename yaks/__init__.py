@@ -18,5 +18,5 @@ from yaks.admin import Admin
 from yaks.encoding import *
 from yaks import exceptions
 from yaks.selector import Selector
-from yaks.value import Value
+from yaks.value import Value, Change, ChangeKind
 from yaks.path import Path

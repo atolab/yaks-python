@@ -13,7 +13,7 @@
 # Contributors: Gabriele Baldoni, ADLINK Technology Inc. - Tests
 
 import unittest
-from yaks import Value
+from yaks import Value, Change, ChangeKind
 from yaks.encoding import *
 from yaks.exceptions import ValidationError
 
@@ -78,3 +78,22 @@ class ValueTests(unittest.TestCase):
         v1 = Value('test string value', encoding=Encoding.STRING)
         v2 = 'test string value'
         self.assertNotEqual(v1, v2)
+
+    def test_change(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        ts = (1234, [])
+        c = Change(ChangeKind.PUT, ts, v1)
+        self.assertEqual(ChangeKind.PUT, c.get_kind())
+        self.assertEqual(v1, c.get_value())
+        self.assertEqual(ts, c.get_timestamp())
+
+    def test_change_put_and_get(self):
+        v1 = Value('test string value', encoding=Encoding.STRING)
+        ts = (1234, [])
+        c = Change(ChangeKind.PUT, (0, []))
+        c.set_value(v1)
+        c.set_kind('U')
+        c.set_timestamp(ts)
+        self.assertEqual(ChangeKind.UPDATE, c.get_kind())
+        self.assertEqual(v1, c.get_value())
+        self.assertEqual(ts, c.get_timestamp())

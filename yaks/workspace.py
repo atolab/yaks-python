@@ -146,6 +146,7 @@ class Workspace(object):
         If specified,  the **listener callback will be called for each **put**
         and **update** on tuples whose
         path matches the subscription **selector**
+        listener should expect a list of (Path, Changes)
 
         '''
 

@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+
+## [0.2.6] - 2019-03-25
+
+### Changed
+- Listener are notified also on remove of the keys, new object Change encapsulate the notified value
+
 ## [0.2.5] - 2019-02-22
 
 ### Fixed

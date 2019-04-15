@@ -40,7 +40,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '321'
         res1 = admin.add_storage(stid, properties)
         res2 = admin.remove_storage(stid)
         y.logout()
@@ -51,7 +51,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '432'
         admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
         self.assertEqual(workspace.path, Path('/myyaks'))
@@ -62,7 +62,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '765'
         admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
         d = Value('hello!', encoding=Encoding.STRING)
@@ -80,7 +80,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login('127.0.0.1')
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '098'
         admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
 
@@ -98,7 +98,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '789'
         admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
@@ -121,7 +121,7 @@ class APITest(unittest.TestCase):
         y = Yaks.login(YSERVER)
         admin = y.admin()
         properties = [Property('selector', '/myyaks/**')]
-        stid = '123'
+        stid = '456'
         admin.add_storage(stid, properties)
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()

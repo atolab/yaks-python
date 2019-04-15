@@ -21,6 +21,7 @@ from yaks.admin import *
 from papero import IOBuf
 import threading
 
+
 class Yaks(object):
     DEFAULT_PORT = 7887
 
@@ -48,7 +49,7 @@ class Yaks(object):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setblocking(1)
         sock.connect((addr, port))
-        
+
         wbuf = IOBuf()
         lbuf = IOBuf()
         login = LoginM(properties)

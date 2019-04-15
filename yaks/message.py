@@ -104,8 +104,8 @@ class Header(Message):
                  properties=None):
         super(Header, self).__init__(mid)
 
-        if corr_id is None:            
-            self.corr_id = random.getrandbits(16)   
+        if corr_id is None:
+            self.corr_id = random.getrandbits(16)
         else:
             self.corr_id = corr_id
 

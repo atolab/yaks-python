@@ -15,17 +15,15 @@
 import socket
 import uuid
 import os
-from papero import *
-from mvar import MVar
-from yaks.codec import decode_message, encode_message
-from yaks.message import Message, ErrorM, LogoutM, ValuesM
 import threading
 import logging
 import sys
 import traceback
 from yaks.logger import APILogger
-import threading
-
+from papero import *
+from mvar import MVar
+from yaks.codec import decode_message, encode_message
+from yaks.message import Message, ErrorM, LogoutM, ValuesM
 
 
 def get_frame_len(sock, buf):
@@ -106,7 +104,6 @@ def check_reply_is_values(reply, msg):
 class Runtime(threading.Thread):
     DEFAULT_TIMEOUT = 5
 
-    
     def get_tss_bufs(self):
         name = threading.currentThread().getName()
         if name in self.tss:
@@ -115,7 +112,7 @@ class Runtime(threading.Thread):
             bufs = (IOBuf(), IOBuf(), IOBuf())
             self.tss[name] = bufs
             return bufs
-    
+
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
         self.logger = APILogger(get_log_level(), True)
@@ -129,7 +126,8 @@ class Runtime(threading.Thread):
         self.eval_callbacks = {}
         self.putMbox = MVar()
         self.tss = {}
-        self.tss[threading.currentThread().getName()] = (IOBuf(), IOBuf(), IOBuf())
+        self.tss[threading.currentThread().getName()] = (IOBuf(),
+                                                            IOBuf(), IOBuf())
 
     def close(self):
         self.post_message(LogoutM()).get()

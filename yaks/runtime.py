@@ -26,8 +26,8 @@ import traceback
 from yaks.logger import APILogger
 
 
-def get_frame_len(sock):
-    buf = IOBuf()
+def get_frame_len(sock, buf):
+    buf.clear()
     v = 0xff
     while v > 0x7f:
         b = sock.recv(1)
@@ -37,9 +37,10 @@ def get_frame_len(sock):
     return buf.get_vle()
 
 
-def recv_msg(sock):
+def recv_msg(sock, lbuf):
+    lbuf.clear()
     try:
-        flen = get_frame_len(sock)
+        flen = get_frame_len(sock, lbuf)
 
         bs = sock.recv(flen)
         n = len(bs)
@@ -57,10 +58,10 @@ def recv_msg(sock):
         return m
 
 
-def send_msg(sock, msg):
-    buf = IOBuf()
+def send_msg(sock, msg, buf, lbuf):
+    buf.clear()
+    lbuf.clear()
     encode_message(buf, msg)
-    lbuf = IOBuf()
     length = buf.write_pos
     lbuf.put_vle(length)
     lbuf.append(buf)
@@ -102,7 +103,7 @@ def check_reply_is_values(reply, msg):
 
 class Runtime(threading.Thread):
     DEFAULT_TIMEOUT = 5
-
+    
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
         self.logger = APILogger(get_log_level(), True)
@@ -114,6 +115,10 @@ class Runtime(threading.Thread):
         self.on_close = on_close
         self.listeners = {}
         self.eval_callbacks = {}
+        self.putMbox = MVar()
+        self.wbuf = IOBuf()
+        self.lwbuf = IOBuf()
+        self.lrbuf = IOBuf()
 
     def close(self):
         self.post_message(LogoutM()).get()
@@ -122,12 +127,12 @@ class Runtime(threading.Thread):
         self.sock.close()
 
     def post_message(self, msg):
-        mbox = MVar()
-        self.posted_messages.update({msg.corr_id: (mbox, [])})
+        
+        self.posted_messages.update({msg.corr_id: (self.putMbox, [])})
         self.logger.debug('post_message()',
                           '<< Sending message CorrID: {}'.format(msg.corr_id))
-        send_msg(self.sock, msg)
-        return mbox
+        send_msg(self.sock, msg, self.wbuf, self.lwbuf)
+        return self.putMbox
 
     def add_listener(self, subid, callback):
         self.listeners.update({subid: callback})
@@ -223,7 +228,7 @@ class Runtime(threading.Thread):
     def run(self):
         try:
             while self.running:
-                m = recv_msg(self.sock)
+                m = recv_msg(self.sock, self.lrbuf)
                 self.logger.debug('run()',
                                   '>> Received msg with id: {}'.format(m.mid))
                 {

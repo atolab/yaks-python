@@ -24,6 +24,8 @@ import logging
 import sys
 import traceback
 from yaks.logger import APILogger
+import threading
+
 
 
 def get_frame_len(sock, buf):
@@ -103,6 +105,16 @@ def check_reply_is_values(reply, msg):
 
 class Runtime(threading.Thread):
     DEFAULT_TIMEOUT = 5
+
+    
+    def get_tss_bufs(self):
+        name = threading.currentThread().getName()
+        if name in self.tss:
+            return self.tss[name]
+        else:
+            bufs = (IOBuf(), IOBuf(), IOBuf())
+            self.tss[name] = bufs
+            return bufs
     
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
@@ -116,9 +128,8 @@ class Runtime(threading.Thread):
         self.listeners = {}
         self.eval_callbacks = {}
         self.putMbox = MVar()
-        self.wbuf = IOBuf()
-        self.lwbuf = IOBuf()
-        self.lrbuf = IOBuf()
+        self.tss = {}
+        self.tss[threading.currentThread().getName()] = (IOBuf(), IOBuf(), IOBuf())
 
     def close(self):
         self.post_message(LogoutM()).get()
@@ -127,11 +138,11 @@ class Runtime(threading.Thread):
         self.sock.close()
 
     def post_message(self, msg):
-        
+        (lbuf, _, wbuf) = self.get_tss_bufs()
         self.posted_messages.update({msg.corr_id: (self.putMbox, [])})
         self.logger.debug('post_message()',
                           '<< Sending message CorrID: {}'.format(msg.corr_id))
-        send_msg(self.sock, msg, self.wbuf, self.lwbuf)
+        send_msg(self.sock, msg, wbuf, lbuf)
         return self.putMbox
 
     def add_listener(self, subid, callback):
@@ -227,8 +238,9 @@ class Runtime(threading.Thread):
 
     def run(self):
         try:
+            (lbuf, _, _) = self.get_tss_bufs()
             while self.running:
-                m = recv_msg(self.sock, self.lrbuf)
+                m = recv_msg(self.sock, lbuf)
                 self.logger.debug('run()',
                                   '>> Received msg with id: {}'.format(m.mid))
                 {

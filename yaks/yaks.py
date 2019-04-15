@@ -19,6 +19,7 @@ from yaks.message import LoginM, LogoutM, WorkspaceM, Message
 from papero import find_property
 from yaks.admin import *
 from papero import IOBuf
+import threading
 
 class Yaks(object):
     DEFAULT_PORT = 7887
@@ -48,10 +49,10 @@ class Yaks(object):
         sock.setblocking(1)
         sock.connect((addr, port))
         
+        wbuf = IOBuf()
         lbuf = IOBuf()
-        buf = IOBuf()
         login = LoginM(properties)
-        send_msg(sock, login, buf, lbuf)
+        send_msg(sock, login, wbuf, lbuf)
         m = recv_msg(sock, lbuf)
         # y = None
         if check_reply_is_ok(m, login):

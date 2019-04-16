@@ -104,15 +104,6 @@ def check_reply_is_values(reply, msg):
 class Runtime(threading.Thread):
     DEFAULT_TIMEOUT = 5
 
-    def get_tss_bufs(self):
-        name = threading.currentThread().getName()
-        if name in self.tss:
-            return self.tss[name]
-        else:
-            bufs = (IOBuf(), IOBuf(), IOBuf())
-            self.tss[name] = bufs
-            return bufs
-
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
         self.logger = APILogger(get_log_level(), True)
@@ -126,8 +117,11 @@ class Runtime(threading.Thread):
         self.eval_callbacks = {}
         self.putMbox = MVar()
         self.tss = {}
-        self.tss[threading.currentThread().getName()] = (IOBuf(),
-                                                            IOBuf(), IOBuf())
+        self.rbuf = IOBuf()
+        self.wbuf = IOBuf()
+        self.rlbuf = IOBuf()
+        self.wlbuf = IOBuf()        
+
 
     def close(self):
         self.post_message(LogoutM()).get()
@@ -135,12 +129,9 @@ class Runtime(threading.Thread):
         self.running = False
         self.sock.close()
 
-    def post_message(self, msg):
-        (lbuf, _, wbuf) = self.get_tss_bufs()
-        self.posted_messages.update({msg.corr_id: (self.putMbox, [])})
-        self.logger.debug('post_message()',
-                          '<< Sending message CorrID: {}'.format(msg.corr_id))
-        send_msg(self.sock, msg, wbuf, lbuf)
+    def post_message(self, msg):        
+        self.posted_messages.update({msg.corr_id: (self.putMbox, [])})        
+        send_msg(self.sock, msg, self.wbuf, self.wlbuf)
         return self.putMbox
 
     def add_listener(self, subid, callback):
@@ -235,10 +226,9 @@ class Runtime(threading.Thread):
                             .format(m.mid))
 
     def run(self):
-        try:
-            (lbuf, _, _) = self.get_tss_bufs()
+        try:            
             while self.running:
-                m = recv_msg(self.sock, lbuf)
+                m = recv_msg(self.sock, self.rlbuf)
                 self.logger.debug('run()',
                                   '>> Received msg with id: {}'.format(m.mid))
                 {

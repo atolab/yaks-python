@@ -46,7 +46,7 @@ class Yaks(object):
             port = int(p)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)        
         sock.setblocking(1)
         sock.connect((addr, port))
 

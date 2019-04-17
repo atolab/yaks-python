@@ -61,7 +61,7 @@ class Workspace(object):
         '''
 
         path = Path.to_path(path)
-        pm = PutM(self.wsid, [(path, value)])
+        pm = PutM(self.wsid, [(path, value)])        
         reply = self.rt.post_message(pm, self.mbox, self.wlbuf, self.wbuf).get()
         return check_reply_is_ok(reply, pm)
 

@@ -57,10 +57,9 @@ def recv_msg(sock, lbuf):
         m = ErrorM(0)
         return m
 
-
 def send_msg(sock, msg, buf, lbuf):
     buf.clear()
-    lbuf.clear()
+    lbuf.clear()    
     encode_message(buf, msg)
     length = buf.write_pos
     lbuf.put_vle(length)
@@ -115,24 +114,26 @@ class Runtime(threading.Thread):
         self.on_close = on_close
         self.listeners = {}
         self.eval_callbacks = {}
-        self.putMbox = MVar()
-        self.tss = {}
-        self.rbuf = IOBuf()
+        self.putMbox = MVar()        
+        self.rtMbox = MVar()
+        self.evalMBox = MVar()
+        self.tss = {}        
+        self.wlbuf = IOBuf()
         self.wbuf = IOBuf()
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()        
 
 
     def close(self):
-        self.post_message(LogoutM()).get()
+        self.post_message(LogoutM(), self.rtMbox, self.wlbuf, self.wbuf).get()
         self.on_close(self)
         self.running = False
         self.sock.close()
 
-    def post_message(self, msg):        
-        self.posted_messages.update({msg.corr_id: (self.putMbox, [])})        
-        send_msg(self.sock, msg, self.wbuf, self.wlbuf)
-        return self.putMbox
+    def post_message(self, msg, mbox, wlbuf, wbuf):        
+        self.posted_messages.update({msg.corr_id: (mbox, [])})        
+        send_msg(self.sock, msg, wbuf, wlbuf)        
+        return mbox
 
     def add_listener(self, subid, callback):
         self.listeners.update({subid: callback})
@@ -154,7 +155,7 @@ class Runtime(threading.Thread):
         if listener:
             l_th = threading.Thread(target=listener, args=(m.kvs,))
             l_th.start()
-
+ 
     def execute_eval(self, m):
         selector = m.selector
         for path in self.eval_callbacks:
@@ -169,9 +170,15 @@ class Runtime(threading.Thread):
                         kvs = [(path, cb(p, **args))]
                         vm = ValuesM(kvs)
                         vm.corr_id = cid
-                        self.post_message(vm)
+                        reply = self.post_message(vm, self.evalMBox, self.wlbuf, self.wbuf).get()
+                        if check_reply_is_ok(reply, vm):
+                            print('YAKS replied with OK to eval VALUES')
+                        else:
+                            print('YAKS replied with NOK to eval VALUES')
+                            print("mid = {} , coorID = {}".format(reply.mid, reply.corr_id))
+
                     except (Exception, RuntimeError):
-                        self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST))
+                        self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST), self.evalMBox, self.wlbuf, self.wbuf)
 
                 eval_th = threading.Thread(target=eval_cb_adaptor,
                                            args=(path, p, args, m.corr_id))

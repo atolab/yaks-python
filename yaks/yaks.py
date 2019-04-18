@@ -31,7 +31,6 @@ class Yaks(object):
         self.mbox = MVar()
         self.wbuf = IOBuf()
         self.wlbuf = IOBuf()
-        
 
     @staticmethod
     def login(locator, properties=None, on_close=lambda z: z, lease=0):
@@ -51,7 +50,7 @@ class Yaks(object):
             port = int(p)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)        
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setblocking(1)
         sock.connect((addr, port))
 
@@ -76,7 +75,8 @@ class Yaks(object):
         '''
 
         wsm = WorkspaceM(path)
-        reply = self.rt.post_message(wsm, self.mbox, self.wlbuf, self.wbuf).get()
+        reply =  \
+            self.rt.post_message(wsm, self.mbox, self.wlbuf, self.wbuf).get()
         ws = None
         wsid = None
         if check_reply_is_ok(reply, wsm):

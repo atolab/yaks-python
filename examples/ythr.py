@@ -13,8 +13,8 @@ path = '/ylatp/sample'
 for i in range(0, samples):
     ws.put(path + i, Value('01234567', Encoding.STRING))
 stop = time.clock_gettime(time.CLOCK_REALTIME)
-delta = stop - start 
+delta = stop - start
 
 print("Sent {} samples in {}".format(samples, delta))
-print("Throughput: {} msg/sec".format(samples/delta))
-print("Average : {}".format(delta/samples))
+print("Throughput: {} msg/sec".format(samples / delta))
+print("Average : {}".format(delta / samples))

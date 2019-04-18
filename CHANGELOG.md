@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.7] - 2019-04-18
+
+- Performance improvement
 
 ## [0.2.6] - 2019-03-25
 

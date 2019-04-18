@@ -15,19 +15,19 @@
 import socket
 import uuid
 import os
-from papero import *
-from mvar import MVar
-from yaks.codec import decode_message, encode_message
-from yaks.message import Message, ErrorM, LogoutM, ValuesM
 import threading
 import logging
 import sys
 import traceback
 from yaks.logger import APILogger
+from papero import *
+from mvar import MVar
+from yaks.codec import decode_message, encode_message
+from yaks.message import Message, ErrorM, LogoutM, ValuesM
 
 
-def get_frame_len(sock):
-    buf = IOBuf()
+def get_frame_len(sock, buf):
+    buf.clear()
     v = 0xff
     while v > 0x7f:
         b = sock.recv(1)
@@ -37,9 +37,10 @@ def get_frame_len(sock):
     return buf.get_vle()
 
 
-def recv_msg(sock):
+def recv_msg(sock, lbuf):
+    lbuf.clear()
     try:
-        flen = get_frame_len(sock)
+        flen = get_frame_len(sock, lbuf)
 
         bs = sock.recv(flen)
         n = len(bs)
@@ -57,14 +58,14 @@ def recv_msg(sock):
         return m
 
 
-def send_msg(sock, msg):
-    buf = IOBuf()
+def send_msg(sock, msg, buf, lbuf):
+    buf.clear()
+    lbuf.clear()
     encode_message(buf, msg)
-    lbuf = IOBuf()
     length = buf.write_pos
     lbuf.put_vle(length)
-    lbuf.append(buf)
     sock.sendall(lbuf.get_raw_bytes())
+    sock.sendall(buf.get_raw_bytes())
 
 
 def get_log_level():
@@ -114,19 +115,24 @@ class Runtime(threading.Thread):
         self.on_close = on_close
         self.listeners = {}
         self.eval_callbacks = {}
+        self.putMbox = MVar()
+        self.rtMbox = MVar()
+        self.evalMBox = MVar()
+        self.tss = {}
+        self.wlbuf = IOBuf()
+        self.wbuf = IOBuf()
+        self.rlbuf = IOBuf()
+        self.wlbuf = IOBuf()
 
     def close(self):
-        self.post_message(LogoutM()).get()
+        self.post_message(LogoutM(), self.rtMbox, self.wlbuf, self.wbuf).get()
         self.on_close(self)
         self.running = False
         self.sock.close()
 
-    def post_message(self, msg):
-        mbox = MVar()
+    def post_message(self, msg, mbox, wlbuf, wbuf):
         self.posted_messages.update({msg.corr_id: (mbox, [])})
-        self.logger.debug('post_message()',
-                          '<< Sending message CorrID: {}'.format(msg.corr_id))
-        send_msg(self.sock, msg)
+        send_msg(self.sock, msg, wbuf, wlbuf)
         return mbox
 
     def add_listener(self, subid, callback):
@@ -164,9 +170,16 @@ class Runtime(threading.Thread):
                         kvs = [(path, cb(p, **args))]
                         vm = ValuesM(kvs)
                         vm.corr_id = cid
-                        self.post_message(vm)
+                        reply = self.post_message(vm, self.evalMBox,
+                                                        self.wlbuf,
+                                                        self.wbuf).get()
+                        if not check_reply_is_ok(reply, vm):
+                            raise ValueError('YAKS error on EVAL')
                     except (Exception, RuntimeError):
-                        self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST))
+                        self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST),
+                                                        self.evalMBox,
+                                                        self.wlbuf,
+                                                        self.wbuf)
 
                 eval_th = threading.Thread(target=eval_cb_adaptor,
                                            args=(path, p, args, m.corr_id))
@@ -223,7 +236,7 @@ class Runtime(threading.Thread):
     def run(self):
         try:
             while self.running:
-                m = recv_msg(self.sock)
+                m = recv_msg(self.sock, self.rlbuf)
                 self.logger.debug('run()',
                                   '>> Received msg with id: {}'.format(m.mid))
                 {

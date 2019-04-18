@@ -18,6 +18,9 @@ from yaks.workspace import Workspace
 from yaks.message import LoginM, LogoutM, WorkspaceM, Message
 from papero import find_property
 from yaks.admin import *
+from papero import IOBuf
+from mvar import MVar
+import threading
 
 
 class Yaks(object):
@@ -25,6 +28,9 @@ class Yaks(object):
 
     def __init__(self, rt):
         self.rt = rt
+        self.mbox = MVar()
+        self.wbuf = IOBuf()
+        self.wlbuf = IOBuf()
 
     @staticmethod
     def login(locator, properties=None, on_close=lambda z: z, lease=0):
@@ -48,9 +54,11 @@ class Yaks(object):
         sock.setblocking(1)
         sock.connect((addr, port))
 
+        wbuf = IOBuf()
+        lbuf = IOBuf()
         login = LoginM(properties)
-        send_msg(sock, login)
-        m = recv_msg(sock)
+        send_msg(sock, login, wbuf, lbuf)
+        m = recv_msg(sock, lbuf)
         # y = None
         if check_reply_is_ok(m, login):
             rt = Runtime(sock, locator, on_close)
@@ -67,7 +75,8 @@ class Yaks(object):
         '''
 
         wsm = WorkspaceM(path)
-        reply = self.rt.post_message(wsm).get()
+        reply =  \
+            self.rt.post_message(wsm, self.mbox, self.wlbuf, self.wbuf).get()
         ws = None
         wsid = None
         if check_reply_is_ok(reply, wsm):

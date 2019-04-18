@@ -100,11 +100,15 @@ class Header(Message):
     def has_flag(h, f):
         return h & f != 0
 
-    def __init__(self, mid, flags=0, corr_id=random.getrandbits(16),
+    def __init__(self, mid, flags=0, corr_id=None,
                  properties=None):
         super(Header, self).__init__(mid)
 
-        self.corr_id = corr_id
+        if corr_id is None:
+            self.corr_id = random.getrandbits(16)
+        else:
+            self.corr_id = corr_id
+
         self.flags = flags
         self.properties = properties
         if properties is not None:

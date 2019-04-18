@@ -20,7 +20,7 @@ def read(fname):
 
 setup(
     name='yaks',
-    version='0.2.7',
+    version='0.2.8',
     author='ADLINK Advance Technology Office',
     description='Python API to access the YAKS service',
     long_description=read('README.md'),

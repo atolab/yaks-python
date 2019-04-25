@@ -15,12 +15,12 @@ def listener(kvs):
   global start
   global N
   if count == 0:
-    start = time.clock_gettime(time.CLOCK_REALTIME)
+    start = time.time()
     count +=1 
   elif count < N:
     count += 1
   else:
-    delta = time.clock_gettime(time.CLOCK_REALTIME) - start
+    delta = time.time() - start
     count = 0
     thr = N / delta
     print("{} mgs/sec".format(thr))

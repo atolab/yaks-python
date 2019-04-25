@@ -6,11 +6,11 @@ y = Yaks.login(sys.argv[1])
 ws = y.workspace('/')
 samples = int(sys.argv[2])
 
-start = time.clock_gettime(time.CLOCK_REALTIME)
+start = time.time()
 path = '/ylatp/sample'
 for i in range(0, samples):
     ws.aput(path, Value('01234567', Encoding.STRING))
-stop = time.clock_gettime(time.CLOCK_REALTIME)
+stop = time.time()
 delta = stop - start
 
 print("Sent {} samples in {}".format(samples, delta))

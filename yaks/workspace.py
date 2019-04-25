@@ -119,9 +119,8 @@ class Workspace(object):
         - Keep: values that cannot be transcoded are kept with their original
             encoding and left for the application to deal with.
 
-        '''
-        
-        mbox = MVar()    
+        '''        
+        mbox = MVar()
         s = Selector.to_selector(selector)
         gm = GetM(self.wsid, s)
         reply = \

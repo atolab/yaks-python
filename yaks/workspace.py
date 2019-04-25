@@ -31,7 +31,7 @@ class Workspace(object):
         self.properties = [Property(Message.WSID, wsid)]
         self.mbox = MVar()
         
-
+    
     def put(self, path, value, quorum=0):
         '''
 
@@ -59,8 +59,12 @@ class Workspace(object):
 
         path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
+        return self.rt.post_message(pm, self.mbox).get()
+
+    def aput(self, path, value, quorum=0):        
+        path = Path.to_path(path)
+        pm = PutM(self.wsid, [(path, value)])
         self.rt.post_message_no_reply(pm)
-        
 
     def update(self, path, value, quorum=0):
         '''

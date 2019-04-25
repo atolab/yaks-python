@@ -30,8 +30,6 @@ class Workspace(object):
         self.path = Path.to_path(path)
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
-        
-
 
     def put(self, path, value, quorum=0):
         '''
@@ -63,7 +61,7 @@ class Workspace(object):
         pm = PutM(self.wsid, [(path, value)])
         return self.rt.post_message(pm, mbox).get()
 
-    def aput(self, path, value, quorum=0): 
+    def aput(self, path, value, quorum=0):
         path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
         self.rt.post_message_no_reply(pm)
@@ -119,7 +117,7 @@ class Workspace(object):
         - Keep: values that cannot be transcoded are kept with their original
             encoding and left for the application to deal with.
 
-        '''        
+        '''
         mbox = MVar()
         s = Selector.to_selector(selector)
         gm = GetM(self.wsid, s)

@@ -92,7 +92,10 @@ def check_reply_is_ok(reply, msg):
         raise RuntimeError(
             'Yaks refused connection because of {}'.format(reply.error_code))
     else:
-        raise RuntimeError('Yaks replied with unexpected message')
+        err_msg = 'Yaks replied with unexpected message '\
+            ' R_MID: {} R_CORRID: {} != E_MID: {} E_CORRID: {}'\
+            .format(reply.mid, reply.corr_id, Message.OK, msg.corr_id)
+        raise RuntimeError(err_msg)
 
 
 def check_reply_is_values(reply, msg):
@@ -102,7 +105,10 @@ def check_reply_is_values(reply, msg):
         raise RuntimeError(
             'Yaks refused connection because of {}'.format(reply.error_code))
     else:
-        raise RuntimeError('Yaks replied with unexpected message')
+        err_msg = 'Yaks replied with unexpected message '\
+            ' R_MID: {} R_CORRID: {} != E_MID: {} E_CORRID: {}'\
+            .format(reply.mid, reply.corr_id, Message.VALUES, msg.corr_id)
+        raise RuntimeError(err_msg)
 
 
 class Runtime(threading.Thread):

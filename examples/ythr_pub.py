@@ -9,7 +9,7 @@ samples = int(sys.argv[2])
 start = time.clock_gettime(time.CLOCK_REALTIME)
 path = '/ylatp/sample'
 for i in range(0, samples):
-    ws.put(path, Value('01234567', Encoding.STRING))
+    ws.aput(path, Value('01234567', Encoding.STRING))
 stop = time.clock_gettime(time.CLOCK_REALTIME)
 delta = stop - start
 

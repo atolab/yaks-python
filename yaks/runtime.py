@@ -30,7 +30,6 @@ SND_QUEUE_LEN = 128
 RCV_QUEUE_LEN = 128
 
 
-
 def get_frame_len(sock, buf):
     buf.clear()
     v = 0xff
@@ -64,7 +63,7 @@ def recv_msg(sock, lbuf):
 
 
 def send_msg(sock, msg, buf, lbuf):
-    buf.clear()    
+    buf.clear()
     lbuf.clear()
     encode_message(buf, msg)
     length = buf.write_pos
@@ -107,6 +106,7 @@ def check_reply_is_values(reply, msg):
 
 
 class Runtime(threading.Thread):
+
     DEFAULT_TIMEOUT = 5
 
     def __init__(self, sock, locator, on_close):
@@ -129,19 +129,19 @@ class Runtime(threading.Thread):
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()
         self.snd_queue = Queue(SND_QUEUE_LEN)
-        self.snd_thread = threading.Thread(target=self.send_loop)        
+        self.snd_thread = threading.Thread(target=self.send_loop)
+        self.snd_thread.setDaemon(True)
         self.snd_thread.start()
-        
+
         self.notification_queue = Queue(RCV_QUEUE_LEN)
         self.notify_thread = threading.Thread(target=self.notify_loop)
-        self.notify_thread.setDaemon(True)        
+        self.notify_thread.setDaemon(True)
         self.notify_thread.start()
-        
 
     def send_loop(self):
-        try:            
+        try:
             while True:
-                msg = self.snd_queue.get()                    
+                msg = self.snd_queue.get()
                 send_msg(self.sock, msg, self.wbuf, self.wlbuf)
         except Exception as e:
             traceback.print_exc()
@@ -149,7 +149,6 @@ class Runtime(threading.Thread):
                               'Terminating the send-loop because of {}'
                               .format(e))
 
-        
     def close(self):
         self.post_message(LogoutM(), self.rtMbox).get()
         self.on_close(self)
@@ -182,13 +181,13 @@ class Runtime(threading.Thread):
         subid = m.subid
         listener = self.listeners.get(subid)
         if listener is not None:
-            listener (m.kvs)        
+            listener(m.kvs)
 
     def notify_loop(self):
         while True:
             m = self.notification_queue.get()
             self.notify_listeners(m)
-            
+
     def execute_eval(self, m):
         selector = m.selector
         for path in self.eval_callbacks:
@@ -263,8 +262,8 @@ class Runtime(threading.Thread):
                             .format(m.mid))
 
     def run(self):
-        try:            
-            while self.running:            
+        try:
+            while self.running:
                 m = recv_msg(self.sock, self.rlbuf)
                 {
                     Message.NOTIFY: lambda m: self.notification_queue.put(m),

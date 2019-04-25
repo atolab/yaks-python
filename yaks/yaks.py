@@ -29,7 +29,6 @@ class Yaks(object):
     def __init__(self, rt):
         self.rt = rt
         self.mbox = MVar()
-        
 
     @staticmethod
     def login(locator, properties=None, on_close=lambda z: z, lease=0):

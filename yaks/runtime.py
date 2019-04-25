@@ -130,12 +130,14 @@ class Runtime(threading.Thread):
         self.wlbuf = IOBuf()
         self.snd_queue = Queue(SND_QUEUE_LEN)
         self.snd_thread = threading.Thread(target=self.send_loop)
-        self.snd_thread.start()
         self.snd_thread.setDaemon(True)
+        self.snd_thread.start()
+        
         self.notification_queue = Queue(RCV_QUEUE_LEN)
         self.notify_thread = threading.Thread(target=self.notify_loop)
-        self.notify_thread.start()
         self.notify_thread.setDaemon(True)        
+        self.notify_thread.start()
+        
 
     def send_loop(self):
         try:            

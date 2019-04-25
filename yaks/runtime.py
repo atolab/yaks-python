@@ -24,6 +24,11 @@ from papero import *
 from mvar import MVar
 from yaks.codec import decode_message, encode_message
 from yaks.message import Message, ErrorM, LogoutM, ValuesM
+from queue import Queue
+
+SND_QUEUE_LEN = 128
+RCV_QUEUE_LEN = 128
+
 
 
 def get_frame_len(sock, buf):
@@ -59,7 +64,7 @@ def recv_msg(sock, lbuf):
 
 
 def send_msg(sock, msg, buf, lbuf):
-    buf.clear()
+    buf.clear()    
     lbuf.clear()
     encode_message(buf, msg)
     length = buf.write_pos
@@ -123,17 +128,40 @@ class Runtime(threading.Thread):
         self.wbuf = IOBuf()
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()
+        self.snd_queue = Queue(SND_QUEUE_LEN)
+        self.snd_thread = threading.Thread(target=self.send_loop)
+        self.snd_thread.start()
+        self.snd_thread.setDaemon(True)
+        self.notification_queue = Queue(RCV_QUEUE_LEN)
+        self.notify_thread = threading.Thread(target=self.notify_loop)
+        self.notify_thread.start()
+        self.notify_thread.setDaemon(True)        
 
+    def send_loop(self):
+        try:            
+            while True:
+                msg = self.snd_queue.get()                    
+                send_msg(self.sock, msg, self.wbuf, self.wlbuf)
+        except Exception as e:
+            traceback.print_exc()
+            self.logger.debug('run()',
+                              'Terminating the send-loop because of {}'
+                              .format(e))
+
+        
     def close(self):
-        self.post_message(LogoutM(), self.rtMbox, self.wlbuf, self.wbuf).get()
+        self.post_message(LogoutM(), self.rtMbox).get()
         self.on_close(self)
         self.running = False
         self.sock.close()
 
-    def post_message(self, msg, mbox, wlbuf, wbuf):
+    def post_message(self, msg, mbox):
         self.posted_messages.update({msg.corr_id: (mbox, [])})
-        send_msg(self.sock, msg, wbuf, wlbuf)
+        self.snd_queue.put(msg)
         return mbox
+
+    def post_message_no_reply(self, msg):
+        self.snd_queue.put(msg)
 
     def add_listener(self, subid, callback):
         self.listeners.update({subid: callback})
@@ -152,10 +180,14 @@ class Runtime(threading.Thread):
     def notify_listeners(self, m):
         subid = m.subid
         listener = self.listeners.get(subid)
-        if listener:
-            l_th = threading.Thread(target=listener, args=(m.kvs,))
-            l_th.start()
+        if listener is not None:
+            listener (m.kvs)        
 
+    def notify_loop(self):
+        while True:
+            m = self.notification_queue.get()
+            self.notify_listeners(m)
+            
     def execute_eval(self, m):
         selector = m.selector
         for path in self.eval_callbacks:
@@ -170,16 +202,12 @@ class Runtime(threading.Thread):
                         kvs = [(path, cb(p, **args))]
                         vm = ValuesM(kvs)
                         vm.corr_id = cid
-                        reply = self.post_message(vm, self.evalMBox,
-                                                        self.wlbuf,
-                                                        self.wbuf).get()
+                        reply = self.post_message(vm, self.evalMBox).get()
                         if not check_reply_is_ok(reply, vm):
                             raise ValueError('YAKS error on EVAL')
                     except (Exception, RuntimeError):
                         self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST),
-                                                        self.evalMBox,
-                                                        self.wlbuf,
-                                                        self.wbuf)
+                                                        self.evalMBox)
 
                 eval_th = threading.Thread(target=eval_cb_adaptor,
                                            args=(path, p, args, m.corr_id))
@@ -234,13 +262,11 @@ class Runtime(threading.Thread):
                             .format(m.mid))
 
     def run(self):
-        try:
-            while self.running:
+        try:            
+            while self.running:            
                 m = recv_msg(self.sock, self.rlbuf)
-                self.logger.debug('run()',
-                                  '>> Received msg with id: {}'.format(m.mid))
                 {
-                    Message.NOTIFY: lambda m: self.notify_listeners(m),
+                    Message.NOTIFY: lambda m: self.notification_queue.put(m),
                     Message.EVAL: lambda m: self.execute_eval(m),
                     Message.OK: lambda m: self.handle_reply(m),
                     Message.VALUES: lambda m: self.handle_reply(m),
@@ -250,5 +276,5 @@ class Runtime(threading.Thread):
         except Exception as e:
             traceback.print_exc()
             self.logger.debug('run()',
-                              'Terminating the runloop because of {}'
+                              'Terminating the receive-loop because of {}'
                               .format(e))

@@ -30,9 +30,7 @@ class Workspace(object):
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
         self.mbox = MVar()
-        self.wlbuf = IOBuf()
-        self.wbuf = IOBuf()
-        self.rbuf = IOBuf()
+        
 
     def put(self, path, value, quorum=0):
         '''
@@ -61,9 +59,8 @@ class Workspace(object):
 
         path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
-        reply = \
-            self.rt.post_message(pm, self.mbox, self.wlbuf, self.wbuf).get()
-        return check_reply_is_ok(reply, pm)
+        self.rt.post_message_no_reply(pm)
+        
 
     def update(self, path, value, quorum=0):
         '''
@@ -121,7 +118,7 @@ class Workspace(object):
         s = Selector.to_selector(selector)
         gm = GetM(self.wsid, s)
         reply = \
-             self.rt.post_message(gm, self.mbox, self.wlbuf, self.wbuf).get()
+             self.rt.post_message(gm, self.mbox).get()
         if check_reply_is_values(reply, gm):
             return reply.kvs
         else:
@@ -142,7 +139,7 @@ class Workspace(object):
         path = Path.to_path(path)
         rm = DeleteM(self.wsid, path)
         reply = \
-             self.rt.post_message(rm, self.mbox, self.wlbuf, self.wbuf).get()
+             self.rt.post_message(rm, self.mbox).get()
         return check_reply_is_ok(reply, rm)
 
     def subscribe(self, selector, listener=None):
@@ -162,7 +159,7 @@ class Workspace(object):
         s = Selector.to_selector(selector)
         sm = SubscribeM(self.wsid, s)
         reply = \
-             self.rt.post_message(sm, self.mbox, self.wlbuf, self.wbuf).get()
+             self.rt.post_message(sm, self.mbox).get()
         if check_reply_is_ok(reply, sm):
             subid = find_property(Message.SUBID, reply.properties)
             if listener is not None:
@@ -179,7 +176,7 @@ class Workspace(object):
         '''
         um = UnsubscribeM(self.wsid, subscription_id)
         reply = \
-            self.rt.post_message(um, self.mbox, self.wlbuf, self.wbuf).get()
+            self.rt.post_message(um, self.mbox).get()
         if check_reply_is_ok(reply, um):
             self.rt.remove_listener(subscription_id)
             return True
@@ -197,7 +194,7 @@ class Workspace(object):
         path = Path.to_path(path)
         rem = RegisterEvalM(self.wsid, path)
         reply = \
-             self.rt.post_message(rem, self.mbox, self.wlbuf, self.wbuf).get()
+             self.rt.post_message(rem, self.mbox).get()
         if check_reply_is_ok(reply, rem):
             self.rt.add_eval_callback(path, callback)
             return True
@@ -216,7 +213,7 @@ class Workspace(object):
         path = Path.to_path(path)
         uem = UnregisterEvalM(self.wsid, path)
         reply = \
-            self.rt.post_message(uem, self.mbox, self.wlbuf, self.wbuf).get()
+            self.rt.post_message(uem, self.mbox).get()
         if check_reply_is_ok(reply, uem):
             self.rt.remove_eval_callback(path)
             return True
@@ -249,7 +246,7 @@ class Workspace(object):
         s = Selector.to_selector(selector)
         em = EvalM(self.wsid, s)
         reply = \
-            self.rt.post_message(em, self.mbox, self.wlbuf, self.wbuf).get()
+            self.rt.post_message(em, self.mbox).get()
         if check_reply_is_values(reply, em):
             return reply.kvs
         else:

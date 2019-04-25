@@ -29,8 +29,7 @@ class Yaks(object):
     def __init__(self, rt):
         self.rt = rt
         self.mbox = MVar()
-        self.wbuf = IOBuf()
-        self.wlbuf = IOBuf()
+        
 
     @staticmethod
     def login(locator, properties=None, on_close=lambda z: z, lease=0):
@@ -76,7 +75,7 @@ class Yaks(object):
 
         wsm = WorkspaceM(path)
         reply =  \
-            self.rt.post_message(wsm, self.mbox, self.wlbuf, self.wbuf).get()
+            self.rt.post_message(wsm, self.mbox).get()
         ws = None
         wsid = None
         if check_reply_is_ok(reply, wsm):

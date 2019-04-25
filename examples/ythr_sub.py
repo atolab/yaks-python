@@ -28,3 +28,5 @@ def listener(kvs):
 
 path = '/ylatp/sample'
 ws.subscribe(path, listener)
+
+time.sleep(60)

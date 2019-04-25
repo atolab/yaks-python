@@ -129,8 +129,7 @@ class Runtime(threading.Thread):
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()
         self.snd_queue = Queue(SND_QUEUE_LEN)
-        self.snd_thread = threading.Thread(target=self.send_loop)
-        self.snd_thread.setDaemon(True)
+        self.snd_thread = threading.Thread(target=self.send_loop)        
         self.snd_thread.start()
         
         self.notification_queue = Queue(RCV_QUEUE_LEN)

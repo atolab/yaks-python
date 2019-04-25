@@ -117,7 +117,7 @@ class Runtime(threading.Thread):
 
     def __init__(self, sock, locator, on_close):
         threading.Thread.__init__(self)
-        self.logger = APILogger(get_log_level(), True)
+        self.logger = APILogger(get_log_level(), False)
         self.daemon = True
         self.connected = True
         self.posted_messages = {}

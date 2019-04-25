@@ -30,7 +30,8 @@ class Workspace(object):
         self.path = Path.to_path(path)
         self.wsid = wsid
         self.properties = [Property(Message.WSID, wsid)]
-        self.mbox = MVar()
+        
+
 
     def put(self, path, value, quorum=0):
         '''
@@ -57,11 +58,12 @@ class Workspace(object):
 
         '''
 
+        mbox = MVar()
         path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
-        return self.rt.post_message(pm, self.mbox).get()
+        return self.rt.post_message(pm, mbox).get()
 
-    def aput(self, path, value, quorum=0):
+    def aput(self, path, value, quorum=0): 
         path = Path.to_path(path)
         pm = PutM(self.wsid, [(path, value)])
         self.rt.post_message_no_reply(pm)
@@ -118,11 +120,12 @@ class Workspace(object):
             encoding and left for the application to deal with.
 
         '''
-
+        
+        mbox = MVar()    
         s = Selector.to_selector(selector)
         gm = GetM(self.wsid, s)
         reply = \
-             self.rt.post_message(gm, self.mbox).get()
+             self.rt.post_message(gm, mbox).get()
         if check_reply_is_values(reply, gm):
             return reply.kvs
         else:
@@ -139,11 +142,11 @@ class Workspace(object):
         from **quorum** storages.
 
         '''
-
+        mbox = MVar()
         path = Path.to_path(path)
         rm = DeleteM(self.wsid, path)
         reply = \
-             self.rt.post_message(rm, self.mbox).get()
+             self.rt.post_message(rm, mbox).get()
         return check_reply_is_ok(reply, rm)
 
     def subscribe(self, selector, listener=None):
@@ -159,11 +162,11 @@ class Workspace(object):
         listener should expect a list of (Path, Changes)
 
         '''
-
+        mbox = MVar()
         s = Selector.to_selector(selector)
         sm = SubscribeM(self.wsid, s)
         reply = \
-             self.rt.post_message(sm, self.mbox).get()
+             self.rt.post_message(sm, mbox).get()
         if check_reply_is_ok(reply, sm):
             subid = find_property(Message.SUBID, reply.properties)
             if listener is not None:
@@ -178,9 +181,10 @@ class Workspace(object):
         Unregisters a previous subscription with the identifier **subid**
 
         '''
+        mbox = MVar()
         um = UnsubscribeM(self.wsid, subscription_id)
         reply = \
-            self.rt.post_message(um, self.mbox).get()
+            self.rt.post_message(um, mbox).get()
         if check_reply_is_ok(reply, um):
             self.rt.remove_listener(subscription_id)
             return True
@@ -194,11 +198,11 @@ class Workspace(object):
         The **path** can be absolute or relative to the workspace.
 
         '''
-
+        mbox = MVar()
         path = Path.to_path(path)
         rem = RegisterEvalM(self.wsid, path)
         reply = \
-             self.rt.post_message(rem, self.mbox).get()
+             self.rt.post_message(rem, mbox).get()
         if check_reply_is_ok(reply, rem):
             self.rt.add_eval_callback(path, callback)
             return True
@@ -213,11 +217,11 @@ class Workspace(object):
         The [path] can be absolute or relative to the workspace.
 
         '''
-
+        mbox = MVar()
         path = Path.to_path(path)
         uem = UnregisterEvalM(self.wsid, path)
         reply = \
-            self.rt.post_message(uem, self.mbox).get()
+            self.rt.post_message(uem, mbox).get()
         if check_reply_is_ok(reply, uem):
             self.rt.remove_eval_callback(path)
             return True
@@ -246,11 +250,11 @@ class Workspace(object):
         will perform if the transcoding of a value fails.
 
         '''
-
+        mbox = MVar()
         s = Selector.to_selector(selector)
         em = EvalM(self.wsid, s)
         reply = \
-            self.rt.post_message(em, self.mbox).get()
+            self.rt.post_message(em, mbox).get()
         if check_reply_is_values(reply, em):
             return reply.kvs
         else:

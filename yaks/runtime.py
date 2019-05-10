@@ -24,7 +24,8 @@ from papero import *
 from mvar import MVar
 from yaks.codec import decode_message, encode_message
 from yaks.message import Message, ErrorM, LogoutM, ValuesM
-
+from .dds_binding import *
+from ctypes import *
 
 def get_frame_len(sock, buf):
     buf.clear()
@@ -123,6 +124,7 @@ class Runtime(threading.Thread):
         self.wbuf = IOBuf()
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()
+        self.zenoh =  CDLL(zenoh_lib_path)
 
     def close(self):
         self.post_message(LogoutM(), self.rtMbox, self.wlbuf, self.wbuf).get()

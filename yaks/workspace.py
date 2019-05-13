@@ -21,7 +21,7 @@ from yaks.path import Path
 from yaks.selector import Selector
 from mvar import MVar
 from papero import *
-
+from .bindings import *
 
 class Workspace(object):
     def __init__(self, runtime, path, wsid):
@@ -64,6 +64,16 @@ class Workspace(object):
         reply = \
             self.rt.post_message(pm, self.mbox, self.wlbuf, self.wbuf).get()
         return check_reply_is_ok(reply, pm)
+
+    def z_put(self, p, v):
+        buf = z_iobuf_t()
+        buf.buf = v.as_z_payload()
+        buf.capacity = len(v.value)
+        buf.w_pos = buf.capacity
+        buf.r_pos = 0
+        
+        return self.rt.zlib.y_put(self.rt.zenoh, p.encode(), byref(buf), Encoding.to_z_encoding(v.encoding))
+        
 
     def update(self, path, value, quorum=0):
         '''
@@ -170,6 +180,9 @@ class Workspace(object):
             return subid
         else:
             raise "Subscribe received an invalid reply"
+
+    def z_subscribe(self, selector, listener):
+        return self.rt.zlib.y_subscribe(self.rt.zenoh, selector.encode(), listener)
 
     def unsubscribe(self, subscription_id):
         '''

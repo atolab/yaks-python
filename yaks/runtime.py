@@ -24,7 +24,7 @@ from papero import *
 from mvar import MVar
 from yaks.codec import decode_message, encode_message
 from yaks.message import Message, ErrorM, LogoutM, ValuesM
-from .dds_binding import *
+from .bindings import *
 from ctypes import *
 
 def get_frame_len(sock, buf):
@@ -105,7 +105,7 @@ def check_reply_is_values(reply, msg):
 class Runtime(threading.Thread):
     DEFAULT_TIMEOUT = 5
 
-    def __init__(self, sock, locator, on_close):
+    def __init__(self, sock, locator, z_locator, on_close):
         threading.Thread.__init__(self)
         self.logger = APILogger(get_log_level(), True)
         self.daemon = True
@@ -124,7 +124,27 @@ class Runtime(threading.Thread):
         self.wbuf = IOBuf()
         self.rlbuf = IOBuf()
         self.wlbuf = IOBuf()
-        self.zenoh =  CDLL(zenoh_lib_path)
+        self.zlib =  CDLL(zenoh_lib_path)
+        
+        
+        self.zlib.z_open_ptr.restype = c_void_p
+        self.zlib.z_open_ptr.argtypes = [c_char_p]
+
+        # Yaks put
+        self.zlib.y_put.restype = c_int
+        self.zlib.y_put.argtypes = [c_void_p, c_char_p, POINTER(z_iobuf_t), c_int]
+
+        # Yaks subscribe
+        self.zlib.y_subscribe.restype = c_int
+        self.zlib.y_subscribe.argtypes = [c_void_p, c_char_p, YAKS_SUBSCRIBER_CALLBACK_PROTO]
+
+        self.zlib.z_start_recv_loop.restype = c_int
+        self.zlib.z_start_recv_loop.argtypes = [c_void_p]
+
+        self.zenoh = self.zlib.z_open_ptr(z_locator.encode())
+        self.zlib.z_start_recv_loop(self.zenoh)
+
+        
 
     def close(self):
         self.post_message(LogoutM(), self.rtMbox, self.wlbuf, self.wbuf).get()

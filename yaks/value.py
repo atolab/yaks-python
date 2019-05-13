@@ -42,6 +42,11 @@ class Value(object):
             self.value = value
         self.raw_format = raw_format
 
+    def as_z_payload(self):
+        if self.encoding == Encoding.RAW:
+            return self.value
+        return self.value.encode()
+
     def get_encoding(self):
         return self.encoding
 

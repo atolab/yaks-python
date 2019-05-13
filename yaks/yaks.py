@@ -25,6 +25,7 @@ import threading
 
 class Yaks(object):
     DEFAULT_PORT = 7887
+    ZENOH_DEFAULT_PORT = 7447
 
     def __init__(self, rt):
         self.rt = rt
@@ -48,6 +49,8 @@ class Yaks(object):
             port = Yaks.DEFAULT_PORT
         else:
             port = int(p)
+        
+        z_locator = "tcp/" + addr + ":" + str(Yaks.ZENOH_DEFAULT_PORT)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -61,7 +64,7 @@ class Yaks(object):
         m = recv_msg(sock, lbuf)
         # y = None
         if check_reply_is_ok(m, login):
-            rt = Runtime(sock, locator, on_close)
+            rt = Runtime(sock, locator, z_locator, on_close)
         rt.start()
         return Yaks(rt)
 

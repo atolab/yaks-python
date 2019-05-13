@@ -36,7 +36,7 @@ def main():
     input()
     workspace = y.workspace('/myyaks')
 
-    sid = workspace.z_subscribe('/myyaks/example/**', z_obs)
+    sid = workspace.subscribe('/myyaks/example/**', obs)
 
     print('>> Put Tuple')
     input()
@@ -68,65 +68,65 @@ def main():
     input()
     print('GET: {}'.format(workspace.get('/myyaks/example/*')))
 
-    # print('>> Remove Tuple')
-    # input()
-    # print('REMOVE: {}'.format(workspace.remove('/myyaks/example/one')))
+    print('>> Remove Tuple')
+    input()
+    print('REMOVE: {}'.format(workspace.remove('/myyaks/example/one')))
 
     print('>> Get Removed Tuple')
     input()
     print('GET: {}'.format(workspace.get('/myyaks/example/one')))
 
-    # print('>> Unsubscribe')
-    # input()
-    # if sid:
-    #     workspace.unsubscribe(sid)
+    print('>> Unsubscribe')
+    input()
+    if sid:
+        workspace.unsubscribe(sid)
 
     print('>> Put Tuple')
     input()
     workspace.z_put('/myyaks/example2/three',
                   Value('hello3!', encoding=Encoding.STRING))
 
-    # print('>> Get Tuple')
-    # input()
-    # print('GET: {}'.format(workspace.get('/myyaks/example/three')))
+    print('>> Get Tuple')
+    input()
+    print('GET: {}'.format(workspace.get('/myyaks/example/three')))
 
-    # print('>> Create subscription without listener')
-    # input()
-    # sid2 = workspace.subscribe('/myyaks/example2/**')
+    print('>> Create subscription without listener')
+    input()
+    sid2 = workspace.subscribe('/myyaks/example2/**')
 
-    # print('>> Put Tuple')
-    # input()
-    # workspace.z_put('/myyaks/example2/three',
-    #               Value('hello3!', encoding=Encoding.STRING))
+    print('>> Put Tuple')
+    input()
+    workspace.z_put('/myyaks/example2/three',
+                  Value('hello3!', encoding=Encoding.STRING))
 
-    # print('>> Get Tuple')
-    # input()
-    # print('GET: {}'.format(workspace.get('/myyaks/example2/three')))
+    print('>> Get Tuple')
+    input()
+    print('GET: {}'.format(workspace.get('/myyaks/example2/three')))
 
-    # print('>> Unsubscribe')
-    # input()
-    # if sid2:
-    #     workspace.unsubscribe(sid2)
+    print('>> Unsubscribe')
+    input()
+    if sid2:
+        workspace.unsubscribe(sid2)
 
-    # print('>> Register Eval')
-    # input()
-    # workspace.register_eval('/myyaks/key1', evcb)
+    print('>> Register Eval')
+    input()
+    workspace.register_eval('/myyaks/key1', evcb)
 
-    # print('>> Get on Eval')
-    # input()
-    # print('GET: {}'.format(workspace.eval('/myyaks/key1?(param=1)')))
+    print('>> Get on Eval')
+    input()
+    print('GET: {}'.format(workspace.eval('/myyaks/key1?(param=1)')))
 
-    # print('>> Unregister Eval')
-    # input()
-    # workspace.unregister_eval('/myyaks/key1')
+    print('>> Unregister Eval')
+    input()
+    workspace.unregister_eval('/myyaks/key1')
 
-    # print('>> Dispose Storage')
-    # input()
-    # admin.remove_storage(stid)
-    # print('>> Close')
-    # input()
-    # y.logout()
-    # print('bye!')
+    print('>> Dispose Storage')
+    input()
+    admin.remove_storage(stid)
+    print('>> Close')
+    input()
+    y.logout()
+    print('bye!')
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ import json
 from enum import Enum
 from yaks.exceptions import ValidationError
 from yaks.encoding import Encoding
-
+from yaks.bindings import *
 
 class ChangeKind(Enum):
     PUT = 'P'
@@ -66,6 +66,16 @@ class Value(object):
     def __repr__(self):
         return self.__str__()
 
+    @staticmethod
+    def from_z_resource(rid, buf, info):
+        r_name = None
+        if rid.kind == Z_INT_RES_ID:
+            r_name = 'resource #' + str(rid.id.rid) 
+        else: 
+            r_name = rid.id.rname
+        
+        v = Value(buf.decode(), Encoding.from_z_encoding(info.encoding))
+        return (r_name, v)
 
 class Change(object):
     def __init__(self, kind, ts, value=None):

@@ -46,11 +46,23 @@ class Encoding(object):
         0x05: 0x05,
         0x06: 0x06
     }
+
+    reverse_mapping = {
+        0x00: 0x01,
+        0x02: 0x02,
+        0x04: 0x03,
+        0x01: 0x04,
+        0x05: 0x05,
+        0x06: 0x06
+    }
     
     @staticmethod
     def to_z_encoding(e):
         return Encoding.mapping.get(e)
-         
+    
+    @staticmethod
+    def from_z_encoding(e):
+        return Encoding.mapping.get(e)
 
 
 class TranscodingFallback(Enum):

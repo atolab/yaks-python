@@ -34,7 +34,7 @@ class Yaks(object):
         self.wlbuf = IOBuf()
 
     @staticmethod
-    def login(locator, properties=None, on_close=lambda z: z, lease=0):
+    def login(locator, z_locator=None, properties=None, on_close=lambda z: z, lease=0):
         '''
 
         Establish a session with the Yaks instance reachable through the
@@ -50,7 +50,8 @@ class Yaks(object):
         else:
             port = int(p)
         
-        z_locator = "tcp/" + addr + ":" + str(Yaks.ZENOH_DEFAULT_PORT)
+        if z_locator == None:
+            z_locator = "tcp/" + addr + ":" + str(Yaks.ZENOH_DEFAULT_PORT)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)

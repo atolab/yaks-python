@@ -1,10 +1,30 @@
 import time
 import sys
 from yaks import Yaks, Selector, Path, Workspace, Encoding, Value
+import argparse
 
-y = Yaks.login(sys.argv[1])
+ap = argparse.ArgumentParser()
+ap.add_argument("-y", "--yaks", required=True,
+                help="ip:port for the Yaks service")
+
+ap.add_argument("-s", "--samples", required=True,
+                help="Samples to be sent as part of the test")
+
+ap.add_argument("-z", "--zenoh", required=False,
+                help="ip:port for the zenoh service")
+
+args = vars(ap.parse_args())
+
+yloc = args['yaks']
+zloc  = args.get('zenoh', None)
+if zloc is not None:
+  zloc = 'tcp/' + zloc 
+  
+samples = int(args['samples'])
+
+y = Yaks.login(yloc, zloc)
 ws = y.workspace('/')
-samples = int(sys.argv[2])
+
 
 start = time.time()
 path = '/ylatp/sample'

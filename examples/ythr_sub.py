@@ -3,6 +3,7 @@ import sys
 from yaks import Yaks, Selector, Path, Workspace, Encoding, Value
 import threading
 import argparse
+from yaks.bindings import *
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-y", "--yaks", required=True,
@@ -14,16 +15,17 @@ ap.add_argument("-z", "--zenoh", required=False,
 args = vars(ap.parse_args())
 ylocator = args['yaks']
 zlocator = args.get('zenoh')
-print('Zenoh locator: {}'.format(zlocator))
 
 y = Yaks.login(ylocator, zlocator)
 ws = y.workspace('/')
-N = 20000
+N = 50000
 count = 0
 start = 0
 
 
-def listener(kvs):
+@YAKS_SUBSCRIBER_CALLBACK_PROTO
+
+def listener(rid, buf, info):
     global count
     global start
     global N

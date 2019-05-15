@@ -43,7 +43,7 @@ class Yaks(object):
         Valid format for the locator are valid  IP addresses as well
         as the combination IP:PORT.
 
-        '''
+        '''                
         addr, _, p = locator.partition(':')
         if p == '':
             port = Yaks.DEFAULT_PORT
@@ -52,7 +52,8 @@ class Yaks(object):
         
         if z_locator == None:
             z_locator = "tcp/" + addr + ":" + str(Yaks.ZENOH_DEFAULT_PORT)
-
+        
+        print('zenoh locator: {}'.format(z_locator))
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.setblocking(1)

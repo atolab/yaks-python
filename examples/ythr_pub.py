@@ -17,8 +17,6 @@ args = vars(ap.parse_args())
 
 yloc = args['yaks']
 zloc  = args.get('zenoh', None)
-if zloc is not None:
-  zloc = 'tcp/' + zloc 
   
 samples = int(args['samples'])
 

@@ -1,8 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.2.8] - Unreleased
-
+## [0.2.8] - 2019-07-09
+- Performance improvement
+- Bugfixes
 
 
 ## [0.2.7] - 2019-04-18

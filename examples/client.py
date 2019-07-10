@@ -8,10 +8,6 @@ import sys
 import json
 from yaks.bindings import *
 
-@YAKS_SUBSCRIBER_CALLBACK_PROTO
-def z_obs(rid, buf, info):
-    print('Called Zenoh OBSERVER!!!')
-
 def obs(kvs):
     print('Called OBSERVER KVS: {}'.format(kvs))
 
@@ -40,21 +36,21 @@ def main():
 
     print('>> Put Tuple')
     input()
-    workspace.z_put('/myyaks/example/one',
+    workspace.put('/myyaks/example/one',
                   Value('hello!', encoding=Encoding.STRING))
 
     print('>> Put Tuple')
     input()
-    workspace.z_put('/myyaks/example/two', Value('hello2!'))
+    workspace.put('/myyaks/example/two', Value('hello2!'))
 
     print('>> Put Tuple')
     input()
-    workspace.z_put('/myyaks/example/three', Value('hello3!'))
+    workspace.put('/myyaks/example/three', Value('hello3!'))
 
     print('>> Put Tuple JSON as RAW')
     input()
     d = Value({'this': 'is', 'a': 'json'}, encoding=Encoding.JSON)
-    workspace.z_put('/myyaks/example/four', d)
+    workspace.put('/myyaks/example/four', d)
 
     print('>> Get Tuple')
     input()
@@ -83,7 +79,7 @@ def main():
 
     print('>> Put Tuple')
     input()
-    workspace.z_put('/myyaks/example2/three',
+    workspace.put('/myyaks/example2/three',
                   Value('hello3!', encoding=Encoding.STRING))
 
     print('>> Get Tuple')
@@ -96,7 +92,7 @@ def main():
 
     print('>> Put Tuple')
     input()
-    workspace.z_put('/myyaks/example2/three',
+    workspace.put('/myyaks/example2/three',
                   Value('hello3!', encoding=Encoding.STRING))
 
     print('>> Get Tuple')
@@ -123,9 +119,11 @@ def main():
     print('>> Dispose Storage')
     input()
     admin.remove_storage(stid)
+
     print('>> Close')
     input()
     y.logout()
+
     print('bye!')
 
 

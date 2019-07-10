@@ -62,7 +62,7 @@ class Encoding(object):
     
     @staticmethod
     def from_z_encoding(e):
-        return Encoding.mapping.get(e)
+        return Encoding.reverse_mapping.get(e)
 
 
 class TranscodingFallback(Enum):

@@ -26,17 +26,17 @@ class SelectorTests(unittest.TestCase):
 
     def test_selector_with_predicate(self):
         s = Selector('/this/is/a/selector?x>10')
-        self.assertEqual(Path('/this/is/a/selector'), s.get_path())
+        self.assertEqual(Path('/this/is/a/selector'), s.get_prefix())
         self.assertEqual('x>10', s.get_predicate())
 
     def test_selector_with_fragment(self):
         s = Selector('/this/is/a/selector#field')
-        self.assertEqual(Path('/this/is/a/selector'), s.get_path())
+        self.assertEqual(Path('/this/is/a/selector'), s.get_prefix())
         self.assertEqual('field', s.get_fragment())
 
     def test_selector_complete(self):
         s = Selector('/this/is/a/**?x>10(x.y.z=100)#field')
-        self.assertEqual(Path('/this/is/a/'), s.get_path())
+        self.assertEqual(Path('/this/is/a/'), s.get_prefix())
         self.assertEqual('field', s.get_fragment())
         self.assertEqual('x.y.z=100', s.get_properties())
         self.assertEqual('x>10', s.get_predicate())

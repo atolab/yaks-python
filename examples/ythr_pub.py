@@ -27,7 +27,7 @@ ws = y.workspace('/')
 start = time.time()
 path = '/ylatp/sample'
 for i in range(0, samples):
-    ws.z_put(path, Value('01234567', Encoding.STRING))
+    ws.put(path, Value('01234567', Encoding.STRING))
 stop = time.time()
 delta = stop - start
 

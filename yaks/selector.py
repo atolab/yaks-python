@@ -26,10 +26,10 @@ class Selector(object):
                 "{} is not a valid Selector".format(selector))
         res = self.__sel_regex.match(selector)
         self.selector = selector
-        self.path = res.group(1)
-        self.predicate = res.group(3)
-        self.properties = res.group(5)
-        self.fragment = res.group(7)
+        self.path = res.group(1) or ""
+        self.predicate = res.group(3) or ""
+        self.properties = res.group(5) or ""
+        self.fragment = res.group(7) or ""
 
     @staticmethod
     def to_selector(s):
@@ -56,8 +56,11 @@ class Selector(object):
     def to_string(self):
         return self.selector
 
-    def get_path(self):
+    def get_prefix(self):
         return Path(self.path.split('*')[0])
+
+    def get_path(self):
+        return self.path
 
     def get_predicate(self):
         return self.predicate

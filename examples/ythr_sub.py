@@ -22,26 +22,24 @@ N = 50000
 count = 0
 start = 0
 
-
-@YAKS_SUBSCRIBER_CALLBACK_PROTO
-
-def listener(rid, buf, info):
-    global count
-    global start
-    global N
-    if count == 0:
-        start = time.time()
-        count += 1
-    elif count < N:
-        count += 1
-    else:
-        delta = time.time() - start
-        count = 0
-        thr = N / delta
-        print("{} mgs/sec".format(thr))
+def listener(kvs):
+    for (k, v) in kvs:
+        global count
+        global start
+        global N
+        if count == 0:
+            start = time.time()
+            count += 1
+        elif count < N:
+            count += 1
+        else:
+            delta = time.time() - start
+            count = 0
+            thr = N / delta
+            print("{} mgs/sec".format(thr))
 
 
 path = '/ylatp/sample'
-ws.z_subscribe(path, listener)
+ws.subscribe(path, listener)
 
 time.sleep(60)

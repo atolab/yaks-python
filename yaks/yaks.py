@@ -12,15 +12,10 @@
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
-
-from yaks.runtime import check_reply_is_ok, socket, send_msg, Runtime, recv_msg
 from yaks.workspace import Workspace
-from yaks.message import LoginM, LogoutM, WorkspaceM, Message
-from papero import find_property
 from yaks.admin import *
-from papero import IOBuf
-from mvar import MVar
 import threading
+import zenoh
 
 
 class Yaks(object):
@@ -29,9 +24,6 @@ class Yaks(object):
 
     def __init__(self, rt):
         self.rt = rt
-        self.mbox = MVar()
-        self.wbuf = IOBuf()
-        self.wlbuf = IOBuf()
 
     @staticmethod
     def login(locator, z_locator=None, properties=None, on_close=lambda z: z, lease=0):
@@ -43,31 +35,9 @@ class Yaks(object):
         Valid format for the locator are valid  IP addresses as well
         as the combination IP:PORT.
 
-        '''                
-        addr, _, p = locator.partition(':')
-        if p == '':
-            port = Yaks.DEFAULT_PORT
-        else:
-            port = int(p)
-        
-        if z_locator == None:
-            z_locator = "tcp/" + addr + ":" + str(Yaks.ZENOH_DEFAULT_PORT)
+        ''' 
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        sock.setblocking(1)
-        sock.connect((addr, port))
-
-        wbuf = IOBuf()
-        lbuf = IOBuf()
-        login = LoginM(properties)
-        send_msg(sock, login, wbuf, lbuf)
-        m = recv_msg(sock, lbuf)
-        # y = None
-        if check_reply_is_ok(m, login):
-            rt = Runtime(sock, locator, z_locator, on_close)
-        rt.start()
-        return Yaks(rt)
+        return Yaks(zenoh.Zenoh(locator, 'user'.encode(), 'password'.encode()))
 
     def workspace(self, path):
         '''
@@ -77,28 +47,13 @@ class Yaks(object):
         will be prepended with the workspace *path*.
 
         '''
-
-        wsm = WorkspaceM(path)
-        reply =  \
-            self.rt.post_message(wsm, self.mbox, self.wlbuf, self.wbuf).get()
-        ws = None
-        wsid = None
-        if check_reply_is_ok(reply, wsm):
-            wsid = find_property(Message.WSID, reply.properties)
-            if wsid is None:
-                raise "Workspace id was not provided by YAKS"
-            else:
-                ws = Workspace(self.rt, path, wsid)
-        return ws
+        return Workspace(self.rt, path)
 
     def logout(self):
         '''
         Terminates this session.
         '''
         self.rt.close()
-        # lom = LogoutM()
-        # reply = self.rt.post_message(lom).get()
-        # if check_reply_is_ok(reply, lom):
 
     def admin(self):
         '''

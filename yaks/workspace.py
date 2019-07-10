@@ -12,27 +12,17 @@
 #
 # Contributors: Angelo Corsaro, ADLINK Technology Inc. - Yaks API refactoring
 
+from queue import Queue
 from yaks.encoding import Encoding, TranscodingFallback
-from yaks.message import GetM, PutM, DeleteM, UnsubscribeM, SubscribeM
-from yaks.message import RegisterEvalM, UnregisterEvalM, EvalM, Message
-from papero.property import *
-from yaks.runtime import check_reply_is_ok, check_reply_is_values
 from yaks.path import Path
 from yaks.selector import Selector
-from mvar import MVar
-from papero import *
-from .bindings import *
+from yaks.value import Value
+import zenoh
 
 class Workspace(object):
-    def __init__(self, runtime, path, wsid):
+    def __init__(self, runtime, path):
         self.rt = runtime
         self.path = Path.to_path(path)
-        self.wsid = wsid
-        self.properties = [Property(Message.WSID, wsid)]
-        self.mbox = MVar()
-        self.wlbuf = IOBuf()
-        self.wbuf = IOBuf()
-        self.rbuf = IOBuf()
 
     def put(self, path, value, quorum=0):
         '''
@@ -59,21 +49,12 @@ class Workspace(object):
 
         '''
 
-        path = Path.to_path(path)
-        pm = PutM(self.wsid, [(path, value)])
-        reply = \
-            self.rt.post_message(pm, self.mbox, self.wlbuf, self.wbuf).get()
-        return check_reply_is_ok(reply, pm)
-
-    def z_put(self, p, v):
-        buf = z_iobuf_t()
-        buf.buf = v.as_z_payload()
-        buf.capacity = len(v.value)
-        buf.w_pos = buf.capacity
-        buf.r_pos = 0
-        
-        return self.rt.zlib.y_put(self.rt.zenoh, p.encode(), byref(buf), Encoding.to_z_encoding(v.encoding))
-        
+        self.rt.write_data_wo(
+            Path.to_path(path).to_string(), 
+            value.as_z_payload(), 
+            Encoding.to_z_encoding(value.get_encoding()), 
+            zenoh.Z_PUT)
+        return True
 
     def update(self, path, value, quorum=0):
         '''
@@ -83,7 +64,7 @@ class Workspace(object):
 
         '''
 
-        raise NotImplementedError("Update not yet...")
+        raise NotImplementedError("Update not yet implemented ...")
 
     def get(self, selector, quorum=0, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
@@ -128,15 +109,24 @@ class Workspace(object):
 
         '''
 
-        s = Selector.to_selector(selector)
-        gm = GetM(self.wsid, s)
-        reply = \
-             self.rt.post_message(gm, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_values(reply, gm):
-            return reply.kvs
-        else:
-            raise "Get received an invalid reply"
-        return []
+        q = Queue()
+        def callback(reply_value):
+            q.put(reply_value)
+
+        selector = Selector.to_selector(selector)
+
+        self.rt.query(
+            selector.get_path(), 
+            selector.get_predicate(), 
+            callback)
+        kvs = []
+        reply = q.get()
+        while(reply.kind != zenoh.binding.QueryReply.REPLY_FINAL):
+            if(reply.kind == zenoh.binding.QueryReply.STORAGE_DATA):
+                kvs.append(Value.from_z_resource(reply.rname, reply.data, reply.info))
+            reply = q.get()
+        q.task_done()
+        return kvs 
 
     def remove(self, path, quorum=0):
         '''
@@ -148,12 +138,13 @@ class Workspace(object):
         from **quorum** storages.
 
         '''
-
-        path = Path.to_path(path)
-        rm = DeleteM(self.wsid, path)
-        reply = \
-             self.rt.post_message(rm, self.mbox, self.wlbuf, self.wbuf).get()
-        return check_reply_is_ok(reply, rm)
+        
+        self.rt.write_data_wo(
+            Path.to_path(path).to_string(), 
+            "".encode(), 
+            Encoding.Z_RAW_ENC, 
+            zenoh.Z_REMOVE)
+        return True
 
     def subscribe(self, selector, listener=None):
         '''
@@ -168,21 +159,21 @@ class Workspace(object):
         listener should expect a list of (Path, Changes)
 
         '''
-
-        s = Selector.to_selector(selector)
-        sm = SubscribeM(self.wsid, s)
-        reply = \
-             self.rt.post_message(sm, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_ok(reply, sm):
-            subid = find_property(Message.SUBID, reply.properties)
-            if listener is not None:
-                self.rt.add_listener(subid, listener)
-            return subid
+        
+        if(listener != None):
+            def callback(rname, data, info):
+                listener([Value.from_z_resource(rname, data, info)])
+            return self.rt.declare_subscriber(
+                Selector.to_selector(selector).get_path(), 
+                zenoh.SubscriberMode.push(), 
+                callback)
         else:
-            raise "Subscribe received an invalid reply"
-
-    def z_subscribe(self, selector, listener):
-        return self.rt.zlib.y_subscribe(self.rt.zenoh, selector.encode(), listener)
+            def callback(rname, data, info):
+                pass
+            return self.rt.declare_subscriber(
+                Selector.to_selector(selector).get_path(), 
+                zenoh.SubscriberMode.push(), 
+                callback)
 
     def unsubscribe(self, subscription_id):
         '''
@@ -190,14 +181,8 @@ class Workspace(object):
         Unregisters a previous subscription with the identifier **subid**
 
         '''
-        um = UnsubscribeM(self.wsid, subscription_id)
-        reply = \
-            self.rt.post_message(um, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_ok(reply, um):
-            self.rt.remove_listener(subscription_id)
-            return True
-        else:
-            raise "Unsubscribe received an invalid reply"
+
+        raise NotImplementedError("Unsubscribe not yet implemented ...")
 
     def register_eval(self, path, callback):
         '''
@@ -207,15 +192,7 @@ class Workspace(object):
 
         '''
 
-        path = Path.to_path(path)
-        rem = RegisterEvalM(self.wsid, path)
-        reply = \
-             self.rt.post_message(rem, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_ok(reply, rem):
-            self.rt.add_eval_callback(path, callback)
-            return True
-        else:
-            raise "Register_eval received an invalid reply"
+        raise NotImplementedError("Register_eval not yet implemented ...")
 
     def unregister_eval(self, path):
         '''
@@ -226,15 +203,7 @@ class Workspace(object):
 
         '''
 
-        path = Path.to_path(path)
-        uem = UnregisterEvalM(self.wsid, path)
-        reply = \
-            self.rt.post_message(uem, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_ok(reply, uem):
-            self.rt.remove_eval_callback(path)
-            return True
-        else:
-            raise "Unregister_eval received an invalid reply"
+        raise NotImplementedError("Unregister_eval not yet implemented ...")
 
     def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
              fallback=TranscodingFallback.KEEP):
@@ -259,12 +228,4 @@ class Workspace(object):
 
         '''
 
-        s = Selector.to_selector(selector)
-        em = EvalM(self.wsid, s)
-        reply = \
-            self.rt.post_message(em, self.mbox, self.wlbuf, self.wbuf).get()
-        if check_reply_is_values(reply, em):
-            return reply.kvs
-        else:
-            raise "Get received an invalid reply"
-        return []
+        raise NotImplementedError("Eval not yet implemented ...")

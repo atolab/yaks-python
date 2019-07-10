@@ -113,6 +113,12 @@ class Workspace(object):
         def callback(reply_value):
             q.put(reply_value)
 
+        def contains_key(kvs, key):
+            for (k, _) in kvs:
+                if(k ==key):
+                    return True
+            return False
+
         selector = Selector.to_selector(selector)
 
         self.rt.query(
@@ -123,7 +129,8 @@ class Workspace(object):
         reply = q.get()
         while(reply.kind != zenoh.binding.QueryReply.REPLY_FINAL):
             if(reply.kind == zenoh.binding.QueryReply.STORAGE_DATA):
-                kvs.append(Value.from_z_resource(reply.rname, reply.data, reply.info))
+                if(not contains_key(kvs, reply.rname)): # TODO consolidate with timestamps
+                    kvs.append(Value.from_z_resource(reply.rname, reply.data, reply.info))
             reply = q.get()
         q.task_done()
         return kvs 

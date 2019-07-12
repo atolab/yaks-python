@@ -44,6 +44,14 @@ class Value(object):
     def as_z_payload(self):
         if self.encoding == Encoding.RAW:
             return self.value
+        if self.encoding == Encoding.PROPERTY: 
+            s = ''
+            length = len(self.value)
+            for i in range(0, length):
+                s = s + self.value[i].key + '=' + self.value[i].value
+                if i < length - 1:
+                    s = s + ';'
+            return s.encode()
         return self.value.encode()
 
     def get_encoding(self):

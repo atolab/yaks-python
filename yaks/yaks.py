@@ -36,7 +36,6 @@ class Yaks(object):
         as the combination IP:PORT.
 
         ''' 
-
         return Yaks(zenoh.Zenoh(locator, 'user'.encode(), 'password'.encode()))
 
     def workspace(self, path):
@@ -51,7 +50,9 @@ class Yaks(object):
 
     def logout(self):
         '''
+
         Terminates this session.
+
         '''
         self.rt.close()
 
@@ -63,4 +64,6 @@ class Yaks(object):
 
         '''
         return Admin(self.workspace(
-            '/{}/{}'.format(Admin.PREFIX, Admin.MY_YAKS)))
+            '/{}/{}'.format(
+                Admin.PREFIX, 
+                ''.join('{:02x}'.format(x) for x in self.rt.info()[zenoh.Z_INFO_PEER_PID_KEY]))))

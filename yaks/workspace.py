@@ -18,6 +18,7 @@ from yaks.path import Path
 from yaks.selector import Selector
 from yaks.value import Value
 import zenoh
+from zenoh.binding import *
 
 class Workspace(object):
     def __init__(self, runtime, path):
@@ -199,7 +200,22 @@ class Workspace(object):
 
         '''
 
-        raise NotImplementedError("Register_eval not yet implemented ...")
+        def subscriber_callback(rname, data, info):
+            pass
+
+        def query_handler(path_selector, content_selector):
+            value = callback(path_selector, content_selector)
+
+            info = z_data_info_t()
+            info.flags = 0x60
+            info.encoding = Encoding.to_z_encoding(value.get_encoding())
+            info.kind = Z_PUT
+            return [(path_selector, (value.as_z_payload(), info))]
+
+        self.rt.declare_storage(
+            Path.to_path("+" + path).to_string(), 
+            subscriber_callback, 
+            query_handler)
 
     def unregister_eval(self, path):
         '''
@@ -235,4 +251,4 @@ class Workspace(object):
 
         '''
 
-        raise NotImplementedError("Eval not yet implemented ...")
+        return self.get("+" + selector, multiplicity, encoding, fallback)

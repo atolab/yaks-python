@@ -75,10 +75,14 @@ class Value(object):
         return self.__str__()
 
     @staticmethod
-    def from_z_resource(rid, buf, info):
-        r_name = rid
-        v = Value(buf.decode(), Encoding.from_z_encoding(info.encoding))
-        return (r_name, v)
+    def from_z_resource(buf, info):
+        encoding = Encoding.from_z_encoding(info.encoding)
+        data = None
+        if(encoding == Encoding.RAW):
+            data = buf
+        else:
+            data = buf.decode()
+        return Value(data, encoding)
 
 class Change(object):
     def __init__(self, kind, ts, value=None):

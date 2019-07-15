@@ -131,7 +131,7 @@ class Workspace(object):
         while(reply.kind != zenoh.binding.QueryReply.REPLY_FINAL):
             if(reply.kind == zenoh.binding.QueryReply.STORAGE_DATA):
                 if(not contains_key(kvs, reply.rname)): # TODO consolidate with timestamps
-                    kvs.append(Value.from_z_resource(reply.rname, reply.data, reply.info))
+                    kvs.append((reply.rname, Value.from_z_resource(reply.data, reply.info)))
             reply = q.get()
         q.task_done()
         return kvs 
@@ -170,7 +170,7 @@ class Workspace(object):
         
         if(listener != None):
             def callback(rname, data, info):
-                listener([[rname, Change(info.kind, None, Value.from_z_resource(rname, data, info))]])
+                listener([(rname, Change(info.kind, None, Value.from_z_resource(data, info)))])
             return self.rt.declare_subscriber(
                 Selector.to_selector(selector).get_path(), 
                 zenoh.SubscriberMode.push(), 

@@ -14,14 +14,15 @@
 
 import re
 import json
+import zenoh
 from enum import Enum
 from yaks.exceptions import ValidationError
 from yaks.encoding import Encoding
 
 class ChangeKind(Enum):
-    PUT = 'P'
-    UPDATE = 'U'
-    REMOVE = 'R'
+    PUT = zenoh.Z_PUT
+    UPDATE = zenoh.Z_UPDATE
+    REMOVE = zenoh.Z_REMOVE
 
 
 class Value(object):
@@ -87,9 +88,9 @@ class Change(object):
 
     def set_kind(self, kind):
         kd = {
-            'P': ChangeKind.PUT,
-            'U': ChangeKind.UPDATE,
-            'R': ChangeKind.REMOVE
+            zenoh.Z_PUT: ChangeKind.PUT,
+            zenoh.Z_UPDATE: ChangeKind.UPDATE,
+            zenoh.Z_REMOVE: ChangeKind.REMOVE
         }
         if isinstance(kind, ChangeKind):
             self.kind = kind

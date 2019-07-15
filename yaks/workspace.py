@@ -16,7 +16,7 @@ from queue import Queue
 from yaks.encoding import Encoding, TranscodingFallback
 from yaks.path import Path
 from yaks.selector import Selector
-from yaks.value import Value
+from yaks.value import Value, Change
 import zenoh
 from zenoh.binding import *
 
@@ -170,7 +170,7 @@ class Workspace(object):
         
         if(listener != None):
             def callback(rname, data, info):
-                listener([Value.from_z_resource(rname, data, info)])
+                listener([[rname, Change(info.kind, None, Value.from_z_resource(rname, data, info))]])
             return self.rt.declare_subscriber(
                 Selector.to_selector(selector).get_path(), 
                 zenoh.SubscriberMode.push(), 

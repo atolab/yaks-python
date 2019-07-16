@@ -79,7 +79,7 @@ class Value(object):
         encoding = Encoding.from_z_encoding(info.encoding)
         data = None
         if(encoding == Encoding.RAW):
-            data = buf
+            data = bytearray(buf)
         else:
             data = buf.decode()
         return Value(data, encoding)

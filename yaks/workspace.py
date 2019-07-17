@@ -24,6 +24,7 @@ class Workspace(object):
     def __init__(self, runtime, path):
         self.rt = runtime
         self.path = Path.to_path(path)
+        self.evals = []
 
     def put(self, path, value, quorum=0):
         '''
@@ -190,7 +191,7 @@ class Workspace(object):
 
         '''
 
-        raise NotImplementedError("Unsubscribe not yet implemented ...")
+        return self.rt.undeclare_subscriber(subscription_id)
 
     def register_eval(self, path, callback):
         '''
@@ -212,21 +213,26 @@ class Workspace(object):
             info.kind = Z_PUT
             return [(path_selector, (value.as_z_payload(), info))]
 
-        self.rt.declare_storage(
+        evalsto = self.rt.declare_storage(
             Path.to_path("+" + path).to_string(), 
             subscriber_callback, 
             query_handler)
 
+        self.evals.append((path, evalsto))
+
     def unregister_eval(self, path):
         '''
 
-        Unregisters an previously registered evaluation function under
-        the give [path].
+        Unregisters all previously registered evaluation functions 
+        under the give [path].
         The [path] can be absolute or relative to the workspace.
 
         '''
 
-        raise NotImplementedError("Unregister_eval not yet implemented ...")
+        for (evalpath, evalsto) in self.evals:
+            if evalpath == path:
+                self.rt.undeclare_storage(evalsto)
+        self.evals = [(evalpath, evalsto) for (evalpath, evalsto) in self.evals if not evalpath == path]
 
     def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
              fallback=TranscodingFallback.KEEP):

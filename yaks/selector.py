@@ -30,6 +30,7 @@ class Selector(object):
         self.predicate = res.group(3) or ""
         self.properties = res.group(5) or ""
         self.fragment = res.group(7) or ""
+        self.optional_part = (res.group(2) or "?")[1:] + (res.group(6) or "")
 
     @staticmethod
     def to_selector(s):
@@ -89,6 +90,9 @@ class Selector(object):
                 d = self.__dot2dict(k, v)
                 data.update(d)
         return data
+
+    def get_optional_part(self):
+        return self.optional_part
 
     def __dot2dict(self, dot_notation, value=None):
         ld = []

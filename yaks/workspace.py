@@ -125,7 +125,7 @@ class Workspace(object):
 
         self.rt.query(
             selector.get_path(), 
-            selector.get_predicate(), 
+            selector.get_optional_part(), 
             callback)
         kvs = []
         reply = q.get()
@@ -191,7 +191,8 @@ class Workspace(object):
 
         '''
 
-        return self.rt.undeclare_subscriber(subscription_id)
+        self.rt.undeclare_subscriber(subscription_id)
+        return True
 
     def register_eval(self, path, callback):
         '''
@@ -205,8 +206,11 @@ class Workspace(object):
             pass
 
         def query_handler(path_selector, content_selector):
-            value = callback(path_selector, content_selector)
-
+            if(path_selector.startswith("+")):
+                path_selector = path_selector[1:]
+            args = Selector.dict_from_properties(
+                Selector("{}?{}".format(path_selector, content_selector)))
+            value = callback(path_selector, **args)
             info = z_data_info_t()
             info.flags = 0x60
             info.encoding = Encoding.to_z_encoding(value.get_encoding())
@@ -233,6 +237,7 @@ class Workspace(object):
             if evalpath == path:
                 self.rt.undeclare_storage(evalsto)
         self.evals = [(evalpath, evalsto) for (evalpath, evalsto) in self.evals if not evalpath == path]
+        return True
 
     def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
              fallback=TranscodingFallback.KEEP):

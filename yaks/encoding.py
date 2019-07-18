@@ -20,12 +20,12 @@ from enum import Enum
 
 
 class Encoding(object):
-    Z_RAW_ENC          =   0x00
-    Z_CUSTOM_ENC       =   0x01
-    Z_STRING_ENC       =   0x02
-    Z_PROPERTIES_ENC   =   0x03
-    Z_JSON_ENC         =   0x04
-    Z_SQL_ENC          =   0x05
+    Z_RAW_ENC = 0x00
+    Z_CUSTOM_ENC = 0x01
+    Z_STRING_ENC = 0x02
+    Z_PROPERTIES_ENC = 0x03
+    Z_JSON_ENC = 0x04
+    Z_SQL_ENC = 0x05
 
     RAW = 0x01
     STRING = 0x02
@@ -38,7 +38,7 @@ class Encoding(object):
     MIN = 0x00
     MAX = 0xff
 
-    mapping = { 
+    mapping = {
         0x01: 0x00,
         0x02: 0x02,
         0x03: 0x04,
@@ -55,11 +55,11 @@ class Encoding(object):
         0x05: 0x05,
         0x03: 0x06
     }
-    
+
     @staticmethod
     def to_z_encoding(e):
         return Encoding.mapping.get(e)
-    
+
     @staticmethod
     def from_z_encoding(e):
         return Encoding.reverse_mapping.get(e)

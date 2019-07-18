@@ -8,6 +8,7 @@ import sys
 import json
 from yaks.bindings import *
 
+
 def obs(kvs):
     print('Called OBSERVER KVS: {}'.format(kvs))
 

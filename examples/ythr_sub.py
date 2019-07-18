@@ -22,6 +22,7 @@ N = 50000
 count = 0
 start = 0
 
+
 def listener(kvs):
     for (k, v) in kvs:
         global count

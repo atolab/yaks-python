@@ -16,8 +16,8 @@ ap.add_argument("-z", "--zenoh", required=False,
 args = vars(ap.parse_args())
 
 yloc = args['yaks']
-zloc  = args.get('zenoh', None)
-  
+zloc = args.get('zenoh', None)
+
 samples = int(args['samples'])
 
 y = Yaks.login(yloc, zloc)

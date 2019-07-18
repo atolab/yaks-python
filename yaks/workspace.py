@@ -20,6 +20,7 @@ from yaks.value import Value, Change
 import zenoh
 from zenoh.binding import *
 
+
 class Workspace(object):
     def __init__(self, runtime, path):
         self.rt = runtime
@@ -52,9 +53,9 @@ class Workspace(object):
         '''
 
         self.rt.write_data_wo(
-            Path.to_path(path).to_string(), 
-            value.as_z_payload(), 
-            Encoding.to_z_encoding(value.get_encoding()), 
+            Path.to_path(path).to_string(),
+            value.as_z_payload(),
+            Encoding.to_z_encoding(value.get_encoding()),
             zenoh.Z_PUT)
         return True
 
@@ -112,30 +113,33 @@ class Workspace(object):
         '''
 
         q = Queue()
+
         def callback(reply_value):
             q.put(reply_value)
 
         def contains_key(kvs, key):
             for (k, _) in kvs:
-                if(k ==key):
+                if(k == key):
                     return True
             return False
 
         selector = Selector.to_selector(selector)
 
         self.rt.query(
-            selector.get_path(), 
-            selector.get_optional_part(), 
+            selector.get_path(),
+            selector.get_optional_part(),
             callback)
         kvs = []
         reply = q.get()
         while(reply.kind != zenoh.binding.QueryReply.REPLY_FINAL):
             if(reply.kind == zenoh.binding.QueryReply.STORAGE_DATA):
-                if(not contains_key(kvs, reply.rname)): # TODO consolidate with timestamps
-                    kvs.append((reply.rname, Value.from_z_resource(reply.data, reply.info)))
+                # TODO consolidate with timestamps
+                if(not contains_key(kvs, reply.rname)):
+                    kvs.append((reply.rname,
+                                Value.from_z_resource(reply.data, reply.info)))
             reply = q.get()
         q.task_done()
-        return kvs 
+        return kvs
 
     def remove(self, path, quorum=0):
         '''
@@ -147,11 +151,11 @@ class Workspace(object):
         from **quorum** storages.
 
         '''
-        
+
         self.rt.write_data_wo(
-            Path.to_path(path).to_string(), 
-            "".encode(), 
-            Encoding.Z_RAW_ENC, 
+            Path.to_path(path).to_string(),
+            "".encode(),
+            Encoding.Z_RAW_ENC,
             zenoh.Z_REMOVE)
         return True
 
@@ -168,20 +172,22 @@ class Workspace(object):
         listener should expect a list of (Path, Changes)
 
         '''
-        
-        if(listener != None):
+
+        if(listener is not None):
             def callback(rname, data, info):
-                listener([(rname, Change(info.kind, None, Value.from_z_resource(data, info)))])
+                listener([(rname, Change(info.kind,
+                                         None,
+                                         Value.from_z_resource(data, info)))])
             return self.rt.declare_subscriber(
-                Selector.to_selector(selector).get_path(), 
-                zenoh.SubscriberMode.push(), 
+                Selector.to_selector(selector).get_path(),
+                zenoh.SubscriberMode.push(),
                 callback)
         else:
             def callback(rname, data, info):
                 pass
             return self.rt.declare_subscriber(
-                Selector.to_selector(selector).get_path(), 
-                zenoh.SubscriberMode.push(), 
+                Selector.to_selector(selector).get_path(),
+                zenoh.SubscriberMode.push(),
                 callback)
 
     def unsubscribe(self, subscription_id):
@@ -218,8 +224,8 @@ class Workspace(object):
             return [(path_selector, (value.as_z_payload(), info))]
 
         evalsto = self.rt.declare_storage(
-            Path.to_path("+" + path).to_string(), 
-            subscriber_callback, 
+            Path.to_path("+" + path).to_string(),
+            subscriber_callback,
             query_handler)
 
         self.evals.append((path, evalsto))
@@ -227,7 +233,7 @@ class Workspace(object):
     def unregister_eval(self, path):
         '''
 
-        Unregisters all previously registered evaluation functions 
+        Unregisters all previously registered evaluation functions
         under the give [path].
         The [path] can be absolute or relative to the workspace.
 
@@ -236,7 +242,8 @@ class Workspace(object):
         for (evalpath, evalsto) in self.evals:
             if evalpath == path:
                 self.rt.undeclare_storage(evalsto)
-        self.evals = [(evalpath, evalsto) for (evalpath, evalsto) in self.evals if not evalpath == path]
+        self.evals = [(evalpath, evalsto) for (evalpath, evalsto) in
+                      self.evals if not evalpath == path]
         return True
 
     def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,

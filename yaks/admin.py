@@ -23,7 +23,8 @@ class Admin(object):
 
     def __init__(self, ws):
         self.ws = ws
-        self.local = ''.join('{:02x}'.format(x) for x in ws.rt.info()[zenoh.Z_INFO_PEER_PID_KEY])
+        self.local = ''.join('{:02x}'.format(x) for x in
+                             ws.rt.info()[zenoh.Z_INFO_PEER_PID_KEY])
 
     def add_frontend(self, feid, properties, yaks=None):
         '''

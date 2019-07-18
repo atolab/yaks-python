@@ -19,6 +19,7 @@ from enum import Enum
 from yaks.exceptions import ValidationError
 from yaks.encoding import Encoding
 
+
 class ChangeKind(Enum):
     PUT = zenoh.Z_PUT
     UPDATE = zenoh.Z_UPDATE
@@ -45,7 +46,7 @@ class Value(object):
     def as_z_payload(self):
         if self.encoding == Encoding.RAW:
             return self.value
-        if self.encoding == Encoding.PROPERTY: 
+        if self.encoding == Encoding.PROPERTY:
             s = ''
             length = len(self.value)
             for i in range(0, length):
@@ -83,6 +84,7 @@ class Value(object):
         else:
             data = buf.decode()
         return Value(data, encoding)
+
 
 class Change(object):
     def __init__(self, kind, ts, value=None):

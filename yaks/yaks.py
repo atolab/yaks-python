@@ -26,7 +26,8 @@ class Yaks(object):
         self.rt = rt
 
     @staticmethod
-    def login(locator, z_locator=None, properties=None, on_close=lambda z: z, lease=0):
+    def login(locator, z_locator=None, properties=None,
+              on_close=lambda z: z, lease=0):
         '''
 
         Establish a session with the Yaks instance reachable through the
@@ -35,7 +36,7 @@ class Yaks(object):
         Valid format for the locator are valid  IP addresses as well
         as the combination IP:PORT.
 
-        ''' 
+        '''
         return Yaks(zenoh.Zenoh(locator, 'user'.encode(), 'password'.encode()))
 
     def workspace(self, path):
@@ -65,5 +66,6 @@ class Yaks(object):
         '''
         return Admin(self.workspace(
             '/{}/{}'.format(
-                Admin.PREFIX, 
-                ''.join('{:02x}'.format(x) for x in self.rt.info()[zenoh.Z_INFO_PEER_PID_KEY]))))
+                Admin.PREFIX,
+                ''.join('{:02x}'.format(x) for x in
+                        self.rt.info()[zenoh.Z_INFO_PEER_PID_KEY]))))

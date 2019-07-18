@@ -42,6 +42,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         res1 = admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         res2 = admin.remove_storage(stid)
         y.logout()
         self.assertTrue(res1)
@@ -53,6 +54,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         self.assertEqual(workspace.path, Path('/myyaks'))
         admin.remove_storage(stid)
@@ -64,6 +66,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         d = Value('hello!', encoding=Encoding.STRING)
         self.assertTrue(workspace.put('/myyaks/key1', d))
@@ -82,6 +85,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
 
         for i in range(0, 100):
@@ -100,6 +104,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
 
@@ -123,6 +128,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
         workspace.put('/myyaks/key1', Value('123', encoding=Encoding.STRING))
@@ -144,6 +150,7 @@ class APITest(unittest.TestCase):
         properties = [Property('selector', '/myyaks/**')]
         stid = '123'
         admin.add_storage(stid, properties)
+        time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
 
         def cb(path, hello):

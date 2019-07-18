@@ -53,7 +53,7 @@ class Workspace(object):
         '''
 
         self.rt.write_data_wo(
-            Path.to_path(path).to_string(),
+            path,
             value.as_z_payload(),
             Encoding.to_z_encoding(value.get_encoding()),
             zenoh.Z_PUT)
@@ -153,7 +153,7 @@ class Workspace(object):
         '''
 
         self.rt.write_data_wo(
-            Path.to_path(path).to_string(),
+            path,
             "".encode(),
             Encoding.Z_RAW_ENC,
             zenoh.Z_REMOVE)
@@ -179,14 +179,14 @@ class Workspace(object):
                                          None,
                                          Value.from_z_resource(data, info)))])
             return self.rt.declare_subscriber(
-                Selector.to_selector(selector).get_path(),
+                selector,
                 zenoh.SubscriberMode.push(),
                 callback)
         else:
             def callback(rname, data, info):
                 pass
             return self.rt.declare_subscriber(
-                Selector.to_selector(selector).get_path(),
+                selector,
                 zenoh.SubscriberMode.push(),
                 callback)
 
@@ -224,7 +224,7 @@ class Workspace(object):
             return [(path_selector, (value.as_z_payload(), info))]
 
         evalsto = self.rt.declare_storage(
-            Path.to_path("+" + path).to_string(),
+            "+" + path,
             subscriber_callback,
             query_handler)
 

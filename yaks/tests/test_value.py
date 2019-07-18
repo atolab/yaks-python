@@ -92,7 +92,7 @@ class ValueTests(unittest.TestCase):
         ts = (1234, [])
         c = Change(ChangeKind.PUT, (0, []))
         c.set_value(v1)
-        c.set_kind('U')
+        c.set_kind(ChangeKind.UPDATE)
         c.set_timestamp(ts)
         self.assertEqual(ChangeKind.UPDATE, c.get_kind())
         self.assertEqual(v1, c.get_value())

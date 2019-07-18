@@ -2,7 +2,7 @@ from yaks import Yaks
 from yaks import Value
 from yaks import Encoding
 
-y = Yaks.login('localhost')
+y = Yaks.login(None)
 ws = y.workspace('/demo/')
 
 while True:

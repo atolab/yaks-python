@@ -4,7 +4,7 @@ import signal
 p = '/f0rce/6214b769-21e1-4c8e-bdd8-dc90943bf1ec/leave'
 p2 = '/f0rce/6214b769-21e1-4c8e-bdd8-dc90943bf1ec/gone'
 v = Value('this is a test value', encoding=Encoding.STRING)
-y = Yaks.login('')
+y = Yaks.login(None)
 ws = y.workspace('/')
 
 

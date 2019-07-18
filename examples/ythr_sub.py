@@ -3,20 +3,16 @@ import sys
 from yaks import Yaks, Selector, Path, Workspace, Encoding, Value
 import threading
 import argparse
-from yaks.bindings import *
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-y", "--yaks", required=True,
-                help="ip:port for the Yaks service")
 
 ap.add_argument("-z", "--zenoh", required=False,
-                help="ip:port for the zenoh service")
+                help="ip:port for the zenoh router")
 
 args = vars(ap.parse_args())
-ylocator = args['yaks']
-zlocator = args.get('zenoh')
+zlocator = args['zenoh']
 
-y = Yaks.login(ylocator, zlocator)
+y = Yaks.login(zlocator)
 ws = y.workspace('/')
 N = 50000
 count = 0

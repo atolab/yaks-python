@@ -19,14 +19,13 @@ import zenoh
 
 
 class Yaks(object):
-    DEFAULT_PORT = 7887
     ZENOH_DEFAULT_PORT = 7447
 
     def __init__(self, rt):
         self.rt = rt
 
     @staticmethod
-    def login(locator, z_locator=None, properties=None,
+    def login(locator, properties=None,
               on_close=lambda z: z, lease=0):
         '''
 

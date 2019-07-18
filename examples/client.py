@@ -6,7 +6,6 @@ from yaks import Encoding
 from papero import Property
 import sys
 import json
-from yaks.bindings import *
 
 
 def obs(kvs):

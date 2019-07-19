@@ -19,7 +19,7 @@ def evcb(path, param):
 
 def main():
     print('creating api')
-    y = Yaks.login(sys.argv[1])
+    y = Yaks.login(sys.argv[1], {'user': 'user', 'password': 'password'})
     admin = y.admin()
 
     print('>> Create Storage')

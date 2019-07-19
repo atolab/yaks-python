@@ -26,10 +26,10 @@ class Selector(object):
                 "{} is not a valid Selector".format(selector))
         res = self.__sel_regex.match(selector)
         self.selector = selector
-        self.path = res.group(1) or ""
-        self.predicate = res.group(3) or ""
-        self.properties = res.group(5) or ""
-        self.fragment = res.group(7) or ""
+        self.path = res.group(1) or None
+        self.predicate = res.group(3) or None
+        self.properties = res.group(5) or None
+        self.fragment = res.group(7) or None
         self.optional_part = (res.group(2) or "?")[1:] + (res.group(6) or "")
 
     @staticmethod

@@ -36,7 +36,13 @@ class Yaks(object):
         as the combination IP:PORT.
 
         '''
-        return Yaks(zenoh.Zenoh(locator, 'user'.encode(), 'password'.encode()))
+        user = None
+        if properties is not None and "user" in properties:
+            user = properties['user']
+        password = None
+        if properties is not None and"password" in properties:
+            password = properties['password']
+        return Yaks(zenoh.Zenoh(locator, user, password))
 
     def workspace(self, path):
         '''

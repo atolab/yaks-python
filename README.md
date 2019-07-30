@@ -6,14 +6,21 @@
 
 This repo contains the YAKS API binding for Python
 
+#### Dependencies
+The yaks-python API depends on the [zenoh-pyhton](https://github.com/atolab/zenoh-python) API. Thus the first thing to do is to ensure that 
+**zenoh-pyhton** is installed on your machine. To do so, please follow the instructions provided [here](https://github.com/atolab/zenoh-python/blob/master/README.md).
 
-#### Installation
+#### Installing the YAKS Python API from sources
+To install the API you can do:
 
-    $ make install
+    $ python3 setup.py install
 
-or
+Notice that on some platforms, such as Linux, you will need to do this as *sudo*.
 
-    $ pip3 install yaks
+<!-- #### Installing the API from PyPi
+You can also install the YAKS's python API from PyPi by  simply doing:
+
+    $ pip3 install yaks -->
 
 To uninstall old versions run this until pip says there are no more packages
 

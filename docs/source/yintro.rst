@@ -143,18 +143,18 @@ back-end.
 
     # Create storage called "astore" on main memory 
     curl -X PUT -d '{"selector":"/demo/astore/**"}'\
-         http://localhost:8000/@/local/backend/Memory/storage/astore
+         http://localhost:8000/@/local/plugins/yaks/backend/Memory/storage/astore
                    
 
 From the command above you'll notice that we create a storage called
 ``astore`` by performing a PUT operation on the path
-``/@/local/backend/Memory/storage/astore``
+``/@/local/plugins/yaks/backend/Memory/storage/astore``
 
 It is worth mentioning that anything below the ``/@`` is the
 administration space. From this space it is possible to administer as
 well as inspect and monitor a running Yaks system. The way in which this
 works is pretty straight forward, each running instance of Yaks has
-associated a UUID and its admin space is represented by ``/@/UUID`` as a
+associated a UUID and its admin space is represented by ``/@/UUID/plugins/yaks`` as a
 consequence to operate on an arbitrary Yaks instance it is sufficient to
 know its UUID.
 
@@ -163,8 +163,8 @@ GET with a selector that wildcards the UUID as shown below:
 
 ::
 
-    $ curl http://localhost:8000/@/*
-    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06" : {}}
+    $ curl http://localhost:8000/@/*/plugins/yaks
+    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks" : {}}
 
 This command returns a single tuple as we have a stand-alone system.
 When issued on a system in which multiple instances of Yaks are
@@ -175,9 +175,9 @@ simply issue the following command:
 
 ::
 
-    $ curl http://localhost:8000/@/local/backend/**
-    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/backend/Memory/storage/astore" : {"selector":"/demo/astore/**"},
-    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/backend/Memory" : {"is.yaks.backend.kind":"memory"}}
+    $ curl http://localhost:8000/@/local/plugins/yaks/backend/**
+    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks/backend/Memory/storage/astore" : {"selector":"/demo/astore/**"},
+    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks/backend/Memory" : {"is.yaks.backend.kind":"memory"}}
 
 If we now create another storage:
 
@@ -185,17 +185,17 @@ If we now create another storage:
 
     # Create storage called "bstore" on main memory 
     curl -X PUT -d '{"selector":"/demo/bstore/**"}'\
-         http://localhost:8000/@/local/backend/Memory/storage/bstore               
+         http://localhost:8000/@/local/plugins/yaks/backend/Memory/storage/bstore               
 
 We can see that the information is reflected on the administration
 space:
 
 ::
 
-    $ curl http://localhost:8000/@/local/backend/**
-    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/backend/Memory/storage/bstore" : {"selector":"/demo/bstore/**"},
-    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/backend/Memory/storage/astore" : {"selector":"/demo/astore/**"},
-    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/backend/Memory" : {"is.yaks.backend.kind":"memory"}}
+    $ curl http://localhost:8000/@/local/plugins/yaks/backend/**
+    {"/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks/backend/Memory/storage/bstore" : {"selector":"/demo/bstore/**"},
+    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks/backend/Memory/storage/astore" : {"selector":"/demo/astore/**"},
+    "/@/34d34778-21b4-4ba8-9342-3e7a3f38aa06/plugins/yaks/backend/Memory" : {"is.yaks.backend.kind":"memory"}}
 
 As mentioned above, if we wanted to create a storage on a specific YAKS
 instance as opposed to the one we are currently connected to, it would

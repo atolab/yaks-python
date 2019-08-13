@@ -26,49 +26,6 @@ class Admin(object):
         self.local = ''.join('{:02x}'.format(x) for x in
                              ws.rt.info()[zenoh.Z_INFO_PEER_PID_KEY])
 
-    def add_frontend(self, feid, properties, yaks=None):
-        '''
-        Not supported in this version.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        path = '/{}/{}/plugins/yaks/frontend/{}'.format(Admin.PREFIX, yaks, feid)
-        value = Value(properties, encoding=Encoding.PROPERTY)
-        return self.ws.put(path, value, quorum=1)
-
-    def get_frontends(self, yaks=None):
-        '''
-        Returns the list of frontends available on the Yaks
-        instance with UUID **yaks**.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        s = '/{}/{}/plugins/yaks/frontend/*'.format(Admin.PREFIX, yaks)
-        kvs = self.ws.get(s)
-        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
-
-    def get_frontend(self, feid, yaks=None):
-        '''
-        Returns the frontend with the front-end ID **feid**
-        on the Yaks instance with UUID **yaks**.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        s = '/{}/{}/plugins/yaks/frontend/{}'.format(Admin.PREFIX, yaks, feid)
-        kvs = self.ws.get(s)
-        if len(kvs) > 0:
-            return kvs[0][1].value
-        return None
-
-    def remove_frontend(self, feid, yaks=None):
-        '''
-        Not supported in this version.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        path = '/{}/{}/plugins/yaks/frontend/{}'.format(Admin.PREFIX, yaks, feid)
-        return self.ws.remove(path, quorum=1)
-
     def add_backend(self, beid, properties, yaks=None):
         '''
         Not supported in this version.
@@ -173,39 +130,3 @@ class Admin(object):
             return self.ws.remove(p, quorum=1)
         return False
 
-    def get_sessions(self, yaks=None, feid=None):
-        '''
-        Gets the list of all available sessions on the Yaks instance
-        with UUID **yaks**.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        if not feid:
-            feid = '*'
-        s = '/{}/{}/plugins/yaks/frontend/{}/session/*'.format(Admin.PREFIX, yaks, feid)
-        kvs = self.ws.get(s)
-        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
-
-    def close_session(self, sid, yaks=None):
-        '''
-        Not supported in this version.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        s = '/{}/{}/plugins/yaks/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
-        kvs = self.ws.get(s)
-        if len(kvs) > 0:
-            p = kvs[0][0]
-            return self.ws.remove(p, quorum=1)
-        return False
-
-    def get_subscriptions(self, sid, yaks=None):
-        '''
-        Gets the list of all active subscriptions on the Yaks instance
-        with UUID **yaks**.
-        '''
-        if(yaks is None):
-            yaks = self.local
-        s = '/{}/{}/plugins/yaks/frontend/*/session/{}'.format(Admin.PREFIX, yaks, sid)
-        kvs = self.ws.get(s)
-        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))

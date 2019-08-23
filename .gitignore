@@ -30,5 +30,6 @@ tmp/**
 .idea/
 build/
 dist/
+_build/
 yaks.egg-info/
 tmp/

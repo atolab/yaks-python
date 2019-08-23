@@ -1,5 +1,6 @@
 before_install:
   - sudo apt-get install -y libssl1.0.0 libev4
+  - sudo apt install -y python3-pip
 addons:
   apt:
     update: true

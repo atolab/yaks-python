@@ -29,6 +29,7 @@ tmp/**
 .coverage
 .idea/
 build/
+_build/
 dist/
-yaks.egg-info/
 tmp/
+yaks.egg-info/

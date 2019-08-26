@@ -19,6 +19,7 @@ from yaks.selector import Selector
 from yaks.value import Value, Change
 import zenoh
 from zenoh.binding import *
+import concurrent.futures
 
 
 class Workspace(object):
@@ -26,6 +27,7 @@ class Workspace(object):
         self.rt = runtime
         self.path = Path.to_path(path)
         self.evals = []
+        self.executor = concurrent.futures.ThreadPoolExecutor()
 
     def put(self, path, value, quorum=0):
         '''
@@ -211,17 +213,19 @@ class Workspace(object):
         def subscriber_callback(rname, data, info):
             pass
 
-        def query_handler(path_selector, content_selector):
-            if(path_selector.startswith("+")):
-                path_selector = path_selector[1:]
-            args = Selector.dict_from_properties(
-                Selector("{}?{}".format(path_selector, content_selector)))
-            value = callback(path_selector, **args)
-            info = z_data_info_t()
-            info.flags = 0x60
-            info.encoding = Encoding.to_z_encoding(value.get_encoding())
-            info.kind = Z_PUT
-            return [(path_selector, (value.as_z_payload(), info))]
+        def query_handler(path_selector, content_selector, send_replies):
+            def query_handler_p(path_selector, content_selector, send_replies):
+                if(path_selector.startswith("+")):
+                    path_selector = path_selector[1:]
+                args = Selector.dict_from_properties(
+                    Selector("{}?{}".format(path_selector, content_selector)))
+                value = callback(path_selector, **args)
+                info = z_data_info_t()
+                info.flags = 0x60
+                info.encoding = Encoding.to_z_encoding(value.get_encoding())
+                info.kind = Z_PUT
+                send_replies([(path_selector, (value.as_z_payload(), info))])
+            self.executor.submit(query_handler_p, path_selector, content_selector, send_replies)
 
         evalsto = self.rt.declare_storage(
             "+" + path,

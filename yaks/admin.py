@@ -32,7 +32,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        path = '/{}/{}/plugins/yaks/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        path = '/{}/{}/plugins/yaks/backend/{}'.format(
+            Admin.PREFIX, yaks, beid)
         value = Value(properties, encoding=Encoding.PROPERTY)
         return self.ws.put(path, value, quorum=1)
 
@@ -43,7 +44,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        s = '/{}/{}/plugins/yaks/backend/*'.format(Admin.PREFIX, yaks)
+        s = '/{}/{}/plugins/yaks/backend/*'.format(
+            Admin.PREFIX, yaks)
         kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
@@ -54,7 +56,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        s = '/{}/{}/plugins/yaks/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        s = '/{}/{}/plugins/yaks/backend/{}'.format(
+            Admin.PREFIX, yaks, beid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
             return kvs[0][1].value
@@ -66,7 +69,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        path = '/{}/{}/plugins/yaks/backend/{}'.format(Admin.PREFIX, yaks, beid)
+        path = '/{}/{}/plugins/yaks/backend/{}'.format(
+            Admin.PREFIX, yaks, beid)
         return self.ws.remove(path, quorum=1)
 
     def add_storage(self, stid, properties, beid=None, yaks=None):
@@ -99,7 +103,8 @@ class Admin(object):
             yaks = self.local
         if not beid:
             beid = '*'
-        s = '/{}/{}/plugins/yaks/backend/{}/storage/*'.format(Admin.PREFIX, yaks, beid)
+        s = '/{}/{}/plugins/yaks/backend/{}/storage/*'.format(
+            Admin.PREFIX, yaks, beid)
         kvs = self.ws.get(s)
         return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
 
@@ -110,7 +115,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
+        s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(
+            Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
             return kvs[0][1].value
@@ -123,7 +129,8 @@ class Admin(object):
         '''
         if(yaks is None):
             yaks = self.local
-        s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(Admin.PREFIX, yaks, stid)
+        s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(
+            Admin.PREFIX, yaks, stid)
         kvs = self.ws.get(s)
         if len(kvs) > 0:
             p = kvs[0][0]

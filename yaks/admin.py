@@ -136,4 +136,3 @@ class Admin(object):
             p = kvs[0][0]
             return self.ws.remove(p, quorum=1)
         return False
-

@@ -226,7 +226,9 @@ class Workspace(object):
                 info.kind = Z_PUT
                 send_replies([(path_selector, (value.as_z_payload(), info))])
             self.executor.submit(query_handler_p,
-                path_selector, content_selector, send_replies)
+                                 path_selector,
+                                 content_selector,
+                                 send_replies)
 
         evalsto = self.rt.declare_storage(
             "+" + path,

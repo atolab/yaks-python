@@ -87,21 +87,24 @@ class Value(object):
 
 
 class Change(object):
+    kind_map = {
+            zenoh.Z_PUT: ChangeKind.PUT,
+            zenoh.Z_UPDATE: ChangeKind.UPDATE,
+            zenoh.Z_REMOVE: ChangeKind.REMOVE
+    }
+
     def __init__(self, kind, ts, value=None):
         self.set_kind(kind)
         self.ts = ts
         self.value = value
 
     def set_kind(self, kind):
-        kd = {
-            zenoh.Z_PUT: ChangeKind.PUT,
-            zenoh.Z_UPDATE: ChangeKind.UPDATE,
-            zenoh.Z_REMOVE: ChangeKind.REMOVE
-        }
-        if isinstance(kind, ChangeKind):
+        if kind is None:
+            self.kind = ChangeKind.PUT
+        elif isinstance(kind, ChangeKind):
             self.kind = kind
         else:
-            self.kind = kd[kind]
+            self.kind = Change.kind_map[kind]
 
     def get_kind(self):
         return self.kind

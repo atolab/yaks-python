@@ -44,15 +44,20 @@ class Yaks(object):
             password = properties['password']
         return Yaks(zenoh.Zenoh(locator, user, password))
 
-    def workspace(self, path):
+    def workspace(self, path, executor=None):
         '''
 
         Creates a workspace relative to the provided **path**.
         Any *put* or *get* operation with relative paths on this workspace
         will be prepended with the workspace *path*.
 
+        If an executor of type concurrent.futures.Executor is provided,
+        then all subscription listeners and eval callbacks are executed
+        by the provided executor. This is useful when listners and/or
+        callbacks need to perform long operations or need to call get().
+
         '''
-        return Workspace(self.rt, path)
+        return Workspace(self.rt, path, executor)
 
     def logout(self):
         '''

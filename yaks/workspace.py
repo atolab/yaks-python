@@ -19,15 +19,14 @@ from yaks.selector import Selector
 from yaks.value import Value, Change
 import zenoh
 from zenoh.binding import *
-import concurrent.futures
 
 
 class Workspace(object):
-    def __init__(self, runtime, path):
+    def __init__(self, runtime, path, executor=None):
         self.rt = runtime
         self.path = Path.to_path(path)
         self.evals = []
-        self.executor = concurrent.futures.ThreadPoolExecutor()
+        self.executor = executor
 
     def put(self, path, value, quorum=0):
         '''
@@ -177,9 +176,17 @@ class Workspace(object):
 
         if(listener is not None):
             def callback(rname, data, info):
-                listener([(rname, Change(info.kind,
-                                         None,
-                                         Value.from_z_resource(data, info)))])
+                if self.executor is None:
+                    listener([(rname,
+                               Change(info.kind,
+                                      None,
+                                      Value.from_z_resource(data, info)))])
+                else:
+                    self.executor.submit(
+                        listener,
+                        [(rname, Change(info.kind,
+                                        None,
+                                        Value.from_z_resource(data, info)))])
             return self.rt.declare_subscriber(
                 selector,
                 zenoh.SubscriberMode.push(),
@@ -225,10 +232,15 @@ class Workspace(object):
                 info.encoding = Encoding.to_z_encoding(value.get_encoding())
                 info.kind = Z_PUT
                 send_replies([(path_selector, (value.as_z_payload(), info))])
-            self.executor.submit(query_handler_p,
-                                 path_selector,
-                                 content_selector,
-                                 send_replies)
+            if self.executor is None:
+                query_handler_p(path_selector,
+                                content_selector,
+                                send_replies)
+            else:
+                self.executor.submit(query_handler_p,
+                                     path_selector,
+                                     content_selector,
+                                     send_replies)
 
         evalsto = self.rt.declare_storage(
             "+" + path,

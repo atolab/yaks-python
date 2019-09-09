@@ -222,8 +222,6 @@ class Workspace(object):
 
         def query_handler(path_selector, content_selector, send_replies):
             def query_handler_p(path_selector, content_selector, send_replies):
-                if(path_selector.startswith("+")):
-                    path_selector = path_selector[1:]
                 args = Selector.dict_from_properties(
                     Selector("{}?{}".format(path_selector, content_selector)))
                 value = callback(path_selector, **args)
@@ -243,7 +241,7 @@ class Workspace(object):
                                      send_replies)
 
         evalsto = self.rt.declare_storage(
-            "+" + path,
+            path,
             subscriber_callback,
             query_handler)
 
@@ -265,27 +263,3 @@ class Workspace(object):
                       self.evals if not evalpath == path]
         return True
 
-    def eval(self, selector, multiplicity=1, encoding=Encoding.RAW,
-             fallback=TranscodingFallback.KEEP):
-        '''
-
-        Requests the evaluation of registered evals whose registration
-        **path** matches the given **selector**.
-
-        If several evaluation function are registerd with the same path
-        (by different Yaks clients), then Yaks will call N functions
-        where N=[multiplicity] (default value is 1).
-        Note that in such case, the returned *{ <path,value> }*
-        will contain N time each matching path with the different
-        values returned by each evaluation.
-        The **encoding** indicates the expected encoding of the resulting
-        values. If the original values have a different encoding,
-        Yaks will try to transcode them into the expected encoding.
-        By default, if no encoding is specified, the values are
-        returned with their original encoding.
-        The **fallback** indicates the action that YAKS
-        will perform if the transcoding of a value fails.
-
-        '''
-
-        return self.get("+" + selector, multiplicity, encoding, fallback)

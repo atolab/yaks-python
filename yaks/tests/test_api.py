@@ -157,7 +157,7 @@ class APITest(unittest.TestCase):
             return Value('{} World!'.format(hello), encoding=Encoding.STRING)
 
         workspace.register_eval('/myyaks/key1', cb)
-        kvs = workspace.eval('/myyaks/key1?(hello=mondo)')
+        kvs = workspace.get('/myyaks/key1?(hello=mondo)')
         self.assertEqual(kvs,
                          [('/myyaks/key1',
                            Value('mondo World!', encoding=Encoding.STRING))])

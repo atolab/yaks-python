@@ -18,7 +18,7 @@ from yaks.path import Path
 from yaks.selector import Selector
 from yaks.value import Value, Change
 import zenoh
-from zenoh.binding import *
+from zenoh import *
 
 
 class Workspace(object):
@@ -132,8 +132,9 @@ class Workspace(object):
             callback)
         kvs = []
         reply = q.get()
-        while(reply.kind != zenoh.binding.QueryReply.REPLY_FINAL):
-            if(reply.kind == zenoh.binding.QueryReply.STORAGE_DATA):
+        while(reply.kind != zenoh.Z_REPLY_FINAL):
+            if(reply.kind == zenoh.Z_STORAGE_DATA
+               or reply.kind == zenoh.Z_EVAL_DATA):
                 # TODO consolidate with timestamps
                 if(not contains_key(kvs, reply.rname)):
                     kvs.append((reply.rname,
@@ -217,9 +218,6 @@ class Workspace(object):
 
         '''
 
-        def subscriber_callback(rname, data, info):
-            pass
-
         def query_handler(path_selector, content_selector, send_replies):
             def query_handler_p(path_selector, content_selector, send_replies):
                 args = Selector.dict_from_properties(
@@ -240,12 +238,10 @@ class Workspace(object):
                                      content_selector,
                                      send_replies)
 
-        evalsto = self.rt.declare_storage(
-            path,
-            subscriber_callback,
-            query_handler)
+        zeval = self.rt.declare_eval(path,
+                                     query_handler)
 
-        self.evals.append((path, evalsto))
+        self.evals.append((path, zeval))
 
     def unregister_eval(self, path):
         '''
@@ -256,10 +252,9 @@ class Workspace(object):
 
         '''
 
-        for (evalpath, evalsto) in self.evals:
+        for (evalpath, zeval) in self.evals:
             if evalpath == path:
-                self.rt.undeclare_storage(evalsto)
-        self.evals = [(evalpath, evalsto) for (evalpath, evalsto) in
+                self.rt.undeclare_eval(zeval)
+        self.evals = [(evalpath, zeval) for (evalpath, zeval) in
                       self.evals if not evalpath == path]
         return True
-

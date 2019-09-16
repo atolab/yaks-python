@@ -53,7 +53,7 @@ class Workspace(object):
 
         '''
 
-        self.rt.write_data_wo(
+        self.rt.write_data(
             path,
             value.as_z_payload(),
             Encoding.to_z_encoding(value.get_encoding()),
@@ -154,7 +154,7 @@ class Workspace(object):
 
         '''
 
-        self.rt.write_data_wo(
+        self.rt.write_data(
             path,
             "".encode(),
             Encoding.Z_RAW_ENC,

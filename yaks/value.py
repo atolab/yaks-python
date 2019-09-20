@@ -28,6 +28,8 @@ class ChangeKind(Enum):
 
 class Value(object):
     def __init__(self, value, encoding=Encoding.RAW, raw_format=""):
+        if encoding is None:
+            encoding = Encoding.RAW
         if encoding > Encoding.MAX:
             raise ValueError('Encoding not supported')
         if encoding == Encoding.PROTOBUF:

@@ -211,7 +211,8 @@ class Runtime(threading.Thread):
                         reply = self.post_message(vm, self.evalMBox).get()
                         if not check_reply_is_ok(reply, vm):
                             raise ValueError('YAKS error on EVAL')
-                    except (Exception, RuntimeError):
+                    except (Exception, RuntimeError) as e:
+                        traceback.print_exception(e)
                         self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST),
                                                         self.evalMBox)
 

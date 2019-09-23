@@ -187,7 +187,10 @@ class Runtime(threading.Thread):
         subid = m.subid
         listener = self.listeners.get(subid)
         if listener is not None:
-            listener(m.kvs)
+            try:
+                listener(m.kvs)
+            except (Exception, RuntimeError):
+                traceback.print_exc()
 
     def notify_loop(self):
         while True:

@@ -212,10 +212,10 @@ class Runtime(threading.Thread):
                         vh = Header(Message.VALUES, 0, cid)
                         vm = ValuesM.make(vh, kvs)
                         reply = self.post_message(vm, self.evalMBox).get()
-                        if reply is None:
-                            raise ValueError('YAKS error on getting None response in eval')
-                        elif not check_reply_is_ok(reply, vm):
-                            raise ValueError('YAKS error on EVAL')
+                        # if reply is None:
+                        #     raise ValueError('YAKS error on getting None response in eval')
+                        # elif not check_reply_is_ok(reply, vm):
+                        #     raise ValueError('YAKS error on EVAL')
                     except (Exception, RuntimeError):
                         traceback.print_exc()
                         self.post_message(ErrorM.make(cid, ErrorM.BAD_REQUEST),

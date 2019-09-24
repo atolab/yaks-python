@@ -23,7 +23,7 @@ from yaks.logger import APILogger
 from papero import *
 from mvar import MVar
 from yaks.codec import decode_message, encode_message
-from yaks.message import Message, ErrorM, LogoutM, ValuesM
+from yaks.message import Message, ErrorM, LogoutM, ValuesM, Header
 from queue import Queue
 
 SND_QUEUE_LEN = 128
@@ -209,8 +209,8 @@ class Runtime(threading.Thread):
                 def eval_cb_adaptor(path, p, args, cid):
                     try:
                         kvs = [(path, cb(p, **args))]
-                        vm = ValuesM(kvs)
-                        vm.corr_id = cid
+                        vh = Header(Message.VALUES, 0, cid)
+                        vm = ValuesM.make(vh, kvs)
                         reply = self.post_message(vm, self.evalMBox).get()
                         if reply is None:
                             raise ValueError('YAKS error on getting None response in eval')

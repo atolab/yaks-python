@@ -211,7 +211,9 @@ class Runtime(threading.Thread):
                         kvs = [(path, cb(p, **args))]
                         vm = ValuesM(kvs)
                         vm.corr_id = cid
-                        reply = self.post_message(vm, self.evalMBox).get()
+                        reply = None
+                        while reply is None:
+                            reply = self.post_message(vm, self.evalMBox).get()
                         if not check_reply_is_ok(reply, vm):
                             raise ValueError('YAKS error on EVAL')
                     except (Exception, RuntimeError):

@@ -15,7 +15,7 @@
 from yaks.workspace import Workspace
 from yaks.admin import *
 import threading
-import zenoh
+from zenoh import Zenoh, Z_INFO_PEER_PID_KEY
 
 
 class Yaks(object):
@@ -42,7 +42,7 @@ class Yaks(object):
         password = None
         if properties is not None and"password" in properties:
             password = properties['password']
-        return Yaks(zenoh.Zenoh(locator, user, password))
+        return Yaks(Zenoh.open(locator, user, password))
 
     def workspace(self, path, executor=None):
         '''
@@ -78,4 +78,4 @@ class Yaks(object):
             '/{}/{}'.format(
                 Admin.PREFIX,
                 ''.join('{:02x}'.format(x) for x in
-                        self.rt.info()[zenoh.Z_INFO_PEER_PID_KEY]))))
+                        self.rt.info()[Z_INFO_PEER_PID_KEY]))))

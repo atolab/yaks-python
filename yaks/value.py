@@ -51,8 +51,8 @@ class Value(object):
         if self.encoding == Encoding.PROPERTY:
             s = ''
             length = len(self.value)
-            for i in range(0, length):
-                s = s + self.value[i].key + '=' + self.value[i].value
+            for i, (key, value) in enumerate(self.value.items()):
+                s = s + key + '=' + value
                 if i < length - 1:
                     s = s + ';'
             return s.encode()

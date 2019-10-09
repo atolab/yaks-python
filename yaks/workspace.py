@@ -28,6 +28,12 @@ class Workspace(object):
         self.evals = []
         self.executor = executor
 
+    def __to_absolute(self, path):
+        if path.startswith('/'):
+            return path
+        else:
+            return self.path.to_string() + '/' + path
+
     def put(self, path, value, quorum=0):
         '''
 
@@ -54,7 +60,7 @@ class Workspace(object):
         '''
 
         self.rt.write_data(
-            path,
+            self.__to_absolute(path),
             value.as_z_payload(),
             Encoding.to_z_encoding(value.get_encoding()),
             zenoh.Z_PUT)
@@ -124,7 +130,7 @@ class Workspace(object):
                     return True
             return False
 
-        selector = Selector.to_selector(selector)
+        selector = Selector.to_selector(self.__to_absolute(selector))
 
         self.rt.query(
             selector.get_path(),
@@ -155,7 +161,7 @@ class Workspace(object):
         '''
 
         self.rt.write_data(
-            path,
+            self.__to_absolute(path),
             "".encode(),
             Encoding.Z_RAW_ENC,
             zenoh.Z_REMOVE)
@@ -175,6 +181,7 @@ class Workspace(object):
 
         '''
 
+        selector = self.__to_absolute(selector)
         if(listener is not None):
             def callback(rname, data, info):
                 if self.executor is None:
@@ -238,6 +245,7 @@ class Workspace(object):
                                      content_selector,
                                      send_replies)
 
+        path = self.__to_absolute(path)
         zeval = self.rt.declare_eval(path,
                                      query_handler)
 
@@ -252,6 +260,7 @@ class Workspace(object):
 
         '''
 
+        path = self.__to_absolute(path)
         for (evalpath, zeval) in self.evals:
             if evalpath == path:
                 self.rt.undeclare_eval(zeval)

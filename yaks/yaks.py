@@ -36,13 +36,12 @@ class Yaks(object):
         as the combination IP:PORT.
 
         '''
-        user = None
-        if properties is not None and "user" in properties:
-            user = properties['user']
-        password = None
-        if properties is not None and"password" in properties:
-            password = properties['password']
-        return Yaks(Zenoh.open(locator, user, password))
+        zprops = {} if properties is None else {
+            zenoh.Z_USER_KEY if k == "user" else zenoh.Z_PASSWORD_KEY: val
+            for k, val in properties.items()
+            if k == "user" or key == "password"}
+
+        return Yaks(Zenoh.open(locator, zprops))
 
     def workspace(self, path, executor=None):
         '''

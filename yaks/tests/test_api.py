@@ -39,9 +39,8 @@ class APITest(unittest.TestCase):
     def test_create_delete_storage(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        res1 = admin.add_storage(stid, properties)
+        res1 = admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         res2 = admin.remove_storage(stid)
         y.logout()
@@ -51,9 +50,8 @@ class APITest(unittest.TestCase):
     def test_create_delete_workspace(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         self.assertEqual(workspace.path, Path('/myyaks'))
@@ -63,9 +61,8 @@ class APITest(unittest.TestCase):
     def test_put_get_remove(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         d = Value('hello!', encoding=Encoding.STRING)
@@ -82,9 +79,8 @@ class APITest(unittest.TestCase):
     def test__big_put_get_remove(self):
         y = Yaks.login('127.0.0.1')
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
 
@@ -101,9 +97,8 @@ class APITest(unittest.TestCase):
     def test_sub_unsub(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
@@ -125,9 +120,8 @@ class APITest(unittest.TestCase):
     def test_sub_remove(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
         local_var = mvar.MVar()
@@ -147,14 +141,14 @@ class APITest(unittest.TestCase):
     def test_eval(self):
         y = Yaks.login(YSERVER)
         admin = y.admin()
-        properties = [Property('selector', '/myyaks/**')]
         stid = '123'
-        admin.add_storage(stid, properties)
+        admin.add_storage(stid, {'selector': '/myyaks/**'})
         time.sleep(1)  # TODO remove
         workspace = y.workspace('/myyaks')
 
-        def cb(path, hello):
-            return Value('{} World!'.format(hello), encoding=Encoding.STRING)
+        def cb(path, args):
+            return Value('{} World!'.format(args['hello']),
+                         encoding=Encoding.STRING)
 
         workspace.register_eval('/myyaks/key1', cb)
         kvs = workspace.get('/myyaks/key1?(hello=mondo)')

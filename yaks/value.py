@@ -49,12 +49,7 @@ class Value(object):
         if self.encoding == Encoding.RAW:
             return self.value
         if self.encoding == Encoding.PROPERTY:
-            s = ''
-            length = len(self.value)
-            for i, (key, value) in enumerate(self.value.items()):
-                s = s + key + '=' + value
-                if i < length - 1:
-                    s = s + ';'
+            s = ';'.join(map('='.join, map(list, self.value.items())))
             return s.encode()
         return self.value.encode()
 

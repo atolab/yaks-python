@@ -25,8 +25,7 @@ class Yaks(object):
         self.rt = rt
 
     @staticmethod
-    def login(locator, properties=None,
-              on_close=lambda z: z, lease=0):
+    def login(locator, properties=None):
         '''
 
         Establish a session with the Yaks instance reachable through the

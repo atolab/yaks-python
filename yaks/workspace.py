@@ -34,7 +34,7 @@ class Workspace(object):
         else:
             return self.path.to_string() + '/' + path
 
-    def put(self, path, value, quorum=0):
+    def put(self, path, value):
         '''
 
         The put operation:
@@ -47,16 +47,6 @@ class Workspace(object):
 
         Notice that the **path** can be absolute or relative to the workspace.
 
-        If a **quorum** is provided then the put will success only if and only
-        if a number quorum of independent storages exist that match path.
-        If such a set exist, the put operation will complete only after
-        the tuple <path,value> has been written on all these storages.
-
-        If no quorum is provided, then no assumptions are made and the **put**
-        always succeeds, even if there are currently no matching storage.
-        In this case the only effect of this operation will be that of
-        triggering matching subscriber, if any exist.
-
         '''
 
         self.rt.write_data(
@@ -66,7 +56,7 @@ class Workspace(object):
             zenoh.Z_PUT)
         return True
 
-    def update(self, path, value, quorum=0):
+    def update(self, path, value):
         '''
 
         Allows to **put** a delta,
@@ -76,30 +66,13 @@ class Workspace(object):
 
         raise NotImplementedError("Update not yet implemented ...")
 
-    def get(self, selector, quorum=0, encoding=Encoding.RAW,
+    def get(self, selector, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
         '''
 
         gets the set of tuples  *<path,value>* available in YAKS
         for which  the path  matches the selector,
         where the selector can be absolute or relative to the workspace.
-
-        If a **quorum** is provided, then **get** will complete succesfully
-        if and only if a number **quorum** of independent and complete
-        storage set exist.
-        Complete storage means a storage that fully covers the selector
-        (i.e. any path matching the selector is covered by the storage).
-        This ensures that if there is a  *{ <path,value> }* stored in YAKS
-        for which the *path* matches the selector **s**,
-        then there are at least **quorum** idependent copies of this element
-        stored in YAKS.
-        Of these **quorum** idependent copies,
-        the one returned to the application is the most recent version.
-
-        If no quorum is provided (notice this is the default behaviour) then
-        the [get] will succeed even if there isn't a set of storages that
-        fully covers the selector.
-        I.e. storages that partially cover the selector will also reply.
 
         The **encoding**  allows an application to request values to be
         encoded in a specific format.
@@ -149,14 +122,11 @@ class Workspace(object):
         q.task_done()
         return kvs
 
-    def remove(self, path, quorum=0):
+    def remove(self, path):
         '''
 
         Removes from all  Yaks's storages the tuples having the given **path**.
         The **path** can be absolute or relative to the workspace.
-        If a **quorum** is provided, then the *remove* will
-        complete only after having successfully removed the tuple
-        from **quorum** storages.
 
         '''
 

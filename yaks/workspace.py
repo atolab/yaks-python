@@ -137,7 +137,7 @@ class Workspace(object):
             zenoh.Z_REMOVE)
         return True
 
-    def subscribe(self, selector, listener=None):
+    def subscribe(self, selector, listener):
         '''
 
         Registers a subscription to tuples whose path matches the **selector**.

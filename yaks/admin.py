@@ -35,7 +35,7 @@ class Admin(object):
         path = '/{}/{}/plugins/yaks/backend/{}'.format(
             Admin.PREFIX, yaks, beid)
         value = Value(properties, encoding=Encoding.PROPERTY)
-        return self.ws.put(path, value, quorum=1)
+        return self.ws.put(path, value)
 
     def get_backends(self, yaks=None):
         '''
@@ -71,7 +71,7 @@ class Admin(object):
             yaks = self.local
         path = '/{}/{}/plugins/yaks/backend/{}'.format(
             Admin.PREFIX, yaks, beid)
-        return self.ws.remove(path, quorum=1)
+        return self.ws.remove(path)
 
     def add_storage(self, stid, properties, beid=None, yaks=None):
         '''
@@ -92,7 +92,7 @@ class Admin(object):
         p = '/{}/{}/plugins/yaks/backend/{}/storage/{}'.format(
             Admin.PREFIX, yaks, beid, stid)
         v = Value(properties, encoding=Encoding.PROPERTY)
-        return self.ws.put(p, v, quorum=1)
+        return self.ws.put(p, v)
 
     def get_storages(self, beid=None, yaks=None):
         '''
@@ -134,5 +134,5 @@ class Admin(object):
         kvs = self.ws.get(s)
         if len(kvs) > 0:
             p = kvs[0][0]
-            return self.ws.remove(p, quorum=1)
+            return self.ws.remove(p)
         return False

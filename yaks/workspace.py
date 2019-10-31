@@ -147,7 +147,7 @@ class Workspace(object):
         If specified,  the **listener callback will be called for each **put**
         and **update** on tuples whose
         path matches the subscription **selector**
-        listener should expect a list of (Path, Changes)
+        listener should expect a list of Change
 
         '''
 
@@ -155,16 +155,17 @@ class Workspace(object):
         if(listener is not None):
             def callback(rname, data, info):
                 if self.executor is None:
-                    listener([(rname,
-                               Change(info.kind,
-                                      None,
-                                      Value.from_z_resource(data, info)))])
+                    listener([Change(
+                        rname,
+                        info.kind,
+                        info.tstamp.time if info.tstamp is not None else None,
+                        Value.from_z_resource(data, info))])
                 else:
-                    self.executor.submit(
-                        listener,
-                        [(rname, Change(info.kind,
-                                        None,
-                                        Value.from_z_resource(data, info)))])
+                    self.executor.submit(listener, [Change(
+                        rname,
+                        info.kind,
+                        info.tstamp.time if info.tstamp is not None else None,
+                        Value.from_z_resource(data, info))])
             return self.rt.declare_subscriber(
                 selector,
                 zenoh.SubscriberMode.push(),

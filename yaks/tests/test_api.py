@@ -106,9 +106,9 @@ class APITest(unittest.TestCase):
         def cb(kvs):
             v = Value('123', encoding=Encoding.STRING)
 
-            self.assertEqual(kvs[0][1].get_value(), v)
-            self.assertEqual(kvs[0][0], '/myyaks/key1')
-            self.assertEqual(kvs[0][1].get_kind(), ChangeKind.PUT)
+            self.assertEqual(kvs[0].get_value(), v)
+            self.assertEqual(kvs[0].get_path(), '/myyaks/key1')
+            self.assertEqual(kvs[0].get_kind(), ChangeKind.PUT)
             local_var.put(kvs)
 
         sid = workspace.subscribe('/myyaks/key1', cb)
@@ -128,8 +128,8 @@ class APITest(unittest.TestCase):
         workspace.put('/myyaks/key1', Value('123', encoding=Encoding.STRING))
 
         def cb(kvs):
-            self.assertEqual(kvs[0][0], '/myyaks/key1')
-            self.assertEqual(kvs[0][1].get_kind(), ChangeKind.REMOVE)
+            self.assertEqual(kvs[0].get_path(), '/myyaks/key1')
+            self.assertEqual(kvs[0].get_kind(), ChangeKind.REMOVE)
             local_var.put(kvs)
 
         sid = workspace.subscribe('/myyaks/key1', cb)

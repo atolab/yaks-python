@@ -81,19 +81,8 @@ class ValueTests(unittest.TestCase):
 
     def test_change(self):
         v1 = Value('test string value', encoding=Encoding.STRING)
-        ts = (1234, [])
-        c = Change(ChangeKind.PUT, ts, v1)
+        c = Change('/test', ChangeKind.PUT, 1234, v1)
+        self.assertEqual('/test', c.get_path())
         self.assertEqual(ChangeKind.PUT, c.get_kind())
         self.assertEqual(v1, c.get_value())
-        self.assertEqual(ts, c.get_timestamp())
-
-    def test_change_put_and_get(self):
-        v1 = Value('test string value', encoding=Encoding.STRING)
-        ts = (1234, [])
-        c = Change(ChangeKind.PUT, (0, []))
-        c.set_value(v1)
-        c.set_kind(ChangeKind.UPDATE)
-        c.set_timestamp(ts)
-        self.assertEqual(ChangeKind.UPDATE, c.get_kind())
-        self.assertEqual(v1, c.get_value())
-        self.assertEqual(ts, c.get_timestamp())
+        self.assertEqual(1234, c.get_time())

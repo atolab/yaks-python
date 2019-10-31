@@ -90,12 +90,10 @@ class Change(object):
             zenoh.Z_REMOVE: ChangeKind.REMOVE
     }
 
-    def __init__(self, kind, ts, value=None):
-        self.set_kind(kind)
-        self.ts = ts
+    def __init__(self, path, kind, time, value=None):
+        self.path = path
+        self.time = time
         self.value = value
-
-    def set_kind(self, kind):
         if kind is None:
             self.kind = ChangeKind.PUT
         elif isinstance(kind, ChangeKind):
@@ -103,25 +101,24 @@ class Change(object):
         else:
             self.kind = Change.kind_map[kind]
 
+    def get_path(self):
+        return self.path
+
     def get_kind(self):
         return self.kind
 
-    def set_timestamp(self, timestamp):
-        self.ts = timestamp
-
-    def get_timestamp(self):
-        return self.ts
-
-    def set_value(self, value):
-        self.value = value
+    def get_time(self):
+        return self.time
 
     def get_value(self):
         return self.value
 
     def __str__(self):
-        return 'Kind: {} TS: {} Value: {}'.format(self.kind,
-                                                    self.ts,
-                                                    self.value)
+        return 'Path: {} Kind: {} Time: {} Value: {}'.format(
+            self.path,
+            self.kind,
+            self.time,
+            self.value)
 
     def __repr__(self):
         return self.__str__()

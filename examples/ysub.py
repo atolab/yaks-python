@@ -19,19 +19,19 @@ w = y.workspace('/')
 
 
 def listener(changes):
-    for (path, change) in changes:
+    for change in changes:
         if change.get_kind() == ChangeKind.PUT:
             print('>> [Subscription listener] Received PUT on "{}": "{}"'
-                  .format(path, change.get_value()))
+                  .format(change.get_path(), change.get_value()))
         elif change.get_kind() == ChangeKind.UPDATE:
             print('>> [Subscription listener] Received UPDATE on "{}": "{}"'
-                  .format(path, change.get_value()))
+                  .format(change.get_path(), change.get_value()))
         elif change.get_kind() == ChangeKind.REMOVE:
             print('>> [Subscription listener] Received REMOVE on "{}"'
-                  .format(path))
+                  .format(change.get_path()))
         else:
             print('>> [Subscription listener] Received kind:"{}" on "{}"'
-                  .format(change.get_kind(), path))
+                  .format(change.get_kind(), change.get_path()))
 
 
 print('Subscribe on {}'.format(selector))

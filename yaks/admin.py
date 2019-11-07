@@ -18,6 +18,9 @@ import zenoh
 
 
 class Admin(object):
+    '''
+    The Administration helper class.
+    '''
 
     PREFIX = '@'
 
@@ -28,7 +31,12 @@ class Admin(object):
 
     def add_backend(self, beid, properties, yaks=None):
         '''
-        Not supported in this version.
+        Add a backend in the specified Yaks.
+
+        :param beid: the Id of the backend.
+        :param propertiers: some configuration for the backend.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -39,8 +47,10 @@ class Admin(object):
 
     def get_backends(self, yaks=None):
         '''
-        Gets the list of all available back-ends on the Yaks instance
-        with UUID **yaks**.
+        Get all the backends from the specified Yaks.
+
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -51,8 +61,11 @@ class Admin(object):
 
     def get_backend(self, beid, yaks=None):
         '''
-        Gets the  back-end with id **beid** on the Yaks instance
-        with UUID **yaks**.
+        Get backend's properties from the specified Yaks.
+
+        :param beid: the Id of the backend.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -65,7 +78,11 @@ class Admin(object):
 
     def remove_backend(self, beid, yaks=None):
         '''
-        Not supported in this version.
+        Remove a backend from the specified Yaks.
+
+        :param beid: the Id of the backend.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -75,15 +92,14 @@ class Admin(object):
 
     def add_storage(self, stid, properties, beid=None, yaks=None):
         '''
-        Adds a storage named **stid** on the backend **beid** and with
-        storage and back-end specific configuration defined through
-        **properties**.
-        The **properties** should always include the selector,
-        e.g., *{"selector":"/demo/astore/**"}*.
-        Main memory is the default backend used when **beid** is unset.
+        Adds a storage in the specified Yaks backend.
 
-        Finally, the storage is created on the Yaks instance with UUID
-        **yaks**.
+        :param stid: the Id of the storage.
+        :param propertiers: some configuration for the storage.
+        :param beid: the Id of the backend. If None, a backend is
+            automatically selected.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -96,8 +112,11 @@ class Admin(object):
 
     def get_storages(self, beid=None, yaks=None):
         '''
-        Gets the list of all available storages on the Yaks instance
-        with UUID **yaks**.
+        Adds a storage in the specified Yaks.
+
+        :param beid: the Id of the backend. If None, all backends.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -110,8 +129,11 @@ class Admin(object):
 
     def get_storage(self, stid, yaks=None):
         '''
-        Gets the  storage with id **stid** on the Yaks instance
-        with UUID **yaks**.
+        Get storage's properties from the specified Yaks.
+
+        :param stid: the Id of the storage.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local
@@ -124,8 +146,11 @@ class Admin(object):
 
     def remove_storage(self, stid, yaks=None):
         '''
-        Removes the  storage with id **stid** on the Yaks instance
-        with UUID **yaks**.
+        Remove a backend from the specified Yaks.
+
+        :param stid: the Id of the storage.
+        :param yaks: the UUID of the Yaks instance. If None, the local
+            Yaks instance.
         '''
         if(yaks is None):
             yaks = self.local

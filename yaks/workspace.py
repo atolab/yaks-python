@@ -22,6 +22,12 @@ from zenoh import *
 
 
 class Workspace(object):
+    '''
+
+    A Workspace to operate on Yaks.
+
+    '''
+
     def __init__(self, runtime, path, executor=None):
         self.rt = runtime
         self.path = Path.to_path(path)
@@ -37,15 +43,10 @@ class Workspace(object):
     def put(self, path, value):
         '''
 
-        The put operation:
+        Put a path/value into Yaks.
 
-        - causes the notification of all subscriptions whose selector matches
-            the path parameter, and
-
-        - stores the tuple <path,value> on all storages in YAKS whose selector
-            matches the path parameter.
-
-        Notice that the **path** can be absolute or relative to the workspace.
+        :param path: the Path. Can be absolute or relative to the workspace.
+        :param value: the value.
 
         '''
 
@@ -59,8 +60,10 @@ class Workspace(object):
     def update(self, path, value):
         '''
 
-        Allows to **put** a delta,
-        thus avoiding to distribute the entire value.
+        Update a path/value into Yaks.
+
+        :param path: the Path. Can be absolute or relative to the workspace.
+        :param value: a delta to be applied on the existing value.
 
         '''
 
@@ -70,25 +73,10 @@ class Workspace(object):
                 fallback=TranscodingFallback.KEEP):
         '''
 
-        gets the set of tuples  *<path,value>* available in YAKS
-        for which  the path  matches the selector,
-        where the selector can be absolute or relative to the workspace.
+        Get a selection of path/value from Yaks.
 
-        The **encoding**  allows an application to request values to be
-        encoded in a specific format.
-
-
-        If no encoding is provided (this is the default behaviour) then YAKS
-        will not try to perform any transcoding and will
-        return matching values in the encoding in which they are stored.
-
-        The **fallback** controls what happens for those values that cannot be
-        transcoded into the desired encoding, the available options are:
-
-        - Fail: the **get** fails if some value cannot be transcoded.
-        - Drop: values that cannot be transcoded are dropped.
-        - Keep: values that cannot be transcoded are kept with their original
-            encoding and left for the application to deal with.
+        :param selector: the selector expressing the selection.
+        :returns: a list of path/value.
 
         '''
 
@@ -125,8 +113,10 @@ class Workspace(object):
     def remove(self, path):
         '''
 
-        Removes from all  Yaks's storages the tuples having the given **path**.
-        The **path** can be absolute or relative to the workspace.
+        Remove a path/value from Yaks.
+
+        :param path: the Path to be removed.
+            Can be absolute or relative to the workspace.
 
         '''
 
@@ -140,14 +130,12 @@ class Workspace(object):
     def subscribe(self, selector, listener):
         '''
 
-        Registers a subscription to tuples whose path matches the **selector**.
+        Subscribe to a selection of path/value from Yaks.
 
-        A subscription identifier is returned.
-        The **selector** can be absolute or relative to the workspace.
-        If specified,  the **listener callback will be called for each **put**
-        and **update** on tuples whose
-        path matches the subscription **selector**
-        listener should expect a list of Change
+        :param selector: the selector expressing the selection.
+        :param listener: the Listener that will be called for each change of
+            a path/value matching the selection.
+        :returns: a subscription id.
 
         '''
 
@@ -181,7 +169,9 @@ class Workspace(object):
     def unsubscribe(self, subscription_id):
         '''
 
-        Unregisters a previous subscription with the identifier **subid**
+        Unregisters a previous subscription.
+
+        :param subscription_id: the subscription id to unregister.
 
         '''
 
@@ -191,8 +181,11 @@ class Workspace(object):
     def register_eval(self, path, callback):
         '''
 
-        Registers an evaluation function **eval** under the provided **path**.
-        The **path** can be absolute or relative to the workspace.
+        Registers an evaluation function under the provided path.
+
+        :param path: the Path where the function can be triggered using
+            :func:`~yaks.workspace.Workspace.get`.
+        :param callback: the evaluation function.
 
         '''
 
@@ -225,9 +218,9 @@ class Workspace(object):
     def unregister_eval(self, path):
         '''
 
-        Unregisters all previously registered evaluation functions
-        under the give [path].
-        The [path] can be absolute or relative to the workspace.
+        Unregister a previously registered evaluation function.
+
+        :param path: the path where the function has been registered.
 
         '''
 

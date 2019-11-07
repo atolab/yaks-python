@@ -19,6 +19,12 @@ from zenoh import Zenoh, Z_INFO_PEER_PID_KEY
 
 
 class Yaks(object):
+    '''
+
+    The Yaks client API.
+
+    '''
+
     ZENOH_DEFAULT_PORT = 7447
 
     def __init__(self, rt):
@@ -28,11 +34,13 @@ class Yaks(object):
     def login(locator, properties=None):
         '''
 
-        Establish a session with the Yaks instance reachable through the
-        provided *locator*.
+        Establish a session with the Yaks instance reachable via provided Zenoh
+        locator. The locator must have the format: tcp/<ip>:<port> .
 
-        Valid format for the locator are valid  IP addresses as well
-        as the combination IP:PORT.
+        :param locator: a Zenoh locator.
+        :param properties: the Properties to be used for this session
+            (e.g. "user", "password", ...). Can be None.
+        :returns: a Yaks object.
 
         '''
         zprops = {} if properties is None else {
@@ -45,14 +53,19 @@ class Yaks(object):
     def workspace(self, path, executor=None):
         '''
 
-        Creates a workspace relative to the provided **path**.
-        Any *put* or *get* operation with relative paths on this workspace
-        will be prepended with the workspace *path*.
+        Creates a :class:`~yaks.workspace.Workspace` using the
+        provided path. All relative Selector or Path used with this
+        :class:`~yaks.workspace.Workspace` will be relative to
+        this path.
 
-        If an executor of type concurrent.futures.Executor is provided,
-        then all subscription listeners and eval callbacks are executed
-        by the provided executor. This is useful when listners and/or
-        callbacks need to perform long operations or need to call get().
+        :param path: the Workspace's path.
+        :param executor: an executor of type
+            :py:class:`concurrent.futures.Executor` or None.
+            If not None, all subscription listeners and eval callbacks are
+            executed by the provided executor. This is useful when listeners
+            and/or callbacks need to perform long operations or need to call
+            operations like :func:`~yaks.workspace.Workspace.get`.
+        :returns: a :class:`~yaks.workspace.Workspace`.
 
         '''
         return Workspace(self.rt, path, executor)

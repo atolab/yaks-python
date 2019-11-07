@@ -14,6 +14,7 @@ release = '0.3.0'
 master_doc = 'index'
 extensions = ['sphinx.ext.autodoc']
 language = 'python'
+autodoc_mock_imports = ['zenoh']
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'

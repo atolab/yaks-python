@@ -1,6 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/yaks.svg)](https://badge.fury.io/py/yaks)
 [![Build Status](https://travis-ci.com/atolab/yaks-python.svg?token=LBmcudV28U4KHP4F42om&branch=master)](https://travis-ci.com/atolab/yaks-python)
 [![codecov](https://codecov.io/gh/atolab/yaks-python/branch/master/graph/badge.svg)](https://codecov.io/gh/atolab/yaks-python)
+[![Documentation Status](https://readthedocs.org/projects/yaks-python/badge/?version=latest)](https://yaks-python.readthedocs.io/en/latest/?badge=latest)
 [![Gitter](https://badges.gitter.im/atolab/yaks.svg)](https://gitter.im/atolab/yaks?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 # YAKS Python API v0.2
 

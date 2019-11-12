@@ -34,13 +34,14 @@ def eval_callback(path, properties):
     #         1st result for the name
     print('>> Processing eval for path {} with properties: {}'
           .format(path, properties))
-    name = properties.get('name', 'Yaks Python!')
+    name = properties['name']
+    # name = properties.get('name', 'Yaks Python!')
 
     if name.startswith('/'):
         print('   >> Get name to use from Yaks at path: {}'.format(name))
-        kvs = w.get(name)
-        if len(kvs) > 0:
-            name = kvs[0][1]
+        entries = w.get(name)
+        if len(entries) > 0:
+            name = entries[0].value
 
     print('   >> Returning string: "Eval from {}"'.format(name))
     return Value('Eval from {}'.format(name), encoding=Encoding.STRING)

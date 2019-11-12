@@ -56,8 +56,10 @@ class Admin(object):
             yaks = self.local
         s = '/{}/{}/plugins/yaks/backend/*'.format(
             Admin.PREFIX, yaks)
-        kvs = self.ws.get(s)
-        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
+        entries = self.ws.get(s)
+        return list(map(
+            lambda e: (e.get_path().split('/')[-1],
+                       e.get_value().value), entries))
 
     def get_backend(self, beid, yaks=None):
         '''
@@ -71,9 +73,9 @@ class Admin(object):
             yaks = self.local
         s = '/{}/{}/plugins/yaks/backend/{}'.format(
             Admin.PREFIX, yaks, beid)
-        kvs = self.ws.get(s)
-        if len(kvs) > 0:
-            return kvs[0][1].value
+        entries = self.ws.get(s)
+        if len(entries) > 0:
+            return entries[0].get_value().value
         return None
 
     def remove_backend(self, beid, yaks=None):
@@ -124,8 +126,10 @@ class Admin(object):
             beid = '*'
         s = '/{}/{}/plugins/yaks/backend/{}/storage/*'.format(
             Admin.PREFIX, yaks, beid)
-        kvs = self.ws.get(s)
-        return list(map(lambda e: (e[0].split('/')[-1], e[1].value), kvs))
+        entries = self.ws.get(s)
+        return list(map(
+            lambda e: (e.get_path().split('/')[-1],
+                       e.get_value().value), entries))
 
     def get_storage(self, stid, yaks=None):
         '''
@@ -139,9 +143,9 @@ class Admin(object):
             yaks = self.local
         s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(
             Admin.PREFIX, yaks, stid)
-        kvs = self.ws.get(s)
-        if len(kvs) > 0:
-            return kvs[0][1].value
+        entries = self.ws.get(s)
+        if len(entries) > 0:
+            return entries[0].get_value().value
         return None
 
     def remove_storage(self, stid, yaks=None):
@@ -156,8 +160,8 @@ class Admin(object):
             yaks = self.local
         s = '/{}/{}/plugins/yaks/backend/*/storage/{}'.format(
             Admin.PREFIX, yaks, stid)
-        kvs = self.ws.get(s)
-        if len(kvs) > 0:
-            p = kvs[0][0]
+        entries = self.ws.get(s)
+        if len(entries) > 0:
+            p = entries[0].get_path()
             return self.ws.remove(p)
         return False

@@ -17,6 +17,7 @@ from yaks.encoding import Encoding, TranscodingFallback
 from yaks.path import Path
 from yaks.selector import Selector
 from yaks.value import Value, Change
+from yaks.entry import Entry
 import zenoh
 from zenoh import *
 
@@ -69,6 +70,15 @@ class Workspace(object):
 
         raise NotImplementedError("Update not yet implemented ...")
 
+    def __isSelectorForSeries(self, selector):
+        props = selector.get_properties()
+        if props is None:
+            return True
+        for p in props.split(";"):
+            if(p.startswith("starttime") or p.startswith("stoptime")):
+                return True
+        return False
+
     def get(self, selector, encoding=Encoding.RAW,
                 fallback=TranscodingFallback.KEEP):
         '''
@@ -76,7 +86,7 @@ class Workspace(object):
         Get a selection of path/value from Yaks.
 
         :param selector: the selector expressing the selection.
-        :returns: a list of path/value.
+        :returns: a list of entry.
 
         '''
 
@@ -97,18 +107,33 @@ class Workspace(object):
             selector.get_path(),
             selector.get_optional_part(),
             callback)
-        kvs = []
+        resultsMap = {}
         reply = q.get()
         while(reply.kind != zenoh.Z_REPLY_FINAL):
             if(reply.kind == zenoh.Z_STORAGE_DATA
                or reply.kind == zenoh.Z_EVAL_DATA):
-                # TODO consolidate with timestamps
-                if(not contains_key(kvs, reply.rname)):
-                    kvs.append((reply.rname,
-                                Value.from_z_resource(reply.data, reply.info)))
+                entry = Entry(reply.rname,
+                              Value.from_z_resource(reply.data, reply.info),
+                              reply.info.tstamp)
+                if reply.rname not in resultsMap:
+                    resultsMap[reply.rname] = set()
+                resultsMap[reply.rname].add(entry)
             reply = q.get()
         q.task_done()
-        return kvs
+
+        results = []
+        if(self.__isSelectorForSeries(selector)):
+            # return all entries
+            for path, entrySet in resultsMap.items():
+                for entry in sorted(entrySet):
+                    results.append(entry)
+        else:
+            # return only the latest entry for each path
+            for path, entrySet in resultsMap.items():
+                entries = sorted(entrySet)
+                results.append(entries[-1])
+
+        return results
 
     def remove(self, path):
         '''

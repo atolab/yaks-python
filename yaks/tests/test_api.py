@@ -67,10 +67,9 @@ class APITest(unittest.TestCase):
         workspace = y.workspace('/myyaks')
         d = Value('hello!', encoding=Encoding.STRING)
         self.assertTrue(workspace.put('/myyaks/key1', d))
-        nd = workspace.get('/myyaks/key1')[0]
-        k, v = nd
-        self.assertEqual(v, d)
-        self.assertEqual(k, '/myyaks/key1')
+        entry = workspace.get('/myyaks/key1')[0]
+        self.assertEqual(entry.get_value(), d)
+        self.assertEqual(entry.get_path(), '/myyaks/key1')
         self.assertTrue(workspace.remove('/myyaks/key1'))
         self.assertEqual(workspace.get('/myyaks/key1'), [])
         admin.remove_storage(stid)
@@ -89,8 +88,8 @@ class APITest(unittest.TestCase):
             workspace.put('/myyaks/big/{}'.format(i),
                           Value(v, encoding=Encoding.STRING))
 
-        nd = workspace.get('/myyaks/big/**')
-        self.assertEqual(len(nd), 100)
+        entries = workspace.get('/myyaks/big/**')
+        self.assertEqual(len(entries), 100)
         admin.remove_storage(stid)
         y.logout()
 
@@ -151,10 +150,10 @@ class APITest(unittest.TestCase):
                          encoding=Encoding.STRING)
 
         workspace.register_eval('/myyaks/key1', cb)
-        kvs = workspace.get('/myyaks/key1?(hello=mondo)')
-        self.assertEqual(kvs,
-                         [('/myyaks/key1',
-                           Value('mondo World!', encoding=Encoding.STRING))])
+        entries = workspace.get('/myyaks/key1?(hello=mondo)')
+        self.assertEqual(entries[0].get_path(), '/myyaks/key1')
+        self.assertEqual(entries[0].get_value(),
+                         Value('mondo World!', encoding=Encoding.STRING))
         workspace.unregister_eval('/myyaks/key1')
         admin.remove_storage(stid)
         y.logout()

@@ -1,7 +1,7 @@
 import sys
 from yaks import Yaks, Selector, Path, Workspace, Encoding, Value
 
-locator = 'tcp/127.0.0.1:7447'
+locator = None
 if len(sys.argv) > 1:
     locator = sys.argv[1]
 
@@ -9,7 +9,7 @@ selector = '/demo/example/**'
 if len(sys.argv) > 2:
     selector = sys.argv[2]
 
-print('Login to {}...'.format(locator))
+print('Login to Yaks (locator={})...'.format(locator))
 y = Yaks.login(locator)
 
 print('Use Workspace on "/"')

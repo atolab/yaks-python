@@ -35,7 +35,7 @@ class Admin(object):
 
         :param beid: the Id of the backend.
         :param propertiers: some configuration for the backend.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -49,7 +49,7 @@ class Admin(object):
         '''
         Get all the backends from the specified Yaks.
 
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -66,7 +66,7 @@ class Admin(object):
         Get backend's properties from the specified Yaks.
 
         :param beid: the Id of the backend.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -83,7 +83,7 @@ class Admin(object):
         Remove a backend from the specified Yaks.
 
         :param beid: the Id of the backend.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -98,9 +98,9 @@ class Admin(object):
 
         :param stid: the Id of the storage.
         :param propertiers: some configuration for the storage.
-        :param beid: the Id of the backend. If None, a backend is
+        :param beid: the Id of the backend. If ``None``, a backend is
             automatically selected.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -116,8 +116,8 @@ class Admin(object):
         '''
         Adds a storage in the specified Yaks.
 
-        :param beid: the Id of the backend. If None, all backends.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param beid: the Id of the backend. If ``None``, all backends.
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -136,7 +136,7 @@ class Admin(object):
         Get storage's properties from the specified Yaks.
 
         :param stid: the Id of the storage.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):
@@ -153,7 +153,7 @@ class Admin(object):
         Remove a backend from the specified Yaks.
 
         :param stid: the Id of the storage.
-        :param yaks: the UUID of the Yaks instance. If None, the local
+        :param yaks: the UUID of the Yaks instance. If ``None``, the local
             Yaks instance.
         '''
         if(yaks is None):

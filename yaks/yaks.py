@@ -34,12 +34,15 @@ class Yaks(object):
     def login(locator, properties=None):
         '''
 
-        Establish a session with the Yaks instance reachable via provided Zenoh
-        locator. The locator must have the format: tcp/<ip>:<port> .
+        Establish a session with the Yaks instance reachable via provided
+        Zenoh locator. If the provided locator is ``None``, :func:`login`
+        will perform some dynamic discovery and try to establish the session
+        automatically. When not ``None``, the locator must have the format:
+        ``tcp/<ip>:<port>``.
 
-        :param locator: a Zenoh locator.
+        :param locator: a Zenoh locator or ``None``.
         :param properties: the Properties to be used for this session
-            (e.g. "user", "password", ...). Can be None.
+            (e.g. "user", "password", ...). Can be ``None``.
         :returns: a Yaks object.
 
         '''
@@ -60,8 +63,8 @@ class Yaks(object):
 
         :param path: the Workspace's path.
         :param executor: an executor of type
-            :py:class:`concurrent.futures.Executor` or None.
-            If not None, all subscription listeners and eval callbacks are
+            :py:class:`concurrent.futures.Executor` or ``None``.
+            If not ``None``, all subscription listeners and eval callbacks are
             executed by the provided executor. This is useful when listeners
             and/or callbacks need to perform long operations or need to call
             operations like :func:`~yaks.workspace.Workspace.get`.

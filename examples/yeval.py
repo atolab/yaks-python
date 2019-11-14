@@ -3,13 +3,13 @@ import concurrent.futures
 from yaks import Yaks, Selector, Path, Workspace
 from yaks import Change, ChangeKind, Encoding, Value
 
-locator = None
-if len(sys.argv) > 1:
-    locator = sys.argv[1]
-
 path = '/demo/example/yaks-java-eval'
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+
+locator = None
 if len(sys.argv) > 2:
-    path = sys.argv[2]
+    locator = sys.argv[2]
 
 print('Login to Yaks (locator={})...'.format(locator))
 y = Yaks.login(locator)

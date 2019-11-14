@@ -1,15 +1,15 @@
 import sys
 from yaks import Yaks, Selector, Path, Workspace, Encoding, Value
 
-locator = None
-if len(sys.argv) > 1:
-    locator = sys.argv[1]
-
-# If not specified as 2nd argument, use a relative path
+# If not specified as 1st argument, use a relative path
 # (to the workspace below): 'yaks-java-put'
 path = 'yaks-python-put'
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+
+locator = None
 if len(sys.argv) > 2:
-    path = sys.argv[2]
+    locator = sys.argv[2]
 
 print('Login to Yaks (locator={})...'.format(locator))
 y = Yaks.login(locator)

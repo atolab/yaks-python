@@ -3,7 +3,7 @@ import concurrent.futures
 from yaks import Yaks, Selector, Path, Workspace
 from yaks import Change, ChangeKind, Encoding, Value
 
-path = '/demo/example/yaks-java-eval'
+path = '/demo/example/yaks-python-eval'
 if len(sys.argv) > 1:
     path = sys.argv[1]
 
@@ -25,17 +25,17 @@ def eval_callback(path, properties):
     # In this Eval function, we choosed to get the name to be returned in the
     # StringValue in 3 possible ways, depending the properties specified in the
     # selector. For example, with the following selectors:
-    #   - '/demo/example/yaks-java-eval' :
+    #   - '/demo/example/yaks-python-eval' :
     #         no properties are set, a default value is used for the name
-    #   - '/demo/example/yaks-java-eval?(name=Bob)' :
+    #   - '/demo/example/yaks-python-eval?(name=Bob)' :
     #         'Bob' is used for the name
-    #   - '/demo/example/yaks-java-eval?(name=/demo/example/name)' :
+    #   - '/demo/example/yaks-python-eval?(name=/demo/example/name)' :
     #         the Eval function does a GET on '/demo/example/name' and uses the
     #         1st result for the name
     print('>> Processing eval for path {} with properties: {}'
           .format(path, properties))
-    name = properties['name']
-    # name = properties.get('name', 'Yaks Python!')
+    # name = properties['name']
+    name = properties.get('name', 'Yaks Python!')
 
     if name.startswith('/'):
         print('   >> Get name to use from Yaks at path: {}'.format(name))
